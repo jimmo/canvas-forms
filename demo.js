@@ -40,9 +40,17 @@ new AlignConstraint(bfy2, Coord.X, bfy1, Coord.XW, 10);
 new AlignConstraint(bfy3, Coord.X, bfy2, Coord.XW, 10);
 
 const sb = f.add(new Scrollbox(), null, 20, 300, null, 20, 20);
-for (let i = 0; i < 40; ++i) {
-  const l = sb.add(new Label('Label ' + i), 20, 20 + i * 40);
+for (let i = 0; i < 4000; ++i) {
+  const l = sb.add(new Label('Laaaaaaaaaabel ' + i), 20, 20 + i * 40);
 }
+
+const br = f.add(new Button('click to resize'), 10, 580, null, 26);
+const brw = new StaticConstraint(br, Coord.W, 100);
+const lr = f.add(new Label('aligned'), null, 580);
+new AlignConstraint(lr, Coord.X, br, Coord.XW, 10);
+br.click.add(() => {
+  brw.add(20);
+});
 
 let n = 0;
 b.click.add(() => {

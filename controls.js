@@ -232,29 +232,51 @@ class Scrollbox extends Control {
     this.enableHitDetection();
   }
 
-  paint(ctx) {
-    // For testing, fill the background.
-    ctx.fillStyle = '#c0c0c0';
-    ctx.fillRect(0, 0, this.w, this.h);
+  shouldPaint(control) {
+    // Optimisation to disable painting of controls that are completely outside the clip
+    // region. For 4000 labels in a scroll view (with approx 20 visible) this gives 10x
+    // faster repaints.
+    return control.xw - this.scrollX >= 0 && control.x - this.scrollX <= this.w && control.yh - this.scrollY >= 0 && control.y - this.scrollY <= this.h;
+  }
 
+  paint(ctx) {
+    // Do regular paint, but offset by the scroll coordinates.
+    // TODO: this could be optimised to not paint children that are fully outside
+    // the clipping region.
     ctx.translate(-this.scrollX, -this.scrollY);
     super.paint(ctx);
     ctx.translate(this.scrollX, this.scrollY);
 
+    // Draw scrollbars.
     ctx.fillStyle = '#404040';
+
+    // Horizontal scrollbar.
     if (this.xmax > this.w) {
-      const sw = this.w * (this.w / this.xmax);
-      const sx = (this.w - sw) * this.scrollX / (this.xmax - this.w);
+      let w = this.w;
+      if (this.ymax > this.h) {
+        // Leave room for vertical scrollbar.
+        w -= 12;
+      }
+      const sw = w * (this.w / this.xmax);
+      const sx = (w - sw) * this.scrollX / (this.xmax - this.w);
       ctx.fillRect(sx, this.h - 10, sw, 7);
     }
+
+    // Vertical scrollbar.
     if (this.ymax > this.h) {
-      const sh = this.h * (this.h / this.ymax);
-      const sy = (this.h - sh) * this.scrollY / (this.ymax - this.h);
+      let h = this.h;
+      if (this.xmax > this.w) {
+        // Leave room for horizontal scrollbar.
+        h -= 12;
+      }
+      const sh = h * (this.h / this.ymax);
+      const sy = (h - sh) * this.scrollY / (this.ymax - this.h);
       ctx.fillRect(this.w - 10, sy, 7, sh);
     }
   }
 
   scrollBy(dx, dy) {
+    // TODO: this should bubble up to parent scroll containers when bounds are hit.
     this.scrollX -= dx;
     this.scrollY -= dy;
     this.clipScroll();
@@ -267,6 +289,11 @@ class Scrollbox extends Control {
   }
 
   layout() {
+    // TODO: investigate skipping layout for controls that are outside the visible
+    // area. This means we'd need to re-layout on scrolll potentially? Maybe there
+    // could be a buffer of N px in all directions that can trigger relayout.
+    // Need to figure out how much layout costs. Skipping painting is probably a much
+    // better optimisation as layout happens less often.
     super.layout();
 
     this.xmax = 0;

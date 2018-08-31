@@ -9,6 +9,7 @@
 //  - Mouse enter/leave
 //  - Drag + Drag & Drop
 //  - Focus
+//  - Scroll hierarchy
 
 if (!window.ResizeObserver) {
   // FireFox polyfill.
@@ -524,10 +525,18 @@ class Control {
   selfConstrain() {
   }
 
+  shouldPaint(control) {
+    return true;
+  }
+
   // Override this (and always call `super.paint()`) to customise appearance of child controls.
   paint(ctx) {
     // This base implementation just makes sure all children are painted too.
     for (const c of this.controls) {
+      if (!this.shouldPaint(c)) {
+        continue;
+      }
+
       ctx.save();
 
       // Not we offset the context so that all drawing operations are relative to the control.
@@ -775,6 +784,7 @@ class Form extends Control {
     window.requestAnimationFrame((frameTime) => {
       //console.log('paint ' + frameTime);
       this.pendingPaint = false;
+
       this.paint(this.context());
     });
   }

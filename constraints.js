@@ -190,6 +190,16 @@ class StaticConstraint extends Constraint {
     Constraint.setCoord(this.control, this.coord, this.v);
     return true;
   }
+
+  set(v) {
+    this.v = v;
+    this.control.relayout();
+  }
+
+  add(dv) {
+    this.v += dv;
+    this.control.relayout();
+  }
 }
 
 // This constrains two coordinates from the same axis.
