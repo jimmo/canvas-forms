@@ -305,4 +305,9 @@ class Scrollbox extends Control {
 
     this.clipScroll();
   }
+
+  controlAtPoint(x, y) {
+    return super.controlAtPoint(x + this.scrollX, y + this.scrollY);
+  }
+
 }

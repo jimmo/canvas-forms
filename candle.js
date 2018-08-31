@@ -287,6 +287,9 @@ class Control {
     this.clip = false;
     this.scrollable = false;
 
+    // Is the mouse currently over this control.
+    this.focused = false;
+
     // Default font and color used by many controls (e.g. Label, Button, Checkbox, etc).
     this.fontSize = null;
     this.fontName = null;
@@ -404,9 +407,11 @@ class Control {
   // Coordinates are relative to the control.
   controlAtPoint(x, y) {
     // TODO: sort by z-order.
+    const editing = this.editing();
+
     for (let i = this.controls.length - 1; i >= 0; --i) {
       const c = this.controls[i];
-      if (c._enableHitDetection && x >= c.x && y >= c.y && x < c.x + c.w && y < c.y + c.h) {
+      if ((editing || c._enableHitDetection) && x >= c.x && y >= c.y && x < c.x + c.w && y < c.y + c.h) {
         return c.controlAtPoint(x - c.x, y - c.y);
       }
     }
@@ -556,6 +561,29 @@ class Control {
 
       ctx.restore();
     }
+
+    if (this.editing()) {
+      for (const c of this.controls) {
+        if (!this.shouldPaint(c)) {
+          continue;
+        }
+
+        if (c.focused) {
+          for (const cx of c.refConstraints) {
+            ctx.save();
+            cx.paint(ctx);
+            ctx.restore();
+          }
+        }
+      }
+    }
+
+    // Draw all constraints.
+    // for (const c of this.childConstraints) {
+    //   ctx.save();
+    //   c.paint(ctx);
+    //   ctx.restore();
+    // }
   }
 
   // Adds a child control, optionally with the specified static coordinates.
@@ -687,6 +715,12 @@ class Control {
     }
   }
 
+  editing() {
+    if (this.parent) {
+      return this.parent.editing();
+    }
+  }
+
   // Gets the x coordinate of this control relative to the surface.
   surfaceX() {
     let x = this.x;
@@ -721,8 +755,10 @@ class Form extends Control {
     this.pendingPaint = false;
 
     this.fontSize = 16;
-    this.fontName = 'sans'
-    this.color = 'black'
+    this.fontName = 'sans';
+    this.color = 'black';
+
+    this._editing = false;
 
     // When the canvas resizes, relayout and repaint the entire form.
     this.surface.resize.add(data => {
@@ -757,8 +793,13 @@ class Form extends Control {
     // Map mouse events on the surface into the control that the mouse is over.
     this.surface.mousemove.add(data => {
       const hit = this.controlAtPoint(data.x, data.y);
+      if (this.focus) {
+        this.focus.control.focused = false;
+      }
       this.focus = hit;
+      this.focus.control.focused = true;
       hit.control.mousemove.fire(new MouseEventData(hit.x, hit.y));
+      this.repaint();
     });
     this.surface.mousedown.add(data => {
       const hit = this.controlAtPoint(data.x, data.y);
@@ -813,5 +854,9 @@ class Form extends Control {
   // the parent to be able to provide it, so that's what we do.
   context() {
     return this.surface.ctx;
+  }
+
+  editing() {
+    return this._editing;
   }
 }

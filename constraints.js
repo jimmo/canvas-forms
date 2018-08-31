@@ -39,6 +39,10 @@ class Constraint {
     }
   }
 
+  // In layout mode, show this constraint on the form.
+  paint(ctx) {
+  }
+
   // Helper for constraints to tell a control that it is referenced
   // by this contraints.
   static refControl(constraint, control) {
@@ -159,6 +163,87 @@ class Constraint {
   done(round) {
     return true;
   }
+
+  static drawCoord(ctx, color, control, coord, offset) {
+    let xmid = control.x + Math.round(control.w / 3);
+    let ymid = control.y + Math.round(control.h / 3);
+
+    if (coord.axis === CoordAxis.X) {
+      ymid += offset;
+    } else if (coord.axis === CoordAxis.Y) {
+      xmid += offset;
+    }
+
+    if (coord === Coord.X) {
+      Constraint.drawConstraint(ctx, color, 0, ymid, control.x, ymid);
+    } else if (coord === Coord.Y) {
+      Constraint.drawConstraint(ctx, color, xmid, 0, xmid, control.y);
+    } else if (coord === Coord.W) {
+      Constraint.drawConstraint(ctx, color, control.x, ymid, control.xw, ymid);
+    } else if (coord === Coord.H) {
+      Constraint.drawConstraint(ctx, color, xmid, control.y, xmid, control.yh);
+    } else if (coord === Coord.X2) {
+      Constraint.drawConstraint(ctx, color, control.xw, ymid, control.parent.w, ymid);
+    } else if (coord === Coord.Y2) {
+      Constraint.drawConstraint(ctx, color, xmid, control.yh, xmid, control.parent.h);
+    } else if (coord === Coord.XW) {
+      Constraint.drawConstraint(ctx, color, 0, ymid, control.xw, ymid);
+    } else if (coord === Coord.YH) {
+      Constraint.drawConstraint(ctx, color, xmid, 0, xmid, control.yh);
+    } else if (coord === Coord.X2W) {
+      Constraint.drawConstraint(ctx, color, control.x, ymid, control.parent.w, ymid);
+    } else if (coord === Coord.Y2H) {
+      Constraint.drawConstraint(ctx, color, xmid, control.y, xmid, control.parent.h);
+    } else {
+      console.log('Unable to draw static constraint on ', this.coord);
+    }
+  }
+
+  static drawConstraint(ctx, color, x1, y1, x2, y2) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+
+    let t1 = x1;
+    let t2 = x2;
+    x1 = Math.min(t1, t2);
+    x2 = Math.max(t1, t2);
+
+    t1 = y1;
+    t2 = y2;
+    y1 = Math.min(t1, t2);
+    y2 = Math.max(t1, t2);
+
+    ctx.beginPath();
+    if (y1 === y2) {
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x1 + 6, y1 + 6);
+      ctx.lineTo(x1 + 6, y1 - 6);
+      ctx.lineTo(x1, y1);
+      ctx.moveTo(x1 + 6, y1);
+
+      ctx.lineTo(x2 - 6, y2);
+      ctx.lineTo(x2 - 6, y2 + 6);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x2 - 6, y2 - 6);
+      ctx.lineTo(x2 - 6, y2);
+    } else if (x1 === x2) {
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x1 + 6, y1 + 6);
+      ctx.lineTo(x1 - 6, y1 + 6);
+      ctx.lineTo(x1, y1);
+      ctx.moveTo(x1, y1 + 6);
+
+      ctx.lineTo(x2, y2 - 6);
+      ctx.lineTo(x2 - 6, y2 - 6);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x2 + 6, y2 - 6);
+      ctx.lineTo(x2, y2 - 6);
+    } else {
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+    }
+    ctx.stroke();
+  }
 }
 
 // Represents a simple constraint that sets one coordinate to a static value.
@@ -183,6 +268,10 @@ class StaticConstraint extends Constraint {
   remove() {
     Constraint.unrefControl(this, this.control);
     super.remove();
+  }
+
+  paint(ctx) {
+    Constraint.drawCoord(ctx, 'cornflowerblue', this.control, this.coord, 0);
   }
 
   apply() {
@@ -268,6 +357,11 @@ class AlignConstraint extends Constraint {
 
     // Neither was set, so we can't be applied yet.
     return false;
+  }
+
+  paint(ctx) {
+    Constraint.drawCoord(ctx, 'orange', this.control1, this.coord1, 10);
+    Constraint.drawCoord(ctx, 'orange', this.control2, this.coord2, 20);
   }
 }
 
@@ -434,5 +528,17 @@ class FillConstraint extends Constraint {
 
     // Need at least another round.
     return false;
+  }
+
+  paint(ctx) {
+    if (this.coord === Coord.W) {
+      for (const c of this.controls) {
+        Constraint.drawCoord(ctx, 'purple', c, Coord.W, 30);
+      }
+    } else if (this.coord === Coord.H) {
+      for (const c of this.controls) {
+        Constraint.drawCoord(ctx, 'purple', c, Coord.H, 30);
+      }
+    }
   }
 }

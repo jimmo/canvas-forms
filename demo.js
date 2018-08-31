@@ -6,7 +6,7 @@ const l = f.add(new Label('this is some text'), 10, 10);
 const l2 = f.add(new Label('aligned label'), null, 20);
 new AlignConstraint(l2, Coord.X, l, Coord.XW, 20);
 const b = f.add(new Button('Cancel'), 80, 130, 80, 26);
-const b2 = f.add(new Button('Wide'), 20, 200, null, 26, 20, null);
+const b2 = f.add(new Button('Wide'), 20, 200, null, 26, 200, null);
 const c = f.add(new Checkbox('Enabled'), 10, 70, 100, 26);
 
 const bf1 = f.add(new Button('One'), 10, 300, null, 26);
@@ -40,8 +40,10 @@ new AlignConstraint(bfy2, Coord.X, bfy1, Coord.XW, 10);
 new AlignConstraint(bfy3, Coord.X, bfy2, Coord.XW, 10);
 
 const sb = f.add(new Scrollbox(), null, 20, 300, null, 20, 20);
-for (let i = 0; i < 4000; ++i) {
-  const l = sb.add(new Label('Laaaaaaaaaabel ' + i), 20, 20 + i * 40);
+const lx = sb.add(new Label('Label ' + 0), 20, 20);
+for (let i = 1; i < 4000; ++i) {
+  const l = sb.add(new Label('Label ' + i), null, 20 + i * 40);
+  new AlignConstraint(l, Coord.X, lx, Coord.X, 0);
 }
 
 const br = f.add(new Button('click to resize'), 10, 580, null, 26);
@@ -58,6 +60,10 @@ b.click.add(() => {
     n += 1;
     l.setText('you clicked the button ' + n + ' times');
   }
+});
+
+b2.click.add(() => {
+  f._editing = !f._editing;
 });
 
 t.change.add(() => {
