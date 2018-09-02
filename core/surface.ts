@@ -50,6 +50,7 @@ export class Surface {
   mousedown: Event;
   mouseup: Event;
   mousemove: Event;
+  mousewheel: Event;
 
   constructor(selector: string) {
     // The <canvas> DOM element.
@@ -68,6 +69,7 @@ export class Surface {
     this.mousedown = new Event();
     this.mouseup = new Event();
     this.mousemove = new Event();
+    this.mousewheel = new Event();
 
     // Forward DOM events to our own events.
     // if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
@@ -100,6 +102,10 @@ export class Surface {
     this.elem.addEventListener('mousemove', (ev) => {
       const s = window.devicePixelRatio;
       this.mousemove.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
+    });
+    this.elem.addEventListener('wheel', (ev) => {
+      const s = window.devicePixelRatio;
+      this.mousewheel.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
     });
   }
 

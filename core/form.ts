@@ -48,11 +48,7 @@ export class Form extends Control {
     // Map mouse events on the surface into the control that the mouse is over.
     this.surface.mousemove.add(data => {
       const hit = this.controlAtPoint(data.x, data.y);
-      if (this.focus) {
-        this.focus.control.focused = false;
-      }
-      this.focus = hit;
-      this.focus.control.focused = true;
+      this.updateFocus(hit);
       hit.control.mousemove.fire(new MouseEventData(hit.x, hit.y));
       this.repaint();
     });
@@ -64,6 +60,18 @@ export class Form extends Control {
       const hit = this.controlAtPoint(data.x, data.y);
       hit.control.mouseup.fire(new MouseEventData(hit.x, hit.y));
     });
+    this.surface.mousewheel.add(data => {
+      const hit = this.controlAtPoint(data.x, data.y);
+      this.updateFocus(hit);
+    });
+  }
+
+  private updateFocus(hit: ControlAtPointData) {
+    if (this.focus) {
+      this.focus.control.focused = false;
+    }
+    this.focus = hit;
+    this.focus.control.focused = true;
   }
 
   paint(ctx: CanvasRenderingContext2D) {
