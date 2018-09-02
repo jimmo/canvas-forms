@@ -309,5 +309,4 @@ class Scrollbox extends Control {
   controlAtPoint(x, y) {
     return super.controlAtPoint(x + this.scrollX, y + this.scrollY);
   }
-
 }

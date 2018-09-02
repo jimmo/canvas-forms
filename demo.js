@@ -41,7 +41,7 @@ new AlignConstraint(bfy3, Coord.X, bfy2, Coord.XW, 10);
 
 const sb = f.add(new Scrollbox(), null, 20, 300, null, 20, 20);
 const lx = sb.add(new Label('Label ' + 0), 20, 20);
-for (let i = 1; i < 4000; ++i) {
+for (let i = 1; i < 100; ++i) {
   const l = sb.add(new Label('Label ' + i), null, 20 + i * 40);
   new AlignConstraint(l, Coord.X, lx, Coord.X, 0);
 }

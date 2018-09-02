@@ -183,17 +183,17 @@ class Constraint {
     } else if (coord === Coord.H) {
       Constraint.drawConstraint(ctx, color, xmid, control.y, xmid, control.yh);
     } else if (coord === Coord.X2) {
-      Constraint.drawConstraint(ctx, color, control.xw, ymid, control.parent.w, ymid);
+      Constraint.drawConstraint(ctx, color, control.parent.w, ymid, control.xw, ymid);
     } else if (coord === Coord.Y2) {
-      Constraint.drawConstraint(ctx, color, xmid, control.yh, xmid, control.parent.h);
+      Constraint.drawConstraint(ctx, color, xmid, control.parent.h, xmid, control.yh);
     } else if (coord === Coord.XW) {
       Constraint.drawConstraint(ctx, color, 0, ymid, control.xw, ymid);
     } else if (coord === Coord.YH) {
       Constraint.drawConstraint(ctx, color, xmid, 0, xmid, control.yh);
     } else if (coord === Coord.X2W) {
-      Constraint.drawConstraint(ctx, color, control.x, ymid, control.parent.w, ymid);
+      Constraint.drawConstraint(ctx, color, control.parent.w, ymid, control.x, ymid);
     } else if (coord === Coord.Y2H) {
-      Constraint.drawConstraint(ctx, color, xmid, control.y, xmid, control.parent.h);
+      Constraint.drawConstraint(ctx, color, xmid, control.parent.h, xmid, control.y);
     } else {
       console.log('Unable to draw static constraint on ', this.coord);
     }
@@ -202,6 +202,15 @@ class Constraint {
   static drawConstraint(ctx, color, x1, y1, x2, y2) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
+
+    // ctx.beginPath();
+    // if (y1 === y2) {
+    //   //ctx.moveTo(x2, 0);
+    //   //ctx.lineTo(x2,
+    // } else if (x1 === x2) {
+    // }
+    // ctx.setLineDash([5,5]);
+    // ctx.stroke();
 
     let t1 = x1;
     let t2 = x2;
