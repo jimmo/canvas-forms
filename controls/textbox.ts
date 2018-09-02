@@ -22,13 +22,20 @@ export class Textbox extends Control {
     this.elem = null;
   }
 
+  unpaint() {
+    if (this.elem) {
+      this.elem.remove();
+      this.elem = null;
+    }
+  }
+
   paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     if (!this.elem) {
       this.elem = document.createElement('input');
       this.elem.type = 'text';
-      this.elem.style.position = 'absolute';
+      this.elem.style.position = 'sticky';
       this.elem.style.boxSizing = 'border-box';
       this.elem.style.border = 'none';
       this.elem.style.background = 'none';
@@ -48,7 +55,7 @@ export class Textbox extends Control {
     this.elem.style.height = this.h / s + 'px';
 
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, this.h, this.h);
+    ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
@@ -57,9 +64,6 @@ export class Textbox extends Control {
   }
 
   removed() {
-    if (this.elem) {
-      this.elem.remove();
-      this.elem = null;
-    }
+    this.unpaint();
   }
 }

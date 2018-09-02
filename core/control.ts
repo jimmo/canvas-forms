@@ -335,11 +335,15 @@ export class Control {
     return true;
   }
 
+  unpaint() {
+  }
+
   // Override this (and always call `super.paint()`) to customise appearance of child controls.
   paint(ctx: CanvasRenderingContext2D) {
     // This base implementation just makes sure all children are painted too.
     for (const c of this.controls) {
       if (!this.shouldPaint(c)) {
+        c.unpaint();
         continue;
       }
 
@@ -519,29 +523,27 @@ export class Control {
   editing(): boolean {
     if (this.parent) {
       return this.parent.editing();
+    } else {
+      return false;
     }
   }
 
   // Gets the x coordinate of this control relative to the surface.
-  surfaceX() {
-    let x = this.x;
-    let p = this.parent;
-    while (p) {
-      x += p.x;
-      p = p.parent;
+  surfaceX(): number {
+    if (this.parent) {
+      return this.x + this.parent.surfaceX();
+    } else {
+      return this.x;
     }
-    return x;
   }
 
   // Gets the y coordinate of this control relative to the surface.
-  surfaceY() {
-    let y = this.y;
-    let p = this.parent;
-    while (p) {
-      y += p.y;
-      p = p.parent;
+  surfaceY(): number {
+    if (this.parent) {
+      return this.y + this.parent.surfaceY();
+    } else {
+      return this.y;
     }
-    return y;
   }
 
   scrollBy(dx: number, dy: number) {

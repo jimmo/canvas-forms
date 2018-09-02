@@ -114,4 +114,14 @@ export class Form extends Control {
   editing() {
     return this._editing;
   }
+
+  // Gets the x coordinate of this control relative to the surface.
+  surfaceX(): number {
+    return 0;
+  }
+
+  // Gets the y coordinate of this control relative to the surface.
+  surfaceY(): number {
+    return 0;
+  }
 }

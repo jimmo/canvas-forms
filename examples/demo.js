@@ -42,9 +42,9 @@ new candle.AlignConstraint(bfy2, candle.Coord.X, bfy1, candle.Coord.XW, 10);
 new candle.AlignConstraint(bfy3, candle.Coord.X, bfy2, candle.Coord.XW, 10);
 
 const sb = f.add(new candle.Scrollbox(), null, 20, 300, null, 20, 20);
-const lx = sb.add(new candle.Label('Label ' + 0), 20, 20);
+  const lx = sb.add(new candle.Textbox('Text ' + 0), 20, 20, 80, 26);
 for (let i = 1; i < 100; ++i) {
-  const l = sb.add(new candle.Label('Label ' + i), null, 20 + i * 40);
+  const l = sb.add(new candle.Textbox('Text ' + i), null, 20 + i * 40, 80, 26);
   new candle.AlignConstraint(l, candle.Coord.X, lx, candle.Coord.X, 0);
 }
 

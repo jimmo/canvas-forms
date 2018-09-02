@@ -220,4 +220,16 @@ export class Surface {
       this.resize.fire(new ResizeEventData(Math.round(w * s), Math.round(h * s)));
     }).observe(parent);
   }
+
+  // Gets the x coordinate of this control relative to the surface.
+  htmlX(): number {
+    const s = window.devicePixelRatio;
+    return this.scrollContainer.scrollLeft * s;
+  }
+
+  // Gets the y coordinate of this control relative to the surface.
+  htmlY(): number {
+    const s = window.devicePixelRatio;
+    return this.scrollContainer.scrollTop * s;
+  }
 }
