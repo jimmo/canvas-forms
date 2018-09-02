@@ -254,7 +254,10 @@ export class Control {
 
         // For controls that can automatically figure out their own coordinates
         // (i.e. size to content) then apply that.
-        c.selfConstrain();
+        if (c.selfConstrain()) {
+          c.recalculate(CoordAxis.X);
+          c.recalculate(CoordAxis.Y);
+        }
       }
 
       // Attempt to apply each constraint in order.
@@ -329,6 +332,7 @@ export class Control {
   }
 
   selfConstrain() {
+    return false;
   }
 
   shouldPaint(control: Control) {
@@ -393,7 +397,7 @@ export class Control {
 
   // Adds a child control, optionally with the specified static coordinates.
   // Any of the coordinates can be null/undefined to ignore.
-  add(control: Control, x: number, y: number, w: number, h: number, x2: number, y2: number) {
+  add(control: Control, x?: number, y?: number, w?: number, h?: number, x2?: number, y2?: number) {
     const a = (b: number) => {
       return b !== undefined && b !== null;
     }
@@ -420,6 +424,10 @@ export class Control {
     }
     if (a(y2)) {
       new StaticConstraint(control, Coord.Y2, y2);
+    }
+
+    if (control._enableHitDetection) {
+      this.enableHitDetection();
     }
 
     // Tell the control it now has a parent.

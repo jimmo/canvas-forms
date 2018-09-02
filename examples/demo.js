@@ -29,7 +29,7 @@ new candle.AlignConstraint(bfx2, candle.Coord.XW, bf2, candle.Coord.XW);
 new candle.AlignConstraint(bfx1, candle.Coord.XW, bfx2, candle.Coord.X);
 new candle.FillConstraint([bfx1, bfx2], candle.Coord.W);
 
-const t = f.add(new candle.Textbox('hello'), null, 480, null, 26);
+const t = f.add(new candle.Textbox('hello'), null, 80, null, 26);
 new candle.AlignConstraint(t, candle.Coord.W, bf1, candle.Coord.W);
 new candle.AlignConstraint(t, candle.Coord.X, bfx2, candle.Coord.X);
 
@@ -42,9 +42,9 @@ new candle.AlignConstraint(bfy2, candle.Coord.X, bfy1, candle.Coord.XW, 10);
 new candle.AlignConstraint(bfy3, candle.Coord.X, bfy2, candle.Coord.XW, 10);
 
 const sb = f.add(new candle.Scrollbox(), null, 20, 300, null, 20, 20);
-  const lx = sb.add(new candle.Textbox('Text ' + 0), 20, 20, 80, 26);
+  const lx = sb.add(new candle.Label('Text ' + 0), 20, 20);
 for (let i = 1; i < 100; ++i) {
-  const l = sb.add(new candle.Textbox('Text ' + i), null, 20 + i * 40, 80, 26);
+  const l = sb.add(new candle.Label('Text ' + i), null, 20 + i * 40);
   new candle.AlignConstraint(l, candle.Coord.X, lx, candle.Coord.X, 0);
 }
 
@@ -86,5 +86,19 @@ bfy3.click.add(() => {
     bb2.remove();
   });
 });
+
+
+  bfy1.click.add(() => {
+    const d = new candle.Dialog();
+    const m = new candle.Modal(d);
+
+    const mdb = d.add(new candle.Button('Close'), null, null, 100, 26, 20, 20);
+
+    mdb.click.add(() => {
+      m.close();
+    });
+
+    m.show(f);
+  });
 
 });
