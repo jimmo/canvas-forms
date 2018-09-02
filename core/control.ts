@@ -1,252 +1,52 @@
-// Todo list:
-//  - Controls:
-//    - Select
-//    - List
-//    - Radio
-//    - Tab
-//  - Popups & dialogs
-//  - Size to child controls
-//  - Mouse enter/leave
-//  - Drag + Drag & Drop
-//  - Focus
-//  - Scroll hierarchy
+import { Event } from 'events';
+import { CoordAxis, CoordType, Coord } from 'enums';
+import { Constraint } from '../constraints/constraint';
+import { StaticConstraint } from '../constraints/static';
 
-if (!window.ResizeObserver) {
-  // FireFox polyfill.
-
-  window.ResizeObserver = function(fn) {
-    this.fn = fn;
-    this.ma = new MutationObserver((entries) => {
-      this.fn(entries);
-    });
-    setTimeout(() => {this.fn();},0);
-  }
-
-  window.ResizeObserver.prototype.observe = function(x) {
-    this.ma.observe(x, {
-      attributes: true,
-      childList: false,
-      characterData: false
-    });
-  };
-}
-
-
-// Manages the HTML Canvas element, in particular keeping it sized correctly.
-class Surface {
-  constructor(selector) {
-    // The <canvas> DOM element.
-    this.elem = document.querySelector(selector);
-    this.scrollContainer = null;
-    this.scrollElems = [];
-
-    this.fitParent();
-
-    // The 2D rendering context (used by all the `paint` methods).
-    this.ctx = this.elem.getContext('2d');
-
-    // Events (mostly used by Surface).
-    this.resize = new Event();
-    this.scroll = new Event();
-    this.mousedown = new Event();
-    this.mouseup = new Event();
-    this.mousemove = new Event();
-
-    // Forward DOM events to our own events.
-    // if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
-    //   let tx = 0; let ty = 0;
-    //   this.elem.addEventListener('touchstart', (ev) => {
-    //     const s = window.devicePixelRatio;
-    //     tx = ev.touches[0].clientX * s;
-    //     ty = ev.touches[0].clientY * s;
-    //     this.mousedown.fire(new MouseEventData(tx, ty));
-    //   });
-    //   this.elem.addEventListener('touchend', (ev) => {
-    //     const s = window.devicePixelRatio;
-    //     this.mouseup.fire(new MouseEventData(tx, ty));
-    //   });
-    //   this.elem.addEventListener('touchmove', (ev) => {
-    //     const s = window.devicePixelRatio;
-    //     tx = ev.touches[0].clientX * s;
-    //     ty = ev.touches[0].clientY * s;
-    //     this.mousemove.fire(new MouseEventData(tx, ty));
-    //   });
-    // }
-    this.elem.addEventListener('mousedown', (ev) => {
-      const s = window.devicePixelRatio;
-      this.mousedown.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
-    });
-    this.elem.addEventListener('mouseup', (ev) => {
-      const s = window.devicePixelRatio;
-      this.mouseup.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
-    });
-    this.elem.addEventListener('mousemove', (ev) => {
-      const s = window.devicePixelRatio;
-      this.mousemove.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
-    });
-  }
-
-  // Make the canvas automatically size itself to the parent element.
-  fitParent() {
-    const parent = this.elem.parentElement;
-
-    // Canvas elements don't work with percentage sizing.
-    // So we make it absolutely positioned and use a resize observer to
-    // set width and height explicitly.
-
-    // We're absolutely positioned in the parent, so the parent needs to be relative or absolute.
-    if (parent !== document.body && parent.style.position !== 'absolute') {
-      parent.style.position = 'relative';
-    }
-    parent.style.overflow = 'hidden';
-
-    if (parent === document.body) {
-      // So that the resize observer can track height.
-      parent.style.height = '100%';
-      parent.parentElement.style.height = '100%';
-    }
-
-    this.scrollContainer = document.createElement('div');
-    this.elem.remove();
-    this.scrollContainer.append(this.elem);
-    parent.append(this.scrollContainer);
-
-    this.scrollContainer.style.position = 'absolute';
-    this.scrollContainer.style.boxSizing = 'border-box';
-    this.scrollContainer.style.left = '0px';
-    this.scrollContainer.style.top = '0px';
-    this.scrollContainer.style.overflow = 'scroll';
-
-    this.scrollElems.push(document.createElement('div'));
-    this.scrollElems.push(document.createElement('div'));
-    for (const e of this.scrollElems) {
-      e.style.position = 'absolute';
-      e.style.width = '10px';
-      e.style.height = '10px';
-      this.scrollContainer.append(e);
-    }
-    const v = window.innerWidth;
-    this.scrollElems[0].style.left = '0px';
-    this.scrollElems[0].style.top = '0px';
-    this.scrollElems[1].style.left = v * 5 + 'px';
-    this.scrollElems[1].style.top = v * 5 + 'px';
-
-    this.scrollContainer.scrollLeft = v * 2;
-    this.scrollContainer.scrollTop = v * 2;
-
-    // Position in top-left of parent.
-    this.elem.style.position = 'sticky';
-    this.elem.style.boxSizing = 'border-box';
-    this.elem.style.left = 0 + 'px';
-    this.elem.style.top = 0 + 'px';
-
-    let sx = 0;
-    let sy = 0;
-    this.scrollContainer.addEventListener('scroll', () => {
-      let dx = Math.round(window.devicePixelRatio * (v * 2 - this.scrollContainer.scrollLeft));
-      let dy = Math.round(window.devicePixelRatio * (v * 2 - this.scrollContainer.scrollTop));
-      this.scroll.fire(new ScrollEventData(dx - sx, dy - sy));
-      sx = dx;
-      sy = dy;
-
-      if (Math.abs(dx) > v) {
-        sx = 0;
-        this.scrollContainer.scrollLeft = v * 2;
-      }
-      if (Math.abs(dy) > v) {
-        sy = 0;
-        this.scrollContainer.scrollTop = v * 2;
-      }
-    });
-
-    // Listen for the parent's size changing.
-    new ResizeObserver(entries => {
-      let w = 0, h = 0;
-
-      // Get the content size of the parent.
-      if (parent === document.body) {
-        w = window.innerWidth;
-        h = window.innerHeight;
-      } else {
-        w = parent.clientWidth;
-        h = parent.clientHeight;
-      }
-
-      console.log(w, h);
-
-      // debug scrollbars
-      // w -= 20;
-      // h -= 20;
-
-      this.scrollContainer.style.width = (w + 100) + 'px';
-      this.scrollContainer.style.height = (h + 100) + 'px';
-
-      // Make our element sized correctly (CSS).
-      this.elem.style.width = w + 'px';
-      this.elem.style.height = h + 'px';
-
-      // Get the content size of the canvas (just incase it has a border).
-      w = this.elem.clientWidth;
-      h = this.elem.clientHeight;
-
-      // Set the actual canvas dimensions to take into account scaling.
-      const s = window.devicePixelRatio;
-      this.elem.width = Math.round(w * s);
-      this.elem.height = Math.round(h * s);
-      this.ctx.resetTransform();
-
-      // Add a 0.5px offset so that all operations align to the pixel grid.
-      // TODO: figure out why this is needed. Does canvas consider coordinates to be on the
-      // pixel boundaries by default?
-      this.ctx.translate(0.5, 0.5);
-
-      this.resize.fire(new ResizeEventData(Math.round(w * s), Math.round(h * s)));
-    }).observe(parent);
+// Base class for events raised from controls.
+export class ControlEventData {
+  constructor(readonly control: Control) {
   }
 }
 
-// Enum to represent the two axes.
-// Used for some constraints that must apply to coordinates on the same axis.
-const CoordAxis = {
-  X: 1,
-  Y: 2,
-};
-
-// Different types of coordinates.
-const CoordType = {
-  A: 1,  // X,Y      (i.e. left/top edge, relative to parent left/top)
-  B: 2,  // W,H      (i.e. width/height)
-  C: 3,  // X2,Y2    (i.e. right/bottom edge, relative to parent right/bottom)
-  D: 4,  // XW, YH   (i.e. right/bottom edge, relative to parent left/top)
-  E: 5,  // X2W, Y2H (i.e. left/top edge, relative to parent right/bottom)
-};
-
-// Represents a CoordType on a CoordAxis.
-class CoordData {
-  constructor(axis, type) {
-    this.axis = axis;
-    this.type = type;
+// Structure to represent a successful hit test.
+export class ControlAtPointData {
+  // These coordinates are relative to the control.
+  constructor(readonly control: Control, readonly x: number, readonly y: number) {
   }
 }
-
-// All the different ways that a control's layout can be specified.
-// Any two on the same axis are enough to specify that axis (other than x2+xw or x+x2w).
-const Coord = {
-  X: new CoordData(CoordAxis.X, CoordType.A),
-  Y: new CoordData(CoordAxis.Y, CoordType.A),
-  W: new CoordData(CoordAxis.X, CoordType.B),
-  H: new CoordData(CoordAxis.Y, CoordType.B),
-  X2: new CoordData(CoordAxis.X, CoordType.C),
-  Y2: new CoordData(CoordAxis.Y, CoordType.C),
-  XW: new CoordData(CoordAxis.X, CoordType.D),
-  YH: new CoordData(CoordAxis.Y, CoordType.D),
-  X2W: new CoordData(CoordAxis.X, CoordType.E),
-  Y2H: new CoordData(CoordAxis.Y, CoordType.E),
-};
 
 // Base control class - represents a control on a form.
 // Do not instantiate directly.
-class Control {
+export class Control {
+  controls: Control[];
+  childConstraints: Constraint[];
+  refConstraints: Constraint[];
+  parent: Control;
+  private _enableHitDetection: boolean;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  x2: number;
+  y2: number;
+  xw: number;
+  yh: number;
+  x2w: number;
+  y2h: number;
+
+  clip: boolean;
+  scrollable: boolean;
+  focused: boolean;
+
+  fontSize: number;
+  fontName: string;
+  color: string;
+
+  mousedown: Event;
+  mouseup: Event;
+  mousemove: Event;
+
   constructor() {
     // Child controls.
     this.controls = [];
@@ -311,8 +111,8 @@ class Control {
 
   // Whenever any coordinate is set (via a constraint being applied), try
   // and see if we have enough information to figure out the others.
-  recalculate(axis) {
-    function nn(v) {
+  recalculate(axis: CoordAxis) {
+    function nn(v: number) {
       return v !== null;
     }
 
@@ -405,7 +205,7 @@ class Control {
 
   // Recursively finds the most nested control at the specified coordinates.
   // Coordinates are relative to the control.
-  controlAtPoint(x, y) {
+  controlAtPoint(x: number, y: number): ControlAtPointData {
     // TODO: sort by z-order.
     const editing = this.editing();
 
@@ -415,6 +215,7 @@ class Control {
         return c.controlAtPoint(x - c.x, y - c.y);
       }
     }
+
     return new ControlAtPointData(this, x, y);
   }
 
@@ -490,8 +291,8 @@ class Control {
         }
       }
       if (done) {
-        if (i >=2) {
-          console.warn('Warning: Layout took ' + (i+1) + ' rounds.');
+        if (i >= 2) {
+          console.warn('Warning: Layout took ' + (i + 1) + ' rounds.');
         }
         break;
       }
@@ -504,22 +305,22 @@ class Control {
       // Ensure each control is positioned somewhere.
       if (c.x === null) {
         c.x = xx;
-        c.recalculate();
+        c.recalculate(CoordAxis.X);
         xx = Math.min(xx + 20, Math.max(xx, c.x) + 20);
       }
       if (c.y === null) {
         c.y = yy;
-        c.recalculate();
+        c.recalculate(CoordAxis.Y);
         yy = Math.min(yy + 20, Math.max(yy, c.y) + 20);
       }
       if (c.w === null) {
         c.w = 100;
-        c.recalculate();
+        c.recalculate(CoordAxis.X);
         xx = Math.min(xx + 20, Math.max(xx, c.x) + 20);
       }
       if (c.h === null) {
         c.h = 26;
-        c.recalculate();
+        c.recalculate(CoordAxis.Y);
         yy = Math.min(yy + 20, Math.max(yy, c.y) + 20);
       }
 
@@ -530,12 +331,12 @@ class Control {
   selfConstrain() {
   }
 
-  shouldPaint(control) {
+  shouldPaint(control: Control) {
     return true;
   }
 
   // Override this (and always call `super.paint()`) to customise appearance of child controls.
-  paint(ctx) {
+  paint(ctx: CanvasRenderingContext2D) {
     // This base implementation just makes sure all children are painted too.
     for (const c of this.controls) {
       if (!this.shouldPaint(c)) {
@@ -588,8 +389,8 @@ class Control {
 
   // Adds a child control, optionally with the specified static coordinates.
   // Any of the coordinates can be null/undefined to ignore.
-  add(control, x, y, w, h, x2, y2) {
-    const a = (b) => {
+  add(control: Control, x: number, y: number, w: number, h: number, x2: number, y2: number) {
+    const a = (b: number) => {
       return b !== undefined && b !== null;
     }
 
@@ -676,17 +477,17 @@ class Control {
   }
 
   // Returns the font size in pixels.
-  getFontSize() {
+  getFontSize(): number {
     return this.fontSize || this.parent.getFontSize();
   }
 
   // Returns the font name only.
-  getFontName() {
+  getFontName(): string {
     return this.fontName || this.parent.getFontName();
   }
 
   // Returns the default foreground color for this control.
-  getColor() {
+  getColor(): string {
     return this.color || this.parent.getColor();
   }
 
@@ -709,13 +510,13 @@ class Control {
   }
 
   // Recursively finds the drawing context from the `Form` that contains this control.
-  context() {
+  context(): CanvasRenderingContext2D {
     if (this.parent) {
       return this.parent.context();
     }
   }
 
-  editing() {
+  editing(): boolean {
     if (this.parent) {
       return this.parent.editing();
     }
@@ -742,121 +543,7 @@ class Control {
     }
     return y;
   }
-}
 
-// Control that sits at the top of the hierarchy and manages the underlying
-// surface to draw on.
-class Form extends Control {
-  constructor(surface) {
-    super();
-
-    this.surface = surface;
-    this.pendingLayout = false;
-    this.pendingPaint = false;
-
-    this.fontSize = 16;
-    this.fontName = 'sans';
-    this.color = 'black';
-
-    this._editing = false;
-
-    // When the canvas resizes, relayout and repaint the entire form.
-    this.surface.resize.add(data => {
-      this.x = 0;
-      this.y = 0;
-      this.w = data.w;
-      this.h = data.h;
-      this.x2 = 0;
-      this.y2 = 0;
-
-      // Asynchronously relayout (and repaint) the form.
-      this.relayout();
-    });
-
-    this.focus = null;
-    // TODO: this needs to default to the element under the cursor on page load.
-
-    this.surface.scroll.add(data => {
-      let c = this.focus;
-      if (c) {
-        c = c.control;
-        while (c) {
-          if (c.scrollable) {
-            c.scrollBy(data.dx, data.dy);
-            break;
-          }
-          c = c.parent;
-        }
-      }
-    });
-
-    // Map mouse events on the surface into the control that the mouse is over.
-    this.surface.mousemove.add(data => {
-      const hit = this.controlAtPoint(data.x, data.y);
-      if (this.focus) {
-        this.focus.control.focused = false;
-      }
-      this.focus = hit;
-      this.focus.control.focused = true;
-      hit.control.mousemove.fire(new MouseEventData(hit.x, hit.y));
-      this.repaint();
-    });
-    this.surface.mousedown.add(data => {
-      const hit = this.controlAtPoint(data.x, data.y);
-      hit.control.mousedown.fire(new MouseEventData(hit.x, hit.y));
-    });
-    this.surface.mouseup.add(data => {
-      const hit = this.controlAtPoint(data.x, data.y);
-      hit.control.mouseup.fire(new MouseEventData(hit.x, hit.y));
-    });
-  }
-
-  paint(ctx) {
-    // Forms have a default (opaque) background color.
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, this.w, this.h);
-
-    super.paint(ctx);
-  }
-
-  // Default implementation of repaint does a full paint of the entire form.
-  repaint() {
-    this.pendingPaint = true;
-    window.requestAnimationFrame((frameTime) => {
-      //console.log('paint ' + frameTime);
-      this.pendingPaint = false;
-
-      this.paint(this.context());
-    });
-  }
-
-  // Default implementation of relayout does a full paint of the entire form.
-  relayout() {
-    if (this.pendingLayout) {
-      return;
-    }
-
-    if (this.w && this.h) {
-      this.pendingLayout = true;
-      window.requestAnimationFrame((frameTime) => {
-        //console.log('layout ' + frameTime);
-        this.pendingLayout = false;
-        this.layout();
-        if (!this.pendingPaint) {
-          //console.log('paint ' + frameTime);
-          this.paint(this.context());
-        }
-      });
-    }
-  }
-
-  // We're the top of the hierarchy. The default implementation of this expects
-  // the parent to be able to provide it, so that's what we do.
-  context() {
-    return this.surface.ctx;
-  }
-
-  editing() {
-    return this._editing;
+  scrollBy(dx: number, dy: number) {
   }
 }

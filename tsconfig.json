@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outDir": "build",
+    "outFile": "build/combined.js"
+  },
+  "files": [
+    "candle.ts"
+  ],
+  "include": [
+    "core/*.ts",
+    "constraints/*.ts",
+    "controls/*.ts"
+  ],
+  "compileOnSave": true,
+  "indentSize": 2,
+  "tabSize": 2
+}
