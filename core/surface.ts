@@ -96,19 +96,19 @@ export class Surface {
     //   });
     // }
     this.elem.addEventListener('mousedown', (ev) => {
-      const s = window.devicePixelRatio;
+      const s = this.pixelScale();
       this.mousedown.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
     this.elem.addEventListener('mouseup', (ev) => {
-      const s = window.devicePixelRatio;
+      const s = this.pixelScale();
       this.mouseup.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
     this.elem.addEventListener('mousemove', (ev) => {
-      const s = window.devicePixelRatio;
+      const s = this.pixelScale();
       this.mousemove.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
     this.elem.addEventListener('wheel', (ev) => {
-      const s = window.devicePixelRatio;
+      const s = this.pixelScale();
       this.mousewheel.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
   }
@@ -170,8 +170,9 @@ export class Surface {
     let sx = 0;
     let sy = 0;
     this.scrollContainer.addEventListener('scroll', () => {
-      let dx = Math.round(window.devicePixelRatio * (v * 2 - this.scrollContainer.scrollLeft));
-      let dy = Math.round(window.devicePixelRatio * (v * 2 - this.scrollContainer.scrollTop));
+      const s = this.pixelScale();
+      let dx = Math.round(s * (v * 2 - this.scrollContainer.scrollLeft));
+      let dy = Math.round(s * (v * 2 - this.scrollContainer.scrollTop));
       this.scroll.fire(new ScrollEventData(dx - sx, dy - sy));
       sx = dx;
       sy = dy;
@@ -222,24 +223,29 @@ export class Surface {
       this.elem.height = Math.round(h * s);
       this.ctx.resetTransform();
 
+      let zoom = Math.floor(s);
+      this.ctx.scale(zoom, zoom);
+
       // Add a 0.5px offset so that all operations align to the pixel grid.
       // TODO: figure out why this is needed. Does canvas consider coordinates to be on the
       // pixel boundaries by default?
       this.ctx.translate(0.5, 0.5);
 
-      this.resize.fire(new ResizeEventData(Math.round(w * s), Math.round(h * s)));
+      this.resize.fire(new ResizeEventData(Math.round(w * s / zoom), Math.round(h * s / zoom)));
     }).observe(parent);
   }
 
   // Gets the x coordinate of this control relative to the surface.
   htmlX(): number {
-    const s = window.devicePixelRatio;
-    return this.scrollContainer.scrollLeft * s;
+    return this.scrollContainer.scrollLeft * this.pixelScale();
   }
 
   // Gets the y coordinate of this control relative to the surface.
   htmlY(): number {
-    const s = window.devicePixelRatio;
-    return this.scrollContainer.scrollTop * s;
+    return this.scrollContainer.scrollTop * this.pixelScale();
+  }
+
+  pixelScale(): number {
+    return window.devicePixelRatio / Math.floor(window.devicePixelRatio);
   }
 }

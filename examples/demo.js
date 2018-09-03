@@ -4,7 +4,7 @@ require(['candle'], function(candle) {
 
   const f = new candle.Form(s);
 
-  const l = f.add(new candle.Label('this is some text'), 10, 10);
+  const l = f.add(new candle.Label('this is some text' + window.devicePixelRatio), 10, 10);
   const l2 = f.add(new candle.Label('aligned label'), null, 20);
   new candle.AlignConstraint(l2, candle.Coord.X, l, candle.Coord.XW, 20);
   const b = f.add(new candle.Button('Cancel'), 80, 130, 80, 26);

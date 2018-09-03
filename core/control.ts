@@ -1,3 +1,4 @@
+import { Form } from 'form';
 import { Event } from 'events';
 import { CoordAxis, CoordType, Coord } from 'enums';
 import { Constraint } from '../constraints/constraint';
@@ -552,6 +553,15 @@ export class Control {
       return this.parent.editing();
     } else {
       return false;
+    }
+  }
+
+
+  form(): Form {
+    if (this.parent) {
+      return this.parent.form();
+    } else {
+      return null;
     }
   }
 

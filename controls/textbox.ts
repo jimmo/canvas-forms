@@ -48,7 +48,7 @@ export class Textbox extends Control {
       this.context().canvas.parentElement.appendChild(this.elem);
     }
 
-    const s = window.devicePixelRatio;
+    const s = this.form().surface.pixelScale();
     this.elem.style.left = this.surfaceX() / s + 'px';
     this.elem.style.top = this.surfaceY() / s + 'px';
     this.elem.style.width = this.w / s + 'px';

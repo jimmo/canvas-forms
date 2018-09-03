@@ -4,11 +4,10 @@
 //    - List
 //    - Radio
 //    - Tab
-//  - Popups & dialogs
 //  - Size to child controls
 //  - Mouse enter/leave
-//  - Drag + Drag & Drop
-//  - Focus + capture
+//  - Drag & Drop
+//  - Focus
 //  - Scroll hierarchy
 //  - Animation
 

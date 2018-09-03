@@ -168,6 +168,10 @@ export class Form extends Control {
     return this._editing;
   }
 
+  form(): Form {
+    return this;
+  }
+
   // Gets the x coordinate of this control relative to the surface.
   surfaceX(): number {
     return 0;
