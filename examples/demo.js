@@ -56,7 +56,7 @@ require(['candle'], function(candle) {
     brw.add(20);
   });
 
-  const sl = f.add(new candle.Slider(25, 0, 100), 300, 580, 200, 26);
+  const sl = f.add(new candle.Slider(25, 0, 100, 5), 300, 580, 200, 26);
   sl.change.add(() => {
     lr.setText(sl.value);
   });
