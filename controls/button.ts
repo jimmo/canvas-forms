@@ -7,7 +7,7 @@ export class Button extends Control {
 
   click: Event;
 
-  constructor(text: string) {
+  constructor(text?: string) {
     super();
 
     this.text = text || '';

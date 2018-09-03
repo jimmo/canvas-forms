@@ -59,6 +59,7 @@ export class Control {
   fontSize: number;
   fontName: string;
   color: string;
+  border: boolean = false;
 
   mousedown: Event;
   mouseup: Event;
@@ -99,9 +100,7 @@ export class Control {
     this.y2h = null;
 
     // Enable paint clipping for the bounds of this control.
-    // TODO: maybe true should be the default and it needs to be explicitly disabled.
-    // But there might be a perf cost?
-    this.clip = false;
+    this.clip = true;
     this.scrollable = false;
 
     // Is the mouse currently over this control.
@@ -351,7 +350,7 @@ export class Control {
     }
   }
 
-  selfConstrain() {
+  selfConstrain(): boolean {
     return false;
   }
 
@@ -413,11 +412,18 @@ export class Control {
     //   c.paint(ctx);
     //   ctx.restore();
     // }
+
+    if (this.border) {
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 1;
+      ctx.lineJoin = 'round';
+      ctx.strokeRect(0, 0, this.w, this.h);
+    }
   }
 
   // Adds a child control, optionally with the specified static coordinates.
   // Any of the coordinates can be null/undefined to ignore.
-  add(control: Control, x?: number, y?: number, w?: number, h?: number, x2?: number, y2?: number) {
+  add<T extends Control>(control: T, x?: number, y?: number, w?: number, h?: number, x2?: number, y2?: number): T {
     const a = (b: number) => {
       return b !== undefined && b !== null;
     }
@@ -427,24 +433,9 @@ export class Control {
 
     // TODO: consider making StaticConstraint able to store multiple coordinates?
 
-    if (a(x)) {
-      new StaticConstraint(control, Coord.X, x);
-    }
-    if (a(y)) {
-      new StaticConstraint(control, Coord.Y, y);
-    }
-    if (a(w)) {
-      new StaticConstraint(control, Coord.W, w);
-    }
-    if (a(h)) {
-      new StaticConstraint(control, Coord.H, h);
-    }
-    if (a(x2)) {
-      new StaticConstraint(control, Coord.X2, x2);
-    }
-    if (a(y2)) {
-      new StaticConstraint(control, Coord.Y2, y2);
-    }
+    control.setPosition(x, y);
+    control.setSize(w, h);
+    control.setPosition2(x2, y2);
 
     if (control._enableHitDetection) {
       this.enableHitDetection();
@@ -483,9 +474,8 @@ export class Control {
           break;
         }
       }
+      this.removed();
     }
-
-    this.removed();
   }
 
   // Override this in a subclass to get notified when removed from a parent.
@@ -588,5 +578,32 @@ export class Control {
 
   inside(x: number, y: number) {
     return x >= 0 && y >= 0 && x <= this.w && y <= this.h;
+  }
+
+  setPosition(x: number, y: number) {
+    if (x !== undefined && x !== null) {
+      new StaticConstraint(this, Coord.X, x);
+    }
+    if (y !== undefined && y !== null) {
+      new StaticConstraint(this, Coord.Y, y);
+    }
+  }
+
+  setSize(w: number, h: number) {
+    if (w !== undefined && w !== null) {
+      new StaticConstraint(this, Coord.W, w);
+    }
+    if (h !== undefined && h !== null) {
+      new StaticConstraint(this, Coord.H, h);
+    }
+  }
+
+  setPosition2(x2: number, y2: number) {
+    if (x2 !== undefined && x2 !== null) {
+      new StaticConstraint(this, Coord.X2, x2);
+    }
+    if (y2 !== undefined && y2 !== null) {
+      new StaticConstraint(this, Coord.Y2, y2);
+    }
   }
 }

@@ -3,8 +3,9 @@ import { Control } from '../core/control';
 // Simple single-line text control that sizes to content.
 export class Label extends Control {
   text: string;
+  fit: boolean = true;
 
-  constructor(text: string) {
+  constructor(text?: string) {
     super();
 
     this.text = text || '';
@@ -13,9 +14,9 @@ export class Label extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    // For testing, fill the background.
-    ctx.fillStyle = '#c0c0c0';
-    ctx.fillRect(0, 0, this.w, this.h);
+    // // For testing, fill the background.
+    // ctx.fillStyle = '#c0c0c0';
+    // ctx.fillRect(0, 0, this.w, this.h);
 
     // Draw the text, centered vertically and left aligned.
     ctx.font = this.getFont();
@@ -32,8 +33,12 @@ export class Label extends Control {
   }
 
   selfConstrain() {
+    if (!this.fit) {
+      return false;
+    }
     this.context().font = this.getFont();
     this.w = Math.ceil(this.context().measureText(this.text).width);
     this.h = this.getFontSize() + 2;
+    return true;
   }
 }

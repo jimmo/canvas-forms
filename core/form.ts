@@ -164,7 +164,10 @@ export class Form extends Control {
     return this.surface.ctx;
   }
 
-  editing() {
+  editing(enable?: boolean) {
+    if (enable !== undefined) {
+      this._editing = enable;
+    }
     return this._editing;
   }
 

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "baseUrl": "../",
+    "outDir": "../build",
+    "target": "ES2017"
+  },
+  "files": [
+    "demo.ts",
+    "scratch.ts"
+  ],
+  "compileOnSave": true,
+  "indentSize": 2,
+  "tabSize": 2
+}

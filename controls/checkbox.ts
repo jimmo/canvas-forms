@@ -18,7 +18,7 @@ export class Checkbox extends Control {
   off: Event;
   toggle: Event;
 
-  constructor(text: string, checked?: boolean) {
+  constructor(text?: string, checked?: boolean) {
     super();
 
     this.text = text || '';

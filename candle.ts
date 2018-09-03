@@ -2,6 +2,7 @@
 //  - Controls:
 //    - Select
 //    - List
+//    - Tree
 //    - Radio
 //    - Tab
 //  - Size to child controls
@@ -10,6 +11,7 @@
 //  - Focus
 //  - Scroll hierarchy
 //  - Animation
+
 
 export * from 'core/surface';
 export * from 'core/control';
@@ -25,6 +27,7 @@ export * from 'controls/modal';
 export * from 'controls/dialog';
 export * from 'controls/slider';
 export * from 'controls/scrollbox';
+export * from 'controls/list';
 export * from 'constraints/static';
 export * from 'constraints/align';
 export * from 'constraints/fill';

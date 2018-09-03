@@ -1,6 +1,7 @@
 import { Constraint } from 'constraint';
 import { Control } from '../core/control';
-import { Coord, CoordData } from '../core/enums';
+import { Coord, CoordData, CoordAxis } from '../core/enums';
+import { AlignConstraint } from './align';
 
 // This makes two or more constraints fill to fit available space.
 // It essentially constrains all the controls to be the same width (or height), and then
@@ -26,6 +27,10 @@ export class FillConstraint extends Constraint {
 
   constructor(readonly controls: Control[], readonly coord: CoordData, readonly ratios?: number[]) {
     super(controls);
+
+    // Don't take ownership of the controls array that we were passed in.
+    // We modify it, which might be surprising.
+    this.controls = this.controls.slice();
 
     // Fill makes no sense for anything other than width/height.
     if (this.coord !== Coord.W && this.coord !== Coord.H) {
@@ -175,6 +180,24 @@ export class FillConstraint extends Constraint {
       for (const c of this.controls) {
         Constraint.drawCoord(ctx, 'purple', c, Coord.H, 30);
       }
+    }
+  }
+
+  static fillParent(controls: Control[], axis: CoordAxis, spacing: number) {
+    if (axis === CoordAxis.X) {
+      controls[0].setPosition(spacing, null);
+      for (let i = 1; i < controls.length; ++i) {
+        new AlignConstraint(controls[i], Coord.X, controls[i - 1], Coord.XW, spacing);
+      }
+      controls[controls.length - 1].setPosition2(spacing, null);
+      new FillConstraint(controls, Coord.W);
+    } else if (axis === CoordAxis.Y) {
+      controls[0].setPosition(null, spacing);
+      for (let i = 1; i < controls.length; ++i) {
+        new AlignConstraint(controls[i], Coord.Y, controls[i - 1], Coord.YH, spacing);
+      }
+      controls[controls.length - 1].setPosition2(null, spacing);
+      new FillConstraint(controls, Coord.H);
     }
   }
 }
