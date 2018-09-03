@@ -1,8 +1,10 @@
-import { Form } from 'form';
+import { CoordAxis, CoordData, Coord } from 'enums';
 import { Event } from 'events';
-import { CoordAxis, CoordType, Coord } from 'enums';
+import { Form } from 'form';
 import { Constraint } from '../constraints/constraint';
+import { AlignConstraint } from '../constraints/align';
 import { StaticConstraint } from '../constraints/static';
+import { FillConstraint } from '../constraints/fill';
 
 // Base class for events raised from controls.
 export class ControlEventData {
@@ -30,6 +32,81 @@ export class ControlAtPointData {
     this.y += formY - this.formY;
     this.formX = formX;
     this.formY = formY;
+  }
+}
+
+class ControlCoord {
+  constructor(readonly control: Control, readonly coord: CoordData) {
+  }
+
+  align(other: ControlCoord, offset?: number) {
+    return new AlignConstraint(this.control, this.coord, other.control, other.coord, offset);
+  }
+
+  fix(v: number) {
+    if (v === null || v === undefined) {
+      return;
+    }
+    return new StaticConstraint(this.control, this.coord, v);
+  }
+}
+
+class ControlCoords {
+  constructor(readonly control: Control) {
+  }
+
+  get x() {
+    return new ControlCoord(this.control, Coord.X);
+  }
+  get y() {
+    return new ControlCoord(this.control, Coord.Y);
+  }
+  get w() {
+    return new ControlCoord(this.control, Coord.W);
+  }
+  get h() {
+    return new ControlCoord(this.control, Coord.H);
+  }
+  get x2() {
+    return new ControlCoord(this.control, Coord.X2);
+  }
+  get y2() {
+    return new ControlCoord(this.control, Coord.Y2);
+  }
+  get xw() {
+    return new ControlCoord(this.control, Coord.XW);
+  }
+  get yh() {
+    return new ControlCoord(this.control, Coord.YH);
+  }
+  get x2w() {
+    return new ControlCoord(this.control, Coord.X2W);
+  }
+  get y2h() {
+    return new ControlCoord(this.control, Coord.Y2H);
+  }
+  size(w: number, h: number) {
+    this.w.fix(w);
+    this.h.fix(h);
+  }
+  center(axis: CoordAxis) {
+    const s1 = new Control();
+    const s2 = new Control();
+    this.control.parent.add(s1);
+    this.control.parent.add(s2);
+    if (axis === CoordAxis.X) {
+      s1.coords.x.fix(0);
+      s2.coords.x2.fix(0);
+      this.x.align(s1.coords.xw);
+      this.xw.align(s2.coords.x);
+      new FillConstraint([s1, s2], Coord.W);
+    } else if (axis === CoordAxis.Y) {
+      s1.coords.y.fix(0);
+      s2.coords.y2.fix(0);
+      this.y.align(s1.coords.yh);
+      this.yh.align(s2.coords.y);
+      new FillConstraint([s1, s2], Coord.H);
+    }
   }
 }
 
@@ -88,6 +165,8 @@ export class Control {
     // Regardless of which coordinates the constraints set, once
     // any two on the same axis are set, then all the others will
     // be calculated automatically.
+    // TODO: Consider aggregating these under a 'layout' member,
+    // i.e. c.layout.x instead of c.x.
     this.x = null;
     this.y = null;
     this.w = null;
@@ -433,9 +512,12 @@ export class Control {
 
     // TODO: consider making StaticConstraint able to store multiple coordinates?
 
-    control.setPosition(x, y);
-    control.setSize(w, h);
-    control.setPosition2(x2, y2);
+    control.coords.x.fix(x);
+    control.coords.y.fix(y);
+    control.coords.w.fix(w);
+    control.coords.h.fix(h);
+    control.coords.x2.fix(x2);
+    control.coords.y2.fix(y2);
 
     if (control._enableHitDetection) {
       this.enableHitDetection();
@@ -580,30 +662,7 @@ export class Control {
     return x >= 0 && y >= 0 && x <= this.w && y <= this.h;
   }
 
-  setPosition(x: number, y: number) {
-    if (x !== undefined && x !== null) {
-      new StaticConstraint(this, Coord.X, x);
-    }
-    if (y !== undefined && y !== null) {
-      new StaticConstraint(this, Coord.Y, y);
-    }
-  }
-
-  setSize(w: number, h: number) {
-    if (w !== undefined && w !== null) {
-      new StaticConstraint(this, Coord.W, w);
-    }
-    if (h !== undefined && h !== null) {
-      new StaticConstraint(this, Coord.H, h);
-    }
-  }
-
-  setPosition2(x2: number, y2: number) {
-    if (x2 !== undefined && x2 !== null) {
-      new StaticConstraint(this, Coord.X2, x2);
-    }
-    if (y2 !== undefined && y2 !== null) {
-      new StaticConstraint(this, Coord.Y2, y2);
-    }
+  get coords() {
+    return new ControlCoords(this);
   }
 }

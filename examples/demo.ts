@@ -1,24 +1,22 @@
-import { AlignConstraint } from "constraints/align";
+import { FillConstraint } from "constraints/fill";
 import { Button } from "controls/button";
+import { Checkbox } from "controls/checkbox";
 import { Dialog } from "controls/dialog";
 import { Label } from "controls/label";
 import { List, TextListItem } from "controls/list";
+import { Slider } from "controls/slider";
+import { Textbox } from "controls/textbox";
 import { Control } from "core/control";
 import { Coord, CoordAxis } from "core/enums";
 import { Form } from "core/form";
 import { Surface } from "core/surface";
-import { CenterConstraint } from "constraints/center";
-import { FillConstraint } from "constraints/fill";
-import { Checkbox } from "controls/checkbox";
-import { Slider } from "controls/slider";
-import { Textbox } from "controls/textbox";
 
 const form = new Form(new Surface('canvas'));
 
 const list = form.add(new List<string>(TextListItem), 10, 10, 200, null, null, 10);
 const c = form.add(new Control(), null, 10, null, null, 10, 10);
 c.border = true;
-new AlignConstraint(c, Coord.X, list, Coord.XW, 10);
+c.coords.x.align(list.coords.xw, 10);
 
 list.change.add(() => {
   if (!list.selected()) {
@@ -53,9 +51,9 @@ makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
 
 makeDemo('Center', 'The button has a fixed size, centered on the parent.', () => {
   const b = c.add(new Button('Click me'));
-  b.setSize(160, 60);
-  new CenterConstraint(b, CoordAxis.X);
-  new CenterConstraint(b, CoordAxis.Y);
+  b.coords.size(160, 60);
+  b.coords.center(CoordAxis.X);
+  b.coords.center(CoordAxis.Y);
 
   b.click.add(() => {
     b.setText('Thanks');
@@ -90,9 +88,9 @@ makeDemo('Fill + Align', 'Only the first two buttons fill, the third matches the
   const b2 = c.add(new Button('Fill 2'), null, 20, null, 26);
   const b3 = c.add(new Button('Aligned to 2'), null, 20, null, 26, 10, null);
   new FillConstraint([b1, b2], Coord.W);
-  new AlignConstraint(b2, Coord.W, b3, Coord.W);
-  new AlignConstraint(b2, Coord.X, b1, Coord.XW, 10);
-  new AlignConstraint(b3, Coord.X, b2, Coord.XW, 10);
+  b2.coords.w.align(b3.coords.w);
+  b2.coords.x.align(b1.coords.xw, 10);
+  b3.coords.x.align(b2.coords.xw, 10);
 });
 
 makeDemo('Checkbox', 'The button only works when the checkbox is enabled.', () => {

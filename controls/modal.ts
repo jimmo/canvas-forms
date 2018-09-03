@@ -1,10 +1,7 @@
-import { Control } from '../core/control';
-import { Coord } from '../core/enums';
-import { Form } from '../core/form';
 import { Dialog } from 'dialog';
-import { Spacer } from 'spacer';
+import { Control } from '../core/control';
 import { CoordAxis } from '../core/enums';
-import { CenterConstraint } from '../constraints/center';
+import { Form } from '../core/form';
 
 export class Modal extends Control {
   _resolve: (data?: any) => void;
@@ -12,9 +9,10 @@ export class Modal extends Control {
   constructor(readonly dialog: Dialog) {
     super();
 
-    this.add(dialog, null, null, 600, 300, null, null);
-    new CenterConstraint(dialog, CoordAxis.X);
-    new CenterConstraint(dialog, CoordAxis.Y);
+    this.add(dialog);
+    dialog.coords.size(600, 300);
+    dialog.coords.center(CoordAxis.X);
+    dialog.coords.center(CoordAxis.Y);
 
     this.enableHitDetection();
   }

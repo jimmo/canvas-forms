@@ -1,7 +1,6 @@
 import { Constraint } from 'constraint';
 import { Control } from '../core/control';
-import { Coord, CoordData, CoordAxis } from '../core/enums';
-import { AlignConstraint } from './align';
+import { Coord, CoordAxis, CoordData } from '../core/enums';
 
 // This makes two or more constraints fill to fit available space.
 // It essentially constrains all the controls to be the same width (or height), and then
@@ -185,18 +184,18 @@ export class FillConstraint extends Constraint {
 
   static fillParent(controls: Control[], axis: CoordAxis, spacing: number) {
     if (axis === CoordAxis.X) {
-      controls[0].setPosition(spacing, null);
+      controls[0].coords.x.fix(spacing);
       for (let i = 1; i < controls.length; ++i) {
-        new AlignConstraint(controls[i], Coord.X, controls[i - 1], Coord.XW, spacing);
+        controls[i].coords.x.align(controls[i - 1].coords.xw, spacing);
       }
-      controls[controls.length - 1].setPosition2(spacing, null);
+      controls[controls.length - 1].coords.x2.fix(spacing);
       new FillConstraint(controls, Coord.W);
     } else if (axis === CoordAxis.Y) {
-      controls[0].setPosition(null, spacing);
+      controls[0].coords.y.fix(spacing);
       for (let i = 1; i < controls.length; ++i) {
-        new AlignConstraint(controls[i], Coord.Y, controls[i - 1], Coord.YH, spacing);
+        controls[i].coords.y.align(controls[i - 1].coords.yh, spacing);
       }
-      controls[controls.length - 1].setPosition2(null, spacing);
+      controls[controls.length - 1].coords.y2.fix(spacing);
       new FillConstraint(controls, Coord.H);
     }
   }
