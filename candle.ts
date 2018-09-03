@@ -8,8 +8,9 @@
 //  - Size to child controls
 //  - Mouse enter/leave
 //  - Drag + Drag & Drop
-//  - Focus
+//  - Focus + capture
 //  - Scroll hierarchy
+//  - Animation
 
 export * from 'core/surface';
 export * from 'core/control';

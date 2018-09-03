@@ -73,4 +73,11 @@ export class Button extends Control {
     ctx.fillStyle = this.getColor();
     ctx.fillText(this.text, this.w / 2, this.h / 2, this.w);
   }
+
+  setText(text: string) {
+    this.text = text;
+    if (this.parent) {
+      this.parent.relayout();
+    }
+  }
 }

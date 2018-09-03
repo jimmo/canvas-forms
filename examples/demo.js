@@ -88,17 +88,16 @@ bfy3.click.add(() => {
 });
 
 
-  bfy1.click.add(() => {
+  bfy1.click.add(async () => {
     const d = new candle.Dialog();
-    const m = new candle.Modal(d);
-
     const mdb = d.add(new candle.Button('Close'), null, null, 100, 26, 20, 20);
 
     mdb.click.add(() => {
-      m.close();
+      d.close('hello ' + new Date().getTime());
     });
 
-    m.show(f);
+    let result = await d.modal(f);
+    bfy1.setText(result);
   });
 
 });
