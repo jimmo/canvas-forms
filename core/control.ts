@@ -12,7 +12,23 @@ export class ControlEventData {
 // Structure to represent a successful hit test.
 export class ControlAtPointData {
   // These coordinates are relative to the control.
-  constructor(readonly control: Control, readonly x: number, readonly y: number) {
+  x: number;
+  y: number;
+  formX: number;
+  formY: number;
+
+  constructor(readonly control: Control, x: number, y: number, formX: number, formY: number) {
+    this.x = x;
+    this.y = y;
+    this.formX = formX;
+    this.formY = formY;
+  }
+
+  update(formX: number, formY: number) {
+    this.x += formX - this.formX;
+    this.y += formY - this.formY;
+    this.formX = formX;
+    this.formY = formY;
   }
 }
 
@@ -205,18 +221,21 @@ export class Control {
 
   // Recursively finds the most nested control at the specified coordinates.
   // Coordinates are relative to the control.
-  controlAtPoint(x: number, y: number): ControlAtPointData {
+  controlAtPoint(x: number, y: number, formX?: number, formY?: number): ControlAtPointData {
+    formX = (formX === undefined) ? x : formX;
+    formY = (formY === undefined) ? y : formY;
+
     // TODO: sort by z-order.
     const editing = this.editing();
 
     for (let i = this.controls.length - 1; i >= 0; --i) {
       const c = this.controls[i];
       if ((editing || c._enableHitDetection) && x >= c.x && y >= c.y && x < c.x + c.w && y < c.y + c.h) {
-        return c.controlAtPoint(x - c.x, y - c.y);
+        return c.controlAtPoint(x - c.x, y - c.y, formX, formY);
       }
     }
 
-    return new ControlAtPointData(this, x, y);
+    return new ControlAtPointData(this, x, y, formX, formY);
   }
 
   // Applies all constraints to direct children of this control.
@@ -555,5 +574,9 @@ export class Control {
   }
 
   scrollBy(dx: number, dy: number) {
+  }
+
+  inside(x: number, y: number) {
+    return x >= 0 && y >= 0 && x <= this.w && y <= this.h;
   }
 }

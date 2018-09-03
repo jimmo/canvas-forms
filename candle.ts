@@ -24,6 +24,7 @@ export * from 'controls/checkbox';
 export * from 'controls/spacer';
 export * from 'controls/modal';
 export * from 'controls/dialog';
+export * from 'controls/slider';
 export * from 'controls/scrollbox';
 export * from 'constraints/static';
 export * from 'constraints/align';

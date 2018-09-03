@@ -89,8 +89,8 @@ export class Scrollbox extends Control {
     this.clipScroll();
   }
 
-  controlAtPoint(x: number, y: number) {
-    return super.controlAtPoint(x + this.scrollX, y + this.scrollY);
+  controlAtPoint(x: number, y: number, formX?: number, formY?: number) {
+    return super.controlAtPoint(x + this.scrollX, y + this.scrollY, formX, formY);
   }
 
 

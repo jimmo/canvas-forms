@@ -33,7 +33,11 @@ export class ScrollEventData {
 
 // Fired by a surface when a mouse event happens on the canvas.
 export class MouseEventData {
-  constructor(readonly x: number, readonly y: number) {
+  constructor(readonly x: number, readonly y: number, readonly buttons: number) {
+  }
+
+  primaryButton() {
+    return this.buttons & 1;
   }
 }
 
@@ -93,19 +97,19 @@ export class Surface {
     // }
     this.elem.addEventListener('mousedown', (ev) => {
       const s = window.devicePixelRatio;
-      this.mousedown.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
+      this.mousedown.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
     this.elem.addEventListener('mouseup', (ev) => {
       const s = window.devicePixelRatio;
-      this.mouseup.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
+      this.mouseup.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
     this.elem.addEventListener('mousemove', (ev) => {
       const s = window.devicePixelRatio;
-      this.mousemove.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
+      this.mousemove.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
     this.elem.addEventListener('wheel', (ev) => {
       const s = window.devicePixelRatio;
-      this.mousewheel.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s));
+      this.mousewheel.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
     });
   }
 

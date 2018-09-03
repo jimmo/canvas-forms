@@ -31,10 +31,17 @@ export class Checkbox extends Control {
 
     this.mousedown.add((data) => {
       this.down = true;
+      data.capture();
       this.repaint();
     });
     this.mouseup.add((data) => {
-      if (this.down) {
+      if (!this.down) {
+        return;
+      }
+
+      this.down = false;
+
+      if (this.inside(data.x, data.y)) {
         this.checked = !this.checked;
         const ev = new CheckboxToggleEventData(this, this.checked);
         this.toggle.fire(ev);
@@ -44,7 +51,6 @@ export class Checkbox extends Control {
           this.off.fire(ev);
         }
       }
-      this.down = false;
       this.repaint();
     });
   }
@@ -55,7 +61,11 @@ export class Checkbox extends Control {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.h, this.h);
 
-    ctx.strokeStyle = 'black';
+    if (this.down) {
+      ctx.strokeStyle = 'orange';
+    } else {
+      ctx.strokeStyle = 'black';
+    }
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
     ctx.strokeRect(0, 0, this.h, this.h);

@@ -15,13 +15,20 @@ export class Button extends Control {
 
     this.mousedown.add((data) => {
       this.down = true;
+      data.capture();
       this.repaint();
     });
     this.mouseup.add((data) => {
-      if (this.down) {
+      if (!this.down) {
+        return;
+      }
+
+      this.down = false;
+
+      if (this.inside(data.x, data.y)) {
         this.click.fire();
       }
-      this.down = false;
+
       this.repaint();
     });
   }

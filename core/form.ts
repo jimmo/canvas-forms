@@ -1,6 +1,16 @@
 import { Surface, MouseEventData, ScrollEventData } from 'surface';
 import { Control, ControlAtPointData } from 'control';
 
+export class MouseDownEventData extends MouseEventData {
+  constructor(x: number, y: number, buttons: number, readonly form: Form, readonly hit: ControlAtPointData) {
+    super(x, y, buttons);
+  }
+
+  capture() {
+    this.form.capture = this.hit;
+  }
+}
+
 // Control that sits at the top of the hierarchy and manages the underlying
 // surface to draw on.
 export class Form extends Control {
@@ -13,8 +23,8 @@ export class Form extends Control {
 
   private _editing = false;
 
-  // TODO: this needs to default to the element under the cursor on page load.
   focus: ControlAtPointData;
+  capture: ControlAtPointData;
 
   constructor(readonly surface: Surface) {
     super();
@@ -47,19 +57,54 @@ export class Form extends Control {
 
     // Map mouse events on the surface into the control that the mouse is over.
     this.surface.mousemove.add(data => {
-      const hit = this.controlAtPoint(data.x, data.y);
-      this.updateFocus(hit);
-      hit.control.mousemove.fire(new MouseEventData(hit.x, hit.y));
-      this.repaint();
+      if (this.capture && !data.primaryButton()) {
+        // We missed the mouseup event (maybe happened outside browser), so
+        // inject a fake one.
+        this.capture.update(data.x, data.y);
+        this.capture.control.mouseup.fire(new MouseEventData(this.capture.x, this.capture.y, data.buttons));
+        this.capture = null;
+      }
+
+      let target = this.capture;
+      if (target) {
+        target.update(data.x, data.y);
+      } else {
+        target = this.controlAtPoint(data.x, data.y);
+        this.updateFocus(target);
+      }
+      target.control.mousemove.fire(new MouseEventData(target.x, target.y, data.buttons));
+
+      if (!this.capture && this.editing()) {
+        this.repaint();
+      }
     });
+
     this.surface.mousedown.add(data => {
+      if (!data.primaryButton()) {
+        return;
+      }
+      if (this.capture) {
+        console.warn('Mouse down with capture?');
+        return;
+      }
       const hit = this.controlAtPoint(data.x, data.y);
-      hit.control.mousedown.fire(new MouseEventData(hit.x, hit.y));
+      hit.control.mousedown.fire(new MouseDownEventData(hit.x, hit.y, data.buttons, this, hit));
     });
+
     this.surface.mouseup.add(data => {
-      const hit = this.controlAtPoint(data.x, data.y);
-      hit.control.mouseup.fire(new MouseEventData(hit.x, hit.y));
+      if (data.primaryButton()) {
+        return;
+      }
+      let target = this.capture;
+      if (target) {
+        target.update(data.x, data.y);
+        this.capture = null;
+      } else {
+        target = this.controlAtPoint(data.x, data.y);
+      }
+      target.control.mouseup.fire(new MouseEventData(target.x, target.y, data.buttons));
     });
+
     this.surface.mousewheel.add(data => {
       const hit = this.controlAtPoint(data.x, data.y);
       this.updateFocus(hit);
