@@ -5,6 +5,7 @@ import { Dialog } from "controls/dialog";
 import { Grabber } from 'controls/grabber';
 import { Label } from "controls/label";
 import { List, TextListItem, CheckboxListItem, ListItem } from "controls/list";
+import { Tree } from "controls/tree";
 import { Slider } from "controls/slider";
 import { Textbox, FocusTextbox } from "controls/textbox";
 import { Control } from "core/control";
@@ -207,4 +208,10 @@ makeDemo('List', '', () => {
   for (let i = 0; i < 100; ++i) {
     customList.addItem('Action ' + i);
   }
+});
+
+
+makeDemo('Tree', '', () => {
+  const tree = c.add(new Tree(), 10, 10, 200, 500);
+  tree.setRoot();
 });
