@@ -2,6 +2,7 @@ import { FillConstraint } from "constraints/fill";
 import { Button } from "controls/button";
 import { Checkbox } from "controls/checkbox";
 import { Dialog } from "controls/dialog";
+import { Grabber } from 'controls/grabber';
 import { Label } from "controls/label";
 import { List, TextListItem } from "controls/list";
 import { Slider } from "controls/slider";
@@ -10,13 +11,20 @@ import { Control } from "core/control";
 import { Coord, CoordAxis } from "core/enums";
 import { Form } from "core/form";
 import { Surface } from "core/surface";
+import { Scrollbox } from "controls/scrollbox";
 
 const form = new Form(new Surface('canvas'));
 
-const list = form.add(new List<string>(TextListItem), 10, 10, 200, null, null, 10);
-const c = form.add(new Control(), null, 10, null, null, 10, 10);
+const list = form.add(new List<string>(TextListItem), 10, 10, null, null, null, 10);
+const c = form.add(new Scrollbox(), null, 10, null, null, 10, 10);
 c.border = true;
-c.coords.x.align(list.coords.xw, 10);
+
+const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]));
+grabber.coords.w.set(10);
+grabber.coords.y2.set(10);
+list.coords.xw.align(grabber.coords.x);
+c.coords.x.align(grabber.coords.xw);
+grabber.bound(CoordAxis.X, 100, 400);
 
 list.change.add(() => {
   if (!list.selected()) {
@@ -129,4 +137,14 @@ makeDemo('Textbox', '', () => {
   t1.change.add(() => {
     l1.setText(t1.text);
   });
+});
+
+makeDemo('Grabber', '', () => {
+  const g = c.add(new Grabber(100, 100, [CoordAxis.X, CoordAxis.Y]));
+  g.coords.size(20, 20);
+  g.bound(CoordAxis.X, 50);
+  g.bound(CoordAxis.Y, 50);
+  const l = c.add(new Label('Follow'));
+  l.coords.x.align(g.coords.xw, 10);
+  l.coords.y.align(g.coords.yh, 10);
 });

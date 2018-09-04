@@ -19,12 +19,16 @@ export class ControlAtPointData {
   y: number;
   formX: number;
   formY: number;
+  startX: number;
+  startY: number;
 
   constructor(readonly control: Control, x: number, y: number, formX: number, formY: number) {
     this.x = x;
     this.y = y;
     this.formX = formX;
     this.formY = formY;
+    this.startX = formX;
+    this.startY = formY;
   }
 
   update(formX: number, formY: number) {
@@ -43,9 +47,9 @@ class ControlCoord {
     return new AlignConstraint(this.control, this.coord, other.control, other.coord, offset);
   }
 
-  fix(v: number) {
+  set(v: number) {
     if (v === null || v === undefined) {
-      return;
+      return null;
     }
     return new StaticConstraint(this.control, this.coord, v);
   }
@@ -86,8 +90,8 @@ class ControlCoords {
     return new ControlCoord(this.control, Coord.Y2H);
   }
   size(w: number, h: number) {
-    this.w.fix(w);
-    this.h.fix(h);
+    this.w.set(w);
+    this.h.set(h);
   }
   center(axis: CoordAxis) {
     const s1 = new Control();
@@ -95,14 +99,14 @@ class ControlCoords {
     this.control.parent.add(s1);
     this.control.parent.add(s2);
     if (axis === CoordAxis.X) {
-      s1.coords.x.fix(0);
-      s2.coords.x2.fix(0);
+      s1.coords.x.set(0);
+      s2.coords.x2.set(0);
       this.x.align(s1.coords.xw);
       this.xw.align(s2.coords.x);
       new FillConstraint([s1, s2], Coord.W);
     } else if (axis === CoordAxis.Y) {
-      s1.coords.y.fix(0);
-      s2.coords.y2.fix(0);
+      s1.coords.y.set(0);
+      s2.coords.y2.set(0);
       this.y.align(s1.coords.yh);
       this.yh.align(s2.coords.y);
       new FillConstraint([s1, s2], Coord.H);
@@ -129,8 +133,8 @@ export class Control {
   x2w: number;
   y2h: number;
 
-  clip: boolean;
-  scrollable: boolean;
+  protected clip: boolean;
+  protected scrollable: boolean;
   focused: boolean;
 
   fontSize: number;
@@ -492,6 +496,10 @@ export class Control {
     //   ctx.restore();
     // }
 
+    this.paintDecorations(ctx);
+  }
+
+  paintDecorations(ctx: CanvasRenderingContext2D) {
     if (this.border) {
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 1;
@@ -512,12 +520,12 @@ export class Control {
 
     // TODO: consider making StaticConstraint able to store multiple coordinates?
 
-    control.coords.x.fix(x);
-    control.coords.y.fix(y);
-    control.coords.w.fix(w);
-    control.coords.h.fix(h);
-    control.coords.x2.fix(x2);
-    control.coords.y2.fix(y2);
+    control.coords.x.set(x);
+    control.coords.y.set(y);
+    control.coords.w.set(w);
+    control.coords.h.set(h);
+    control.coords.x2.set(x2);
+    control.coords.y2.set(y2);
 
     if (control._enableHitDetection) {
       this.enableHitDetection();
@@ -534,7 +542,7 @@ export class Control {
   }
 
   // Override this in a subclass to get notified when added to a parent.
-  added() {
+  protected added() {
   }
 
   // Remove this control from its parent.
@@ -561,7 +569,7 @@ export class Control {
   }
 
   // Override this in a subclass to get notified when removed from a parent.
-  removed() {
+  protected removed() {
   }
 
   // Remove all children from this control.

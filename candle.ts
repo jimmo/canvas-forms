@@ -1,7 +1,6 @@
 // Todo list:
 //  - Controls:
 //    - Select
-//    - List
 //    - Tree
 //    - Radio
 //    - Tab

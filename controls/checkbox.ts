@@ -79,6 +79,6 @@ export class Checkbox extends Control {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
-    ctx.fillText(this.text, this.h + 5, this.h / 2, this.w - this.h - 4);
+    ctx.fillText(this.text, this.h + 7, this.h / 2, this.w - this.h - 4);
   }
 }

@@ -2,12 +2,18 @@ import { Surface, MouseEventData, ScrollEventData } from 'surface';
 import { Control, ControlAtPointData } from 'control';
 
 export class MouseDownEventData extends MouseEventData {
-  constructor(x: number, y: number, buttons: number, readonly form: Form, readonly hit: ControlAtPointData) {
+  constructor(x: number, y: number, buttons: number, private readonly form: Form, private readonly hit: ControlAtPointData) {
     super(x, y, buttons);
   }
 
   capture() {
     this.form.capture = this.hit;
+  }
+}
+
+export class MouseMoveEventData extends MouseEventData {
+  constructor(x: number, y: number, buttons: number, readonly dx: number, readonly dy: number) {
+    super(x, y, buttons);
   }
 }
 
@@ -72,7 +78,8 @@ export class Form extends Control {
         target = this.controlAtPoint(data.x, data.y);
         this.updateFocus(target);
       }
-      target.control.mousemove.fire(new MouseEventData(target.x, target.y, data.buttons));
+
+      target.control.mousemove.fire(new MouseMoveEventData(target.x, target.y, data.buttons, data.x - target.startX, data.y - target.startY));
 
       if (!this.capture && this.editing()) {
         this.repaint();

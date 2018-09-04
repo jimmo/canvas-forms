@@ -24,8 +24,6 @@ export class Scrollbox extends Control {
 
   paint(ctx: CanvasRenderingContext2D) {
     // Do regular paint, but offset by the scroll coordinates.
-    // TODO: this could be optimised to not paint children that are fully outside
-    // the clipping region.
     ctx.translate(-this.scrollX, -this.scrollY);
     super.paint(ctx);
     ctx.translate(this.scrollX, this.scrollY);
@@ -57,6 +55,13 @@ export class Scrollbox extends Control {
       ctx.fillRect(this.w - 10, sy, 7, sh);
     }
   }
+
+  paintDecorations(ctx: CanvasRenderingContext2D) {
+    ctx.translate(this.scrollX, this.scrollY);
+    super.paintDecorations(ctx);
+    ctx.translate(-this.scrollX, -this.scrollY);
+  }
+
 
   scrollBy(dx: number, dy: number) {
     // TODO: this should bubble up to parent scroll containers when bounds are hit.
