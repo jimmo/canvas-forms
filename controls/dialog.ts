@@ -4,9 +4,13 @@ import { Modal } from 'modal';
 
 export class Dialog extends Control {
   private _modal: Modal = null;
+  private _w: number = 500;
+  private _h: number = 300;
 
-  constructor() {
+  constructor(w?: number, h?: number) {
     super();
+    this._w = w || this._w;
+    this._h = h || this._h;
   }
 
   paint(ctx: CanvasRenderingContext2D) {
@@ -44,5 +48,11 @@ export class Dialog extends Control {
     } else {
       this.remove();
     }
+  }
+
+  selfConstrain() {
+    this.w = this._w;
+    this.h = this._h;
+    return true;
   }
 }

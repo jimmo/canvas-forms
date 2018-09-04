@@ -4,7 +4,7 @@ import { Checkbox } from "controls/checkbox";
 import { Dialog } from "controls/dialog";
 import { Grabber } from 'controls/grabber';
 import { Label } from "controls/label";
-import { List, TextListItem } from "controls/list";
+import { List, TextListItem, CheckboxListItem, ListItem } from "controls/list";
 import { Slider } from "controls/slider";
 import { Textbox, FocusTextbox } from "controls/textbox";
 import { Control } from "core/control";
@@ -15,30 +15,51 @@ import { Scrollbox } from "controls/scrollbox";
 
 const form = new Form(new Surface('canvas'));
 
-const list = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
+const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
 const c = form.add(new Scrollbox(), { y: 10, x2: 10, y2: 10 });
 c.border = true;
 
-const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]));
-grabber.coords.w.set(10);
-grabber.coords.y2.set(10);
-list.coords.xw.align(grabber.coords.x);
+const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]), { w: 10, y2: 10 });
+demoList.coords.xw.align(grabber.coords.x);
 c.coords.x.align(grabber.coords.xw);
 grabber.bound(CoordAxis.X, 100, 400);
 
-list.change.add(() => {
-  if (!list.selected()) {
+demoList.change.add(() => {
+  if (!demoList.selected()) {
     c.clear();
   }
 });
 
 function makeDemo(name: string, desc: string, fn: () => void) {
-  const item = list.addItem(name);
+  const item = demoList.addItem(name);
   item.select.add(() => {
     c.clear();
     c.add(new Label(desc), { x: 10, y2: 10 });
     fn();
   });
+}
+
+class PromptDialog extends Dialog {
+  name: Textbox;
+
+  constructor() {
+    super(300, 160);
+
+    this.add(new Label('What is your name?'), 20, 20);
+    this.name = this.add(new Textbox(), 20, 54);
+    this.name.coords.x2.set(20);
+
+    this.add(new Button('Cancel'), { x2: 10, y2: 10 }).click.add(() => {
+      this.close('Cancel');
+    });
+    this.add(new Button('OK'), { x2: 120, y2: 10 }).click.add(() => {
+      this.close(this.name.text);
+    });
+  }
+
+  submit() {
+    this.close(this.name.text);
+  }
 }
 
 makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
@@ -48,17 +69,8 @@ makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
   tx.coords.center(CoordAxis.X, 200);
   tx.coords.center(CoordAxis.Y, form.defaultHeight());
   b.click.add(async () => {
-    const d = new Dialog();
-    const tb = d.add(new Textbox(), 20, 20);
-    tb.coords.x2.set(20);
-
-    d.add(new Button('Cancel'), { x2: 10, y2: 10 }).click.add(() => {
-      d.close('Cancel');
-    });
-    d.add(new Button('OK'), { x2: 120, y2: 10 }).click.add(() => {
-      d.close(tb.text);
-    });
-    const result = await d.modal(form);
+    const d = new Dialog(300, 160);
+    const result = await new PromptDialog().modal(form);
     l.setText('You clicked: ' + result);
   });
 });
@@ -158,4 +170,41 @@ makeDemo('Grabber', '', () => {
   const l = c.add(new Label('Follow'));
   l.coords.x.align(g.coords.xw, 10);
   l.coords.y.align(g.coords.yh, 10);
+});
+
+class CustomListItem extends ListItem {
+  constructor(text: string) {
+    super();
+
+    const b = this.add(new Button(text), 3, 3, null, null, 3, 3);
+    b.click.add(() => {
+      if (!this.selected) {
+        this.selected = true;
+        this.select.fire();
+        this.repaint();
+      }
+    });
+  }
+
+  selfConstrain() {
+    this.h = 40;
+    return true;
+  }
+}
+
+makeDemo('List', '', () => {
+  const textList = c.add(new List<string>(TextListItem), 10, 10, 200, 500);
+  for (let i = 0; i < 100; ++i) {
+    textList.addItem('Item ' + i);
+  }
+
+  const checkList = c.add(new List<string>(CheckboxListItem), 220, 10, 200, 500);
+  for (let i = 0; i < 100; ++i) {
+    checkList.addItem('Task ' + i);
+  }
+
+  const customList = c.add(new List<string>(CustomListItem), 440, 10, 200, 500);
+  for (let i = 0; i < 100; ++i) {
+    customList.addItem('Action ' + i);
+  }
 });

@@ -13,6 +13,20 @@ export class ListItem extends Control {
 
     this.select = new Event();
   }
+
+  paint(ctx: CanvasRenderingContext2D) {
+    if (this.selected) {
+      ctx.fillStyle = 'orange';
+      ctx.fillRect(0, 0, this.w, this.h);
+    }
+
+    super.paint(ctx);
+  }
+
+  selfConstrain() {
+    this.h = this.form().defaultHeight();
+    return true;
+  }
 }
 
 export class TextListItem extends ListItem {
@@ -28,15 +42,6 @@ export class TextListItem extends ListItem {
         this.repaint();
       }
     });
-  }
-
-  paint(ctx: CanvasRenderingContext2D) {
-    if (this.selected) {
-      ctx.fillStyle = 'orange';
-      ctx.fillRect(0, 0, this.w, this.h);
-    }
-
-    super.paint(ctx);
   }
 };
 
@@ -81,7 +86,12 @@ export class List<T> extends Scrollbox {
       }
       this.change.fire();
     });
-    this.add(itemControl, 0, this.controls.length * 26, null, 26, 0, null);
+    this.add(itemControl, { x: 0, x2: 0 });
+    if (this.controls.length === 1) {
+      itemControl.coords.y.set(0);
+    } else {
+      itemControl.coords.y.align(this.controls[this.controls.length - 2].coords.yh);
+    }
     return itemControl;
   }
 

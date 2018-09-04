@@ -685,4 +685,10 @@ export class Control {
   get coords() {
     return new ControlCoords(this);
   }
+
+  submit() {
+    if (this.parent) {
+      this.parent.submit();
+    }
+  }
 }

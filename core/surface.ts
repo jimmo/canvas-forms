@@ -109,7 +109,6 @@ export class Surface {
     });
     this.elem.addEventListener('wheel', (ev) => {
       this.mousewheel.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
-      ev.preventDefault();
     });
   }
 

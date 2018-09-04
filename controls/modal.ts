@@ -10,7 +10,6 @@ export class Modal extends Control {
     super();
 
     this.add(dialog);
-    dialog.coords.size(600, 300);
     dialog.coords.center(CoordAxis.X);
     dialog.coords.center(CoordAxis.Y);
 
@@ -28,8 +27,8 @@ export class Modal extends Control {
 
   selfConstrain() {
     this.x = 0;
-    this.x2 = 0;
     this.y = 0;
+    this.x2 = 0;
     this.y2 = 0;
     return true;
   }

@@ -44,6 +44,13 @@ class _Textbox extends Control {
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
     ctx.strokeRect(0, 0, this.w, this.h);
+
+    if (!this.elem) {
+      ctx.font = this.getFont();
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = this.getColor();
+      ctx.fillText(this.text, 3, this.h / 2);
+    }
   }
 
   createElem() {
@@ -60,6 +67,11 @@ class _Textbox extends Control {
     this.elem.addEventListener('input', (ev) => {
       this.text = this.elem.value;
       this.change.fire(new TextboxChangeEventData(this, this.text));
+    });
+    this.elem.addEventListener('keypress', (ev) => {
+      if (ev.keyCode === 13) {
+        this.parent.submit();
+      }
     });
     this.context().canvas.parentElement.appendChild(this.elem);
   }
@@ -101,16 +113,5 @@ export class FocusTextbox extends _Textbox {
       this.elem.focus();
       this.repaint();
     });
-  }
-
-  paint(ctx: CanvasRenderingContext2D) {
-    super.paint(ctx);
-
-    if (!this.elem) {
-      ctx.font = this.getFont();
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = this.getColor();
-      ctx.fillText(this.text, 3, this.h / 2);
-    }
   }
 }
