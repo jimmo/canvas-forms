@@ -10,6 +10,12 @@ export class StaticConstraint extends Constraint {
     super([control]);
 
     Constraint.refControl(this, this.control);
+
+    if (v - Math.floor(v) > 0.001) {
+      console.log('Non-integer value for new static constraint.');
+    }
+    v = Math.floor(v);
+
     this.v = v;
   }
 
@@ -36,11 +42,21 @@ export class StaticConstraint extends Constraint {
   }
 
   set(v: number) {
+    if (v - Math.floor(v) > 0.001) {
+      console.log('Non-integer value for updating static constraint.');
+    }
+    v = Math.floor(v);
+
     this.v = v;
     this.control.relayout();
   }
 
   add(dv: number) {
+    if (dv - Math.floor(dv) > 0.001) {
+      console.log('Non-integer value added to static constraint.');
+    }
+    dv = Math.floor(dv);
+
     this.v += dv;
     this.control.relayout();
   }

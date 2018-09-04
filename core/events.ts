@@ -17,7 +17,11 @@ export class Event {
   fire(data?: any) {
     // Invoke all the listeners with the specified data payload.
     for (const h of this.listeners) {
-      h(data);
+      try {
+        h(data);
+      } catch (ex) {
+        console.log('Exception in event handler', ex);
+      }
     }
   }
 

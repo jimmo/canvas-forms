@@ -96,20 +96,20 @@ export class Surface {
     //   });
     // }
     this.elem.addEventListener('mousedown', (ev) => {
-      const s = this.pixelScale();
-      this.mousedown.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
+      this.mousedown.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      ev.preventDefault();
     });
     this.elem.addEventListener('mouseup', (ev) => {
-      const s = this.pixelScale();
-      this.mouseup.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
+      this.mouseup.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      ev.preventDefault();
     });
     this.elem.addEventListener('mousemove', (ev) => {
-      const s = this.pixelScale();
-      this.mousemove.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
+      this.mousemove.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      ev.preventDefault();
     });
     this.elem.addEventListener('wheel', (ev) => {
-      const s = this.pixelScale();
-      this.mousewheel.fire(new MouseEventData(ev.offsetX * s, ev.offsetY * s, ev.buttons));
+      this.mousewheel.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      ev.preventDefault();
     });
   }
 
@@ -170,9 +170,8 @@ export class Surface {
     let sx = 0;
     let sy = 0;
     this.scrollContainer.addEventListener('scroll', () => {
-      const s = this.pixelScale();
-      let dx = Math.round(s * (v * 2 - this.scrollContainer.scrollLeft));
-      let dy = Math.round(s * (v * 2 - this.scrollContainer.scrollTop));
+      let dx = this.pixels(v * 2 - this.scrollContainer.scrollLeft);
+      let dy = this.pixels(v * 2 - this.scrollContainer.scrollTop);
       this.scroll.fire(new ScrollEventData(dx - sx, dy - sy));
       sx = dx;
       sy = dy;
@@ -199,8 +198,6 @@ export class Surface {
         w = parent.clientWidth;
         h = parent.clientHeight;
       }
-
-      console.log(w, h);
 
       // debug scrollbars
       // w -= 20;
@@ -237,15 +234,15 @@ export class Surface {
 
   // Gets the x coordinate of this control relative to the surface.
   htmlX(): number {
-    return this.scrollContainer.scrollLeft * this.pixelScale();
+    return this.pixels(this.scrollContainer.scrollLeft);
   }
 
   // Gets the y coordinate of this control relative to the surface.
   htmlY(): number {
-    return this.scrollContainer.scrollTop * this.pixelScale();
+    return this.pixels(this.scrollContainer.scrollTop);
   }
 
-  pixelScale(): number {
-    return window.devicePixelRatio / Math.floor(window.devicePixelRatio);
+  pixels(v: number): number {
+    return Math.round(v * window.devicePixelRatio / Math.floor(window.devicePixelRatio));
   }
 }

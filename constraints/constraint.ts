@@ -68,6 +68,10 @@ export abstract class Constraint {
   // Note: this will also cause the control to attempt to calculate any
   // other coordinates on the same axis.
   static setCoord(control: Control, coord: CoordData, v: number) {
+    if (v - Math.floor(v) > 0.001) {
+      console.log('Non-integer coord value.');
+    }
+    v = Math.floor(v);
     if (coord === Coord.X) {
       if (control.x !== null) {
         throw new Error('Overspecified coordinate: x');

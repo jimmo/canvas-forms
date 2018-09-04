@@ -337,7 +337,7 @@ export class Control {
 
     // Arbritrarily cap at 20 iterations.
     for (let i = 0; ; ++i) {
-      if (i == 20) {
+      if (i === 20) {
         throw new Error('Unable to solve constraints after ' + i + ' iterations.');
       }
 
