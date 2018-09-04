@@ -93,7 +93,7 @@ class ControlCoords {
     this.w.set(w);
     this.h.set(h);
   }
-  center(axis: CoordAxis) {
+  center(axis: CoordAxis, wh?: number) {
     const s1 = new Control();
     const s2 = new Control();
     this.control.parent.add(s1);
@@ -104,12 +104,18 @@ class ControlCoords {
       this.x.align(s1.coords.xw);
       this.xw.align(s2.coords.x);
       new FillConstraint([s1, s2], Coord.W);
+      if (wh !== undefined) {
+        this.w.set(wh);
+      }
     } else if (axis === CoordAxis.Y) {
       s1.coords.y.set(0);
       s2.coords.y2.set(0);
       this.y.align(s1.coords.yh);
       this.yh.align(s2.coords.y);
       new FillConstraint([s1, s2], Coord.H);
+      if (wh !== undefined) {
+        this.h.set(wh);
+      }
     }
   }
 }
@@ -508,7 +514,7 @@ export class Control {
 
   // Adds a child control, optionally with the specified static coordinates.
   // Any of the coordinates can be null/undefined to ignore.
-  add<T extends Control>(control: T, x?: number | object, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
+  add<T extends Control>(control: T, x?: number | any, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
     if (x && typeof x === 'object') {
       return this.add(control, x['x'], x['y'], x['w'], x['h'], x['x2'], x['y2'], x['xw'], x['yh'], x['x2w'], x['y2w']);
     }

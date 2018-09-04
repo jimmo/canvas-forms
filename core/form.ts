@@ -32,6 +32,14 @@ export class Form extends Control {
   focus: ControlAtPointData;
   capture: ControlAtPointData;
 
+  // A list of top-level controls that should prevent all other controls from
+  // using DOM content (i.e. textboxes).
+  // If a control is a descendant of the topmost layer (or there are no layers), then
+  // that control allowed to have DOM content.
+  // Only controls that deliberately obscure other form content (e.g. modals, popups, etc)
+  // should register as layers.
+  private _layers: Control[] = [];
+
   constructor(readonly surface: Surface) {
     super();
 
@@ -198,5 +206,47 @@ export class Form extends Control {
   // Gets the y coordinate of this control relative to the surface.
   surfaceY(): number {
     return 0;
+  }
+
+  // Is the specified control allowed to use DOM content.
+  // The problems is that all DOM content sits above the canvas,
+  // so will not participate in the layering of form content.
+  // So a control that wants to use a DOM element must be
+  // in the current top-most layer.
+  // TODO: can we partially obscure DOM content? i.e. should
+  // a selectbox dropdown cause all HTML content to disappear?
+  // This isn't a big deal for (e.g. textboxes, which can also
+  // use the just-in-time DOM mode), but maybe down the track
+  // something like an iframe or HTML content control?
+  allowDom(control: Control): boolean {
+    if (this._layers.length === 0) {
+      return true;
+    }
+
+    if (control.parent === this) {
+      return control === this._layers[this._layers.length - 1];
+    } else {
+      return this.allowDom(control.parent);
+    }
+  }
+
+  // Make the top-level control that contains the specified control
+  // the new top layer.
+  pushLayer(control: Control): void {
+    if (control.parent !== this) {
+      return this.pushLayer(control.parent);
+    }
+    this._layers.push(control);
+  }
+
+  // Remove the current top layer (i.e. when the modal closes).
+  popLayer(control: Control): void {
+    if (control.parent !== this) {
+      return this.popLayer(control.parent);
+    }
+    if (this._layers[this._layers.length - 1] !== control) {
+      throw new Error('Wrong layer popped from stack.');
+    }
+    this._layers.pop();
   }
 }

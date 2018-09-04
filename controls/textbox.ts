@@ -13,7 +13,7 @@ export class Textbox extends Control {
   change: Event;
   private elem: HTMLInputElement;
 
-  constructor(text: string) {
+  constructor(text?: string) {
     super();
 
     this.text = text || '';
@@ -32,26 +32,30 @@ export class Textbox extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    if (!this.elem) {
-      this.elem = document.createElement('input');
-      this.elem.type = 'text';
-      this.elem.style.position = 'sticky';
-      this.elem.style.boxSizing = 'border-box';
-      this.elem.style.border = 'none';
-      this.elem.style.background = 'none';
-      this.elem.style.paddingLeft = '3px';
-      this.elem.value = this.text;
-      this.elem.addEventListener('input', (ev) => {
-        this.text = this.elem.value;
-        this.change.fire(new TextboxChangeEventData(this, this.text));
-      });
-      this.context().canvas.parentElement.appendChild(this.elem);
-    }
+    if (this.form().allowDom(this)) {
+      if (!this.elem) {
+        this.elem = document.createElement('input');
+        this.elem.type = 'text';
+        this.elem.style.position = 'sticky';
+        this.elem.style.boxSizing = 'border-box';
+        this.elem.style.border = 'none';
+        this.elem.style.background = 'none';
+        this.elem.style.paddingLeft = '3px';
+        this.elem.value = this.text;
+        this.elem.addEventListener('input', (ev) => {
+          this.text = this.elem.value;
+          this.change.fire(new TextboxChangeEventData(this, this.text));
+        });
+        this.context().canvas.parentElement.appendChild(this.elem);
+      }
 
-    this.elem.style.left = this.form().surface.htmlunits(this.surfaceX()) + 'px';
-    this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
-    this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
-    this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
+      this.elem.style.left = this.form().surface.htmlunits(this.surfaceX()) + 'px';
+      this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
+      this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
+      this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
+    } else {
+      this.unpaint();
+    }
 
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);

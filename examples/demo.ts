@@ -44,13 +44,19 @@ function makeDemo(name: string, desc: string, fn: () => void) {
 makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
   const b = c.add(new Button('Click me'), 10, 10);
   const l = c.add(new Label(), 20, 50);
+  const tx = c.add(new Textbox('html textbox'));
+  tx.coords.center(CoordAxis.X, 200);
+  tx.coords.center(CoordAxis.Y, form.defaultHeight());
   b.click.add(async () => {
     const d = new Dialog();
+    const tb = d.add(new Textbox(), 20, 20);
+    tb.coords.x2.set(20);
+
     d.add(new Button('Cancel'), { x2: 10, y2: 10 }).click.add(() => {
       d.close('Cancel');
     });
     d.add(new Button('OK'), { x2: 120, y2: 10 }).click.add(() => {
-      d.close('OK');
+      d.close(tb.text);
     });
     const result = await d.modal(form);
     l.setText('You clicked: ' + result);

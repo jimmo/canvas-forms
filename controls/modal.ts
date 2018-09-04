@@ -36,12 +36,14 @@ export class Modal extends Control {
 
   show(f: Form) {
     f.add(this);
+    f.pushLayer(this);
     return new Promise<any>(resolve => {
       this._resolve = resolve;
     });
   }
 
   close(data: any) {
+    this.form().popLayer(this);
     this.remove();
     if (this._resolve) {
       this._resolve(data);
