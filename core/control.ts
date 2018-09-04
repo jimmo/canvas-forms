@@ -403,30 +403,28 @@ export class Control {
       }
     }
 
-    // Now that all the controls are themselves positioned, layout their children.
-    let yy = 10;
-    let xx = 10;
+    // Now that all the controls have constraints applied, recursively layout their children.
     for (const c of this.controls) {
-      // Ensure each control is positioned somewhere.
-      if (c.x === null) {
-        c.x = xx;
-        c.recalculate(CoordAxis.X);
-        xx = Math.min(xx + 20, Math.max(xx, c.x) + 20);
-      }
-      if (c.y === null) {
-        c.y = yy;
-        c.recalculate(CoordAxis.Y);
-        yy = Math.min(yy + 20, Math.max(yy, c.y) + 20);
-      }
+      // A control might not have been fully constrained, so apply defaults.
+
+      // First give it a size if it doesn't have one.
       if (c.w === null) {
-        c.w = 100;
+        c.w = this.form().defaultWidth();
         c.recalculate(CoordAxis.X);
-        xx = Math.min(xx + 20, Math.max(xx, c.x) + 20);
       }
       if (c.h === null) {
-        c.h = 26;
+        c.h = this.form().defaultHeight();
         c.recalculate(CoordAxis.Y);
-        yy = Math.min(yy + 20, Math.max(yy, c.y) + 20);
+      }
+
+      // Ensure each control is positioned somewhere.
+      if (c.x === null) {
+        c.x = 10;
+        c.recalculate(CoordAxis.X);
+      }
+      if (c.y === null) {
+        c.y = 10;
+        c.recalculate(CoordAxis.Y);
       }
 
       c.layout();
@@ -510,7 +508,11 @@ export class Control {
 
   // Adds a child control, optionally with the specified static coordinates.
   // Any of the coordinates can be null/undefined to ignore.
-  add<T extends Control>(control: T, x?: number, y?: number, w?: number, h?: number, x2?: number, y2?: number): T {
+  add<T extends Control>(control: T, x?: number | object, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
+    if (x && typeof x === 'object') {
+      return this.add(control, x['x'], x['y'], x['w'], x['h'], x['x2'], x['y2'], x['xw'], x['yh'], x['x2w'], x['y2w']);
+    }
+
     const a = (b: number) => {
       return b !== undefined && b !== null;
     }
@@ -520,12 +522,16 @@ export class Control {
 
     // TODO: consider making StaticConstraint able to store multiple coordinates?
 
-    control.coords.x.set(x);
+    control.coords.x.set(x as number);
     control.coords.y.set(y);
     control.coords.w.set(w);
     control.coords.h.set(h);
     control.coords.x2.set(x2);
     control.coords.y2.set(y2);
+    control.coords.xw.set(xw);
+    control.coords.yh.set(yh);
+    control.coords.x2w.set(x2w);
+    control.coords.y2h.set(y2h);
 
     if (control._enableHitDetection) {
       this.enableHitDetection();

@@ -245,4 +245,8 @@ export class Surface {
   pixels(v: number): number {
     return Math.round(v * window.devicePixelRatio / Math.floor(window.devicePixelRatio));
   }
+
+  htmlunits(v: number): number {
+    return v / window.devicePixelRatio / Math.floor(window.devicePixelRatio);
+  }
 }

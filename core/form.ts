@@ -182,6 +182,14 @@ export class Form extends Control {
     return this;
   }
 
+  defaultWidth(): number {
+    return 100;
+  }
+
+  defaultHeight(): number {
+    return 26;
+  }
+
   // Gets the x coordinate of this control relative to the surface.
   surfaceX(): number {
     return 0;

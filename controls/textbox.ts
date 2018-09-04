@@ -48,11 +48,10 @@ export class Textbox extends Control {
       this.context().canvas.parentElement.appendChild(this.elem);
     }
 
-    const s = this.form().surface.pixelScale();
-    this.elem.style.left = this.surfaceX() / s + 'px';
-    this.elem.style.top = this.surfaceY() / s + 'px';
-    this.elem.style.width = this.w / s + 'px';
-    this.elem.style.height = this.h / s + 'px';
+    this.elem.style.left = this.form().surface.htmlunits(this.surfaceX()) + 'px';
+    this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
+    this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
+    this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
 
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);

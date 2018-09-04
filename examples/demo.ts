@@ -15,8 +15,8 @@ import { Scrollbox } from "controls/scrollbox";
 
 const form = new Form(new Surface('canvas'));
 
-const list = form.add(new List<string>(TextListItem), 10, 10, null, null, null, 10);
-const c = form.add(new Scrollbox(), null, 10, null, null, 10, 10);
+const list = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
+const c = form.add(new Scrollbox(), { y: 10, x2: 10, y2: 10 });
 c.border = true;
 
 const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]));
@@ -36,20 +36,20 @@ function makeDemo(name: string, desc: string, fn: () => void) {
   const item = list.addItem(name);
   item.select.add(() => {
     c.clear();
-    c.add(new Label(desc), 10, null, null, null, null, 10);
+    c.add(new Label(desc), { x: 10, y2: 10 });
     fn();
   });
 }
 
 makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
-  const b = c.add(new Button('Click me'), 10, 10, 100, 26);
+  const b = c.add(new Button('Click me'), 10, 10);
   const l = c.add(new Label(), 20, 50);
   b.click.add(async () => {
     const d = new Dialog();
-    d.add(new Button('Cancel'), null, null, 100, 26, 10, 10).click.add(() => {
+    d.add(new Button('Cancel'), { x2: 10, y2: 10 }).click.add(() => {
       d.close('Cancel');
     });
-    d.add(new Button('OK'), null, null, 100, 26, 120, 10).click.add(() => {
+    d.add(new Button('OK'), { x2: 120, y2: 10 }).click.add(() => {
       d.close('OK');
     });
     const result = await d.modal(form);
@@ -79,7 +79,7 @@ makeDemo('Fill', 'The buttons automatically fill the parent\'s width.', () => {
     }
     buttons.push(new Button('Button ' + buttons.length));
     for (const b of buttons) {
-      c.add(b, null, 20, null, 26);
+      c.add(b, null, 20);
     }
     FillConstraint.fillParent(buttons, CoordAxis.X, 10);
   }
@@ -92,9 +92,10 @@ makeDemo('Fill', 'The buttons automatically fill the parent\'s width.', () => {
 });
 
 makeDemo('Fill + Align', 'Only the first two buttons fill, the third matches the second\'s width.', () => {
-  const b1 = c.add(new Button('Fill 1'), 10, 20, null, 26);
-  const b2 = c.add(new Button('Fill 2'), null, 20, null, 26);
-  const b3 = c.add(new Button('Aligned to 2'), null, 20, null, 26, 10, null);
+  const b1 = c.add(new Button('Fill 1'), 10, 20);
+  const b2 = c.add(new Button('Fill 2'), null, 20);
+  const b3 = c.add(new Button('Aligned to 2'), null, 20);
+  b3.coords.x2.set(10);
   new FillConstraint([b1, b2], Coord.W);
   b2.coords.w.align(b3.coords.w);
   b2.coords.x.align(b1.coords.xw, 10);
@@ -102,8 +103,8 @@ makeDemo('Fill + Align', 'Only the first two buttons fill, the third matches the
 });
 
 makeDemo('Checkbox', 'The button only works when the checkbox is enabled.', () => {
-  const cb = c.add(new Checkbox('Enabled'), 10, 10, 100, 26);
-  const b = c.add(new Button('Click me'), 10, 50, 100, 26);
+  const cb = c.add(new Checkbox('Enabled'), 10, 10);
+  const b = c.add(new Button('Click me'), 10, 50);
   b.click.add(() => {
     if (cb.checked) {
       b.setText('Thanks');
@@ -115,25 +116,22 @@ makeDemo('Checkbox', 'The button only works when the checkbox is enabled.', () =
 });
 
 makeDemo('Slider', '', () => {
-  const s1 = c.add(new Slider(4, 0, 20, 1), 10, 10, 400, 26);
-  const l1 = c.add(new Label('4'), 420, 10, 100, 26);
-  l1.fit = false;
+  const s1 = c.add(new Slider(4, 0, 20, 1), 10, 10, 400);
+  const l1 = c.add(new Label('4'), 420, 10);
   s1.change.add(() => {
     l1.setText(s1.value.toString());
   });
 
-  const s2 = c.add(new Slider(20, 0, 100), 10, 50, 400, 26);
-  const l2 = c.add(new Label('20'), 420, 50, 100, 26);
-  l2.fit = false;
+  const s2 = c.add(new Slider(20, 0, 100), 10, 50, 400);
+  const l2 = c.add(new Label('20'), 420, 50);
   s2.change.add(() => {
     l2.setText((Math.round(s2.value * 10) / 10).toString());
   });
 });
 
 makeDemo('Textbox', '', () => {
-  const t1 = c.add(new Textbox('Hello'), 10, 10, 300, 26);
-  const l1 = c.add(new Label(t1.text), 10, 50, 300, 26);
-  l1.fit = false;
+  const t1 = c.add(new Textbox('Hello'), 10, 10, 300);
+  const l1 = c.add(new Label(t1.text), 10, 50);
   t1.change.add(() => {
     l1.setText(t1.text);
   });
