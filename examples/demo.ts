@@ -6,7 +6,7 @@ import { Grabber } from 'controls/grabber';
 import { Label } from "controls/label";
 import { List, TextListItem } from "controls/list";
 import { Slider } from "controls/slider";
-import { Textbox } from "controls/textbox";
+import { Textbox, FocusTextbox } from "controls/textbox";
 import { Control } from "core/control";
 import { Coord, CoordAxis } from "core/enums";
 import { Form } from "core/form";
@@ -140,6 +140,13 @@ makeDemo('Textbox', '', () => {
   const l1 = c.add(new Label(t1.text), 10, 50);
   t1.change.add(() => {
     l1.setText(t1.text);
+  });
+
+
+  const t2 = c.add(new FocusTextbox('Hello'), 10, 100, 300);
+  const l2 = c.add(new Label(t2.text), 10, 150);
+  t2.change.add(() => {
+    l2.setText(t2.text);
   });
 });
 

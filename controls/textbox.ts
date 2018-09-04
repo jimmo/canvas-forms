@@ -8,18 +8,16 @@ export class TextboxChangeEventData extends ControlEventData {
   }
 }
 
-export class Textbox extends Control {
+class _Textbox extends Control {
   text: string;
   change: Event;
-  private elem: HTMLInputElement;
+  protected elem: HTMLInputElement = null;
 
   constructor(text?: string) {
     super();
 
     this.text = text || '';
     this.change = new Event();
-
-    this.elem = null;
   }
 
   unpaint() {
@@ -32,29 +30,11 @@ export class Textbox extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    if (this.form().allowDom(this)) {
-      if (!this.elem) {
-        this.elem = document.createElement('input');
-        this.elem.type = 'text';
-        this.elem.style.position = 'sticky';
-        this.elem.style.boxSizing = 'border-box';
-        this.elem.style.border = 'none';
-        this.elem.style.background = 'none';
-        this.elem.style.paddingLeft = '3px';
-        this.elem.value = this.text;
-        this.elem.addEventListener('input', (ev) => {
-          this.text = this.elem.value;
-          this.change.fire(new TextboxChangeEventData(this, this.text));
-        });
-        this.context().canvas.parentElement.appendChild(this.elem);
-      }
-
-      this.elem.style.left = this.form().surface.htmlunits(this.surfaceX()) + 'px';
-      this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
-      this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
-      this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
-    } else {
+    if (this.elem && !this.form().allowDom(this)) {
       this.unpaint();
+    }
+    if (this.elem) {
+      this.positionElem();
     }
 
     ctx.fillStyle = 'white';
@@ -66,7 +46,71 @@ export class Textbox extends Control {
     ctx.strokeRect(0, 0, this.w, this.h);
   }
 
+  createElem() {
+    this.elem = document.createElement('input');
+    this.elem.type = 'text';
+    this.elem.style.position = 'sticky';
+    this.elem.style.boxSizing = 'border-box';
+    this.elem.style.border = 'none';
+    this.elem.style.background = 'none';
+    this.elem.style.paddingLeft = '3px';
+    this.elem.style.fontSize = this.form().surface.htmlunits(this.getFontSize()) + 'px';
+    this.elem.style.fontFamily = this.getFontName();
+    this.elem.value = this.text;
+    this.elem.addEventListener('input', (ev) => {
+      this.text = this.elem.value;
+      this.change.fire(new TextboxChangeEventData(this, this.text));
+    });
+    this.context().canvas.parentElement.appendChild(this.elem);
+  }
+
+  positionElem() {
+    this.elem.style.left = this.form().surface.htmlunits(this.surfaceX()) + 'px';
+    this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
+    this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
+    this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
+  }
+
   removed() {
     this.unpaint();
+  }
+}
+
+export class Textbox extends _Textbox {
+
+  constructor(text?: string) {
+    super(text);
+  }
+
+  paint(ctx: CanvasRenderingContext2D) {
+    if (!this.elem && this.form().allowDom(this)) {
+      this.createElem();
+    }
+
+    super.paint(ctx);
+  }
+}
+
+export class FocusTextbox extends _Textbox {
+  constructor(text?: string) {
+    super(text);
+
+    this.mousedown.add(() => {
+      this.createElem();
+      this.positionElem();
+      this.elem.focus();
+      this.repaint();
+    });
+  }
+
+  paint(ctx: CanvasRenderingContext2D) {
+    super.paint(ctx);
+
+    if (!this.elem) {
+      ctx.font = this.getFont();
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = this.getColor();
+      ctx.fillText(this.text, 3, this.h / 2);
+    }
   }
 }
