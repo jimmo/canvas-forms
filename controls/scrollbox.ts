@@ -108,4 +108,12 @@ export class ScrollBox extends Control {
   surfaceY(): number {
     return super.surfaceY() - this.scrollY;
   }
+
+  scrollWidth(): number {
+    return Math.max(this.w, this.xmax);
+  }
+
+  scrollHeight(): number {
+    return Math.max(this.h, this.ymax);
+  }
 }

@@ -320,12 +320,18 @@ export class Control {
 
     for (let i = this.controls.length - 1; i >= 0; --i) {
       const c = this.controls[i];
-      if ((editing || c._enableHitDetection) && x >= c.x && y >= c.y && x < c.x + c.w && y < c.y + c.h) {
-        return c.controlAtPoint(x - c.x, y - c.y, formX, formY);
+      const cx = x - c.x;
+      const cy = y - c.y;
+      if ((editing || c._enableHitDetection) && c.inside(cx, cy)) {
+        return c.controlAtPoint(cx, cy, formX, formY);
       }
     }
 
     return new ControlAtPointData(this, x, y, formX, formY);
+  }
+
+  inside(x: number, y: number) {
+    return x >= 0 && y >= 0 && x < this.w && y < this.h;
   }
 
   // Applies all constraints to direct children of this control.
@@ -702,10 +708,6 @@ export class Control {
   }
 
   scrollBy(dx: number, dy: number) {
-  }
-
-  inside(x: number, y: number) {
-    return x >= 0 && y >= 0 && x <= this.w && y <= this.h;
   }
 
   get coords() {

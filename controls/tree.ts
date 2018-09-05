@@ -11,14 +11,14 @@ export interface TreeNode {
 class SubTree extends Control {
   private loading: boolean = false;
 
-  constructor(private readonly parentNode: TreeNode) {
+  constructor(private readonly tree: Tree, private readonly parentNode: TreeNode) {
     super();
 
     this.clip = false;
   }
 
   addItem(node: TreeNode) {
-    const ti = this.add(new TreeItem(node), { x: 0 });
+    const ti = this.add(new TreeItem(this.tree, node), { x: 0 });
     if (this.controls.length === 1) {
       ti.coords.y.set(0);
     } else {
@@ -50,6 +50,10 @@ class SubTree extends Control {
       ctx.fillRect(18, this.h / 2 - 1, 2, 2);
     }
   }
+
+  inside(x: number, y: number) {
+    return x >= 0 && y >= 0 && y < this.h;
+  }
 }
 
 class TreeItem extends Control {
@@ -57,7 +61,7 @@ class TreeItem extends Control {
   open: boolean = false;
   private sub: SubTree;
 
-  constructor(private readonly node: TreeNode) {
+  constructor(private readonly tree: Tree, private readonly node: TreeNode) {
     super();
 
     this.clip = false;
@@ -67,10 +71,11 @@ class TreeItem extends Control {
     this.mouseup.add((data) => {
       this.selected = true;
 
+      console.log(data);
       if (data.y <= 26) {
         if (!this.open) {
           this.open = true;
-          this.sub = this.add(new SubTree(this.node), { x: 22 });
+          this.sub = this.add(new SubTree(this.tree, this.node), { x: 22 });
           this.sub.coords.y.align(l.coords.yh);
         } else {
           this.open = false;
@@ -84,7 +89,7 @@ class TreeItem extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     if (this.selected) {
       ctx.fillStyle = 'orange';
-      ctx.fillRect(0, 0, this.w * 10, 26);
+      ctx.fillRect(0, 0, this.tree.scrollWidth(), 26);
     }
 
     ctx.beginPath();
@@ -104,6 +109,10 @@ class TreeItem extends Control {
 
     super.paint(ctx);
   }
+
+  inside(x: number, y: number) {
+    return x >= 0 && y >= 0 && y < this.h;
+  }
 }
 
 export class Tree extends ScrollBox {
@@ -117,7 +126,7 @@ export class Tree extends ScrollBox {
 
     this.change = new Event();
 
-    this.sub = new SubTree(null);
+    this.sub = new SubTree(this, null);
   }
 
   added() {
