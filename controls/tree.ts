@@ -3,13 +3,22 @@ import { Event } from '../core/events';
 import { Label } from 'label';
 import { Scrollbox } from 'scrollbox';
 
+export interface TreeNode {
+  treeChildren(): Promise<TreeNode[]>;
+  treeText(): string;
+}
+
 class SubTree extends Control {
-  constructor() {
+  private loading: boolean = false;
+
+  constructor(private readonly parentNode: TreeNode) {
     super();
+
+    this.clip = false;
   }
 
-  addItem(text: string) {
-    const ti = this.add(new TreeItem(text), { x: 0 });
+  addItem(node: TreeNode) {
+    const ti = this.add(new TreeItem(node), { x: 0 });
     if (this.controls.length === 1) {
       ti.coords.y.set(0);
     } else {
@@ -18,21 +27,42 @@ class SubTree extends Control {
   }
 
   added() {
-    for (let i = 0; i < 10; ++i) {
-      this.addItem('Child ' + i);
+    if (this.parentNode) {
+      this.loading = true;
+
+      this.parentNode.treeChildren().then(children => {
+        this.loading = false;
+
+        for (const node of children) {
+          this.addItem(node);
+        }
+      });
+    }
+  }
+
+  paint(ctx: CanvasRenderingContext2D) {
+    super.paint(ctx);
+
+    if (this.loading) {
+      ctx.fillStyle = 'grey';
+      ctx.fillRect(6, this.h / 2 - 1, 2, 2);
+      ctx.fillRect(12, this.h / 2 - 1, 2, 2);
+      ctx.fillRect(18, this.h / 2 - 1, 2, 2);
     }
   }
 }
 
-export class TreeItem extends Control {
+class TreeItem extends Control {
   selected: boolean = false;
   open: boolean = false;
-  sub: SubTree;
+  private sub: SubTree;
 
-  constructor(text: string) {
+  constructor(private readonly node: TreeNode) {
     super();
 
-    const l = this.add(new Label(text), 22, 1);
+    this.clip = false;
+
+    const l = this.add(new Label(this.node.treeText()), 22, 1);
 
     this.mouseup.add((data) => {
       this.selected = true;
@@ -40,7 +70,7 @@ export class TreeItem extends Control {
       if (data.y <= 26) {
         if (!this.open) {
           this.open = true;
-          this.sub = this.add(new SubTree(), { x: 22 });
+          this.sub = this.add(new SubTree(this.node), { x: 22 });
           this.sub.coords.y.align(l.coords.yh);
         } else {
           this.open = false;
@@ -54,7 +84,7 @@ export class TreeItem extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     if (this.selected) {
       ctx.fillStyle = 'orange';
-      ctx.fillRect(0, 0, this.w, 26);
+      ctx.fillRect(0, 0, this.w * 10, 26);
     }
 
     ctx.beginPath();
@@ -78,6 +108,7 @@ export class TreeItem extends Control {
 
 export class Tree extends Scrollbox {
   change: Event;
+  sub: SubTree;
 
   constructor() {
     super();
@@ -85,9 +116,15 @@ export class Tree extends Scrollbox {
     this.border = true;
 
     this.change = new Event();
+
+    this.sub = new SubTree(null);
   }
 
-  setRoot() {
-    this.add(new TreeItem('Root'), { x: 0, y: 0 });
+  added() {
+    this.add(this.sub, 0, 0);
+  }
+
+  addRoot(node: TreeNode) {
+    this.sub.addItem(node);
   }
 }

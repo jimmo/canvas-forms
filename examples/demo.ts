@@ -5,7 +5,7 @@ import { Dialog } from "controls/dialog";
 import { Grabber } from 'controls/grabber';
 import { Label } from "controls/label";
 import { List, TextListItem, CheckboxListItem, ListItem } from "controls/list";
-import { Tree } from "controls/tree";
+import { Tree, TreeNode } from "controls/tree";
 import { Slider } from "controls/slider";
 import { Textbox, FocusTextbox } from "controls/textbox";
 import { Control } from "core/control";
@@ -210,8 +210,34 @@ makeDemo('List', '', () => {
   }
 });
 
+function delay(ms: number): Promise<void> {
+  return new Promise(function(resolve) {
+    setTimeout(function() {
+      resolve();
+    }, ms);
+  });
+}
+
+class DemoTreeNode implements TreeNode {
+  constructor(private readonly name: string) {
+  }
+
+  treeText(): string {
+    return this.name;
+  }
+
+  async treeChildren(): Promise<TreeNode[]> {
+    await delay(1000);
+    let children = [];
+    for (let i = 0; i < 5; ++i) {
+      children.push(new DemoTreeNode(this.name + '.' + i));
+    }
+    return children;
+  }
+};
 
 makeDemo('Tree', '', () => {
   const tree = c.add(new Tree(), 10, 10, 200, 500);
-  tree.setRoot();
+  tree.addRoot(new DemoTreeNode('A'));
+  tree.addRoot(new DemoTreeNode('B'));
 });
