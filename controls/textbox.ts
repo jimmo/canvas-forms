@@ -2,13 +2,13 @@ import { Control, ControlEventData } from '../core/control';
 import { Event } from '../core/events';
 
 // Fired when a textbox's text changes by user input.
-export class TextboxChangeEventData extends ControlEventData {
+export class TextBoxChangeEventData extends ControlEventData {
   constructor(control: Control, readonly text: string) {
     super(control)
   }
 }
 
-class _Textbox extends Control {
+class _TextBox extends Control {
   text: string;
   change: Event;
   protected elem: HTMLInputElement = null;
@@ -66,7 +66,7 @@ class _Textbox extends Control {
     this.elem.value = this.text;
     this.elem.addEventListener('input', (ev) => {
       this.text = this.elem.value;
-      this.change.fire(new TextboxChangeEventData(this, this.text));
+      this.change.fire(new TextBoxChangeEventData(this, this.text));
     });
     this.elem.addEventListener('keypress', (ev) => {
       if (ev.keyCode === 13) {
@@ -88,7 +88,7 @@ class _Textbox extends Control {
   }
 }
 
-export class Textbox extends _Textbox {
+export class TextBox extends _TextBox {
 
   constructor(text?: string) {
     super(text);
@@ -103,7 +103,7 @@ export class Textbox extends _Textbox {
   }
 }
 
-export class FocusTextbox extends _Textbox {
+export class FocusTextBox extends _TextBox {
   constructor(text?: string) {
     super(text);
 

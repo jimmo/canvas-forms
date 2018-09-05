@@ -1,23 +1,23 @@
 import { FillConstraint } from "constraints/fill";
 import { Button } from "controls/button";
-import { Checkbox } from "controls/checkbox";
+import { CheckBox, RadioGroup } from "controls/checkbox";
 import { Dialog } from "controls/dialog";
 import { Grabber } from 'controls/grabber';
 import { Label } from "controls/label";
-import { List, TextListItem, CheckboxListItem, ListItem } from "controls/list";
+import { List, TextListItem, CheckBoxListItem, ListItem } from "controls/list";
 import { Tree, TreeNode } from "controls/tree";
 import { Slider } from "controls/slider";
-import { Textbox, FocusTextbox } from "controls/textbox";
+import { TextBox, FocusTextBox } from "controls/textbox";
 import { Control } from "core/control";
 import { Coord, CoordAxis } from "core/enums";
 import { Form } from "core/form";
 import { Surface } from "core/surface";
-import { Scrollbox } from "controls/scrollbox";
+import { ScrollBox } from "controls/scrollbox";
 
 const form = new Form(new Surface('canvas'));
 
 const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
-const c = form.add(new Scrollbox(), { y: 10, x2: 10, y2: 10 });
+const c = form.add(new ScrollBox(), { y: 10, x2: 10, y2: 10 });
 c.border = true;
 
 const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]), { w: 10, y2: 10 });
@@ -41,13 +41,13 @@ function makeDemo(name: string, desc: string, fn: () => void) {
 }
 
 class PromptDialog extends Dialog {
-  name: Textbox;
+  name: TextBox;
 
   constructor() {
     super(300, 160);
 
     this.add(new Label('What is your name?'), 20, 20);
-    this.name = this.add(new Textbox(), 20, 54);
+    this.name = this.add(new TextBox(), 20, 54);
     this.name.coords.x2.set(20);
 
     this.add(new Button('Cancel'), { x2: 10, y2: 10 }).click.add(() => {
@@ -66,7 +66,7 @@ class PromptDialog extends Dialog {
 makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
   const b = c.add(new Button('Click me'), 10, 10);
   const l = c.add(new Label(), 20, 50);
-  const tx = c.add(new Textbox('html textbox'));
+  const tx = c.add(new TextBox('html textbox'));
   tx.coords.center(CoordAxis.X, 200);
   tx.coords.center(CoordAxis.Y, form.defaultHeight());
   b.click.add(async () => {
@@ -121,8 +121,8 @@ makeDemo('Fill + Align', 'Only the first two buttons fill, the third matches the
   b3.coords.x.align(b2.coords.xw, 10);
 });
 
-makeDemo('Checkbox', 'The button only works when the checkbox is enabled.', () => {
-  const cb = c.add(new Checkbox('Enabled'), 10, 10);
+makeDemo('CheckBox', 'The button only works when the checkbox is enabled.', () => {
+  const cb = c.add(new CheckBox('Enabled'), 10, 10);
   const b = c.add(new Button('Click me'), 10, 50);
   b.click.add(() => {
     if (cb.checked) {
@@ -132,6 +132,12 @@ makeDemo('Checkbox', 'The button only works when the checkbox is enabled.', () =
       }, 1000);
     }
   });
+
+  const r = new RadioGroup();
+  for (let i = 0; i < 5; ++i) {
+    const cb = c.add(new CheckBox('Radio ' + i), 10, 100 + i * 30);
+    r.add(cb);
+  }
 });
 
 makeDemo('Slider', '', () => {
@@ -148,15 +154,15 @@ makeDemo('Slider', '', () => {
   });
 });
 
-makeDemo('Textbox', '', () => {
-  const t1 = c.add(new Textbox('Hello'), 10, 10, 300);
+makeDemo('TextBox', '', () => {
+  const t1 = c.add(new TextBox('Hello'), 10, 10, 300);
   const l1 = c.add(new Label(t1.text), 10, 50);
   t1.change.add(() => {
     l1.setText(t1.text);
   });
 
 
-  const t2 = c.add(new FocusTextbox('Hello'), 10, 100, 300);
+  const t2 = c.add(new FocusTextBox('Created when focused'), 10, 100, 300);
   const l2 = c.add(new Label(t2.text), 10, 150);
   t2.change.add(() => {
     l2.setText(t2.text);
@@ -199,7 +205,7 @@ makeDemo('List', '', () => {
     textList.addItem('Item ' + i);
   }
 
-  const checkList = c.add(new List<string>(CheckboxListItem), 220, 10, 200, 500);
+  const checkList = c.add(new List<string>(CheckBoxListItem), 220, 10, 200, 500);
   for (let i = 0; i < 100; ++i) {
     checkList.addItem('Task ' + i);
   }

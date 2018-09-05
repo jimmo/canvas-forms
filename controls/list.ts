@@ -1,8 +1,8 @@
 import { Control } from '../core/control';
 import { Event } from '../core/events';
 import { Label } from 'label';
-import { Checkbox } from 'checkbox';
-import { Scrollbox } from 'scrollbox';
+import { CheckBox } from 'checkbox';
+import { ScrollBox } from 'scrollbox';
 
 export class ListItem extends Control {
   selected: boolean = false;
@@ -45,14 +45,14 @@ export class TextListItem extends ListItem {
   }
 };
 
-export class CheckboxListItem extends ListItem {
+export class CheckBoxListItem extends ListItem {
   constructor(text: string) {
     super();
-    const c = this.add(new Checkbox(text), 3, 1, null, null, 3, 1);
+    const c = this.add(new CheckBox(text), 3, 1, null, null, 3, 1);
   }
 };
 
-export class List<T> extends Scrollbox {
+export class List<T> extends ScrollBox {
   change: Event;
 
   constructor(readonly itemType: (new (item: T) => ListItem)) {

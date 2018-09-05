@@ -1,7 +1,7 @@
 import { Control } from '../core/control';
 import { Event } from '../core/events';
 import { Label } from 'label';
-import { Scrollbox } from 'scrollbox';
+import { ScrollBox } from 'scrollbox';
 
 export interface TreeNode {
   treeChildren(): Promise<TreeNode[]>;
@@ -106,7 +106,7 @@ class TreeItem extends Control {
   }
 }
 
-export class Tree extends Scrollbox {
+export class Tree extends ScrollBox {
   change: Event;
   sub: SubTree;
 

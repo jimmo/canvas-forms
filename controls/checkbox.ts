@@ -3,16 +3,18 @@ import { Event } from '../core/events';
 
 
 // Fired when a checkbox state changes by user input.
-export class CheckboxToggleEventData extends ControlEventData {
+export class CheckBoxToggleEventData extends ControlEventData {
   constructor(control: Control, readonly checked: boolean) {
     super(control);
   }
 }
 
-export class Checkbox extends Control {
+export class CheckBox extends Control {
   text: string;
-  private down: boolean;
   checked: boolean;
+
+  private down: boolean;
+  radio: RadioGroup;
 
   on: Event;
   off: Event;
@@ -42,17 +44,27 @@ export class Checkbox extends Control {
       this.down = false;
 
       if (this.inside(data.x, data.y)) {
-        this.checked = !this.checked;
-        const ev = new CheckboxToggleEventData(this, this.checked);
-        this.toggle.fire(ev);
-        if (this.checked) {
-          this.on.fire(ev);
-        } else {
-          this.off.fire(ev);
-        }
+        this.setChecked(!this.checked);
       }
       this.repaint();
     });
+  }
+
+  setChecked(checked: boolean) {
+    if (this.checked === checked) {
+      return;
+    }
+    if (this.radio) {
+      this.radio.clear(this);
+    }
+    this.checked = checked;
+    const ev = new CheckBoxToggleEventData(this, this.checked);
+    this.toggle.fire(ev);
+    if (this.checked) {
+      this.on.fire(ev);
+    } else {
+      this.off.fire(ev);
+    }
   }
 
   paint(ctx: CanvasRenderingContext2D) {
@@ -68,11 +80,24 @@ export class Checkbox extends Control {
     }
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
-    ctx.strokeRect(0, 0, this.h, this.h);
+
+    if (this.radio) {
+      ctx.beginPath();
+      ctx.arc(this.h / 2, this.h / 2, this.h / 2, 0, 2 * Math.PI);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(0, 0, this.h, this.h);
+    }
 
     if (this.checked) {
       ctx.fillStyle = 'orange';
-      ctx.fillRect(3, 3, this.h - 6, this.h - 6);
+      if (this.radio) {
+        ctx.beginPath();
+        ctx.arc(this.h / 2, this.h / 2, this.h / 2 - 3, 0, 2 * Math.PI);
+        ctx.fill();
+      } else {
+        ctx.fillRect(3, 3, this.h - 6, this.h - 6);
+      }
     }
 
     ctx.font = this.getFont();
@@ -82,3 +107,29 @@ export class Checkbox extends Control {
     ctx.fillText(this.text, this.h + 7, this.h / 2, this.w - this.h - 4);
   }
 }
+
+export class RadioGroup {
+  private checkboxes: CheckBox[] = [];
+
+  constructor(checkboxes?: CheckBox[]) {
+    if (checkboxes) {
+      for (const checkbox of checkboxes) {
+        this.add(checkbox);
+      }
+    }
+  }
+
+  add(checkbox: CheckBox) {
+    checkbox.radio = this;
+    this.checkboxes.push(checkbox);
+  }
+
+  clear(selected: CheckBox) {
+    for (const checkbox of this.checkboxes) {
+      if (checkbox === selected) {
+        continue;
+      }
+      checkbox.setChecked(false);
+    }
+  }
+};

@@ -1,6 +1,6 @@
 import { Control, ControlEventData } from '../core/control';
 
-export class Scrollbox extends Control {
+export class ScrollBox extends Control {
   // Scroll coordinates.
   private scrollX: number = 0;
   private scrollY: number = 0;
