@@ -162,6 +162,10 @@ export abstract class Constraint {
     return false;
   }
 
+  unstick() {
+    return false;
+  }
+
   // Return true if this constraint has converged.
   // The `round` argument indicates what round this is.
   // If any constraint returns false here, then the entire layout will be attempted again

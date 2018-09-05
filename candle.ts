@@ -4,7 +4,6 @@
 //    - Tree
 //    - Radio
 //    - Tab
-//  - Size to child controls
 //  - Mouse enter/leave
 //  - Drag & Drop
 //  - Focus

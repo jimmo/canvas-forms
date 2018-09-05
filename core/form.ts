@@ -164,6 +164,7 @@ export class Form extends Control {
       window.requestAnimationFrame((frameTime) => {
         //console.log('layout ' + frameTime);
         this.pendingLayout = false;
+        this.layoutComplete = false;
         this.layout();
         if (!this.pendingPaint) {
           //console.log('paint ' + frameTime);

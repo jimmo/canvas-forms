@@ -138,6 +138,7 @@ export class Control {
   yh: number;
   x2w: number;
   y2h: number;
+  protected layoutComplete: boolean = false;
 
   protected clip: boolean;
   protected scrollable: boolean;
@@ -330,6 +331,30 @@ export class Control {
   // Applies all constraints to direct children of this control.
   // Don't call this directly -- call `relayout` instead.
   layout() {
+    if (this.layoutComplete) {
+      return;
+    }
+
+    // First give it a size if it doesn't have one, and can't calculate from its children.
+    if (this.w === null && this.controls.length === 0) {
+      this.w = this.form().defaultWidth();
+      this.recalculate(CoordAxis.X);
+    }
+    if (this.h === null && this.controls.length === 0) {
+      this.h = this.form().defaultHeight();
+      this.recalculate(CoordAxis.Y);
+    }
+
+    // Ensure each control is positioned somewhere.
+    if (this.x === null) {
+      this.x = 10;
+      this.recalculate(CoordAxis.X);
+    }
+    if (this.y === null) {
+      this.y = 10;
+      this.recalculate(CoordAxis.Y);
+    }
+
     // Constraints are applied until they converge.
     // If there are no fill constraints, they will all solve on the first iteration of this loop.
     // The fill constraints converge on a solution by redistributing remaining space each iteration.
@@ -359,9 +384,10 @@ export class Control {
         c.yh = null;
         c.x2w = null;
         c.y2h = null;
+        c.layoutComplete = false;
 
         // For controls that can automatically figure out their own coordinates
-        // (i.e. size to content) then apply that.
+        // (i.e. label sets its own width and height) then apply that.
         if (c.selfConstrain()) {
           c.recalculate(CoordAxis.X);
           c.recalculate(CoordAxis.Y);
@@ -387,7 +413,13 @@ export class Control {
           }
         }
         if (next.length === pending.length) {
-          throw new Error('Unable to apply remaining constraints.');
+          let unstuck = false;
+          for (const c of pending) {
+            unstuck = unstuck || c.unstick();
+          }
+          if (!unstuck) {
+            throw new Error('Unable to apply remaining constraints.');
+          }
         }
         pending = next;
       }
@@ -411,30 +443,24 @@ export class Control {
 
     // Now that all the controls have constraints applied, recursively layout their children.
     for (const c of this.controls) {
-      // A control might not have been fully constrained, so apply defaults.
-
-      // First give it a size if it doesn't have one.
-      if (c.w === null) {
-        c.w = this.form().defaultWidth();
-        c.recalculate(CoordAxis.X);
-      }
-      if (c.h === null) {
-        c.h = this.form().defaultHeight();
-        c.recalculate(CoordAxis.Y);
-      }
-
-      // Ensure each control is positioned somewhere.
-      if (c.x === null) {
-        c.x = 10;
-        c.recalculate(CoordAxis.X);
-      }
-      if (c.y === null) {
-        c.y = 10;
-        c.recalculate(CoordAxis.Y);
-      }
-
       c.layout();
     }
+
+    // If it still doesn't have a size, then fit to its children.
+    if (!this.w && this.controls.length > 0) {
+      for (const cc of this.controls) {
+        this.w = Math.max(this.w, cc.xw);
+      }
+      this.recalculate(CoordAxis.X);
+    }
+    if (!this.h && this.controls.length > 0) {
+      for (const cc of this.controls) {
+        this.h = Math.max(this.h, cc.yh);
+      }
+      this.recalculate(CoordAxis.Y);
+    }
+
+    this.layoutComplete = true;
   }
 
   selfConstrain(): boolean {

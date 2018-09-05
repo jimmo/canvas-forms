@@ -1,6 +1,6 @@
 import { Constraint } from 'constraint';
 import { Control } from '../core/control';
-import { CoordData } from '../core/enums';
+import { CoordData, Coord } from '../core/enums';
 
 // This constrains two coordinates from the same axis.
 // As soon as one is set, the other will copy it. This means the constraint is bidirectional.
@@ -66,6 +66,25 @@ export class AlignConstraint extends Constraint {
 
     // Neither was set, so we can't be applied yet.
     return false;
+  }
+
+  unstick() {
+    if (this.control1.w === null && (this.coord1 === Coord.W || this.coord1 === Coord.XW || this.coord1 === Coord.X2W)) {
+      this.control1.layout();
+      return true;
+    }
+    if (this.control2.w === null && (this.coord2 === Coord.W || this.coord2 === Coord.XW || this.coord2 === Coord.X2W)) {
+      this.control2.layout();
+      return true;
+    }
+    if (this.control1.h === null && (this.coord1 === Coord.H || this.coord1 === Coord.YH || this.coord1 === Coord.Y2H)) {
+      this.control1.layout();
+      return true;
+    }
+    if (this.control2.h === null && (this.coord2 === Coord.H || this.coord2 === Coord.YH || this.coord2 === Coord.Y2H)) {
+      this.control2.layout();
+      return true;
+    }
   }
 
   paint(ctx: CanvasRenderingContext2D) {

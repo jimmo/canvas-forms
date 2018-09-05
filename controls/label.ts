@@ -37,7 +37,7 @@ export class Label extends Control {
       return false;
     }
     this.context().font = this.getFont();
-    this.w = Math.ceil(this.context().measureText(this.text).width);
+    this.w = Math.ceil(this.context().measureText(this.text).width) + 10;
     this.h = Math.max(this.form().defaultHeight(), this.getFontSize() + 2);
     return true;
   }

@@ -6,16 +6,21 @@ import { Scrollbox } from 'scrollbox';
 class SubTree extends Control {
   constructor() {
     super();
-    // this.border = true;
   }
 
-  selfConstrain() {
-    this.h = this.controls.length * 26 + 300;
-    return true;
+  addItem(text: string) {
+    const ti = this.add(new TreeItem(text), { x: 0 });
+    if (this.controls.length === 1) {
+      ti.coords.y.set(0);
+    } else {
+      ti.coords.y.align(this.controls[this.controls.length - 2].coords.yh);
+    }
   }
 
   added() {
-    this.add(new TreeItem(), { x: 0, y: 0, x2: 0 });
+    for (let i = 0; i < 10; ++i) {
+      this.addItem('Child ' + i);
+    }
   }
 }
 
@@ -24,10 +29,10 @@ export class TreeItem extends Control {
   open: boolean = false;
   sub: SubTree;
 
-  constructor() {
+  constructor(text: string) {
     super();
 
-    const l = this.add(new Label('tree'), 22, 1);
+    const l = this.add(new Label(text), 22, 1);
 
     this.mouseup.add((data) => {
       this.selected = true;
@@ -35,7 +40,7 @@ export class TreeItem extends Control {
       if (data.y <= 26) {
         if (!this.open) {
           this.open = true;
-          this.sub = this.add(new SubTree(), { x: 22, x2: 0 });
+          this.sub = this.add(new SubTree(), { x: 22 });
           this.sub.coords.y.align(l.coords.yh);
         } else {
           this.open = false;
@@ -69,11 +74,6 @@ export class TreeItem extends Control {
 
     super.paint(ctx);
   }
-
-  selfConstrain() {
-    this.h = 800;
-    return true;
-  }
 }
 
 export class Tree extends Scrollbox {
@@ -88,6 +88,6 @@ export class Tree extends Scrollbox {
   }
 
   setRoot() {
-    this.add(new TreeItem(), { x: 0, y: 0, x2: 0 });
+    this.add(new TreeItem('Root'), { x: 0, y: 0 });
   }
 }
