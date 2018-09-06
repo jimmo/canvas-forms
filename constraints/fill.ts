@@ -182,21 +182,23 @@ export class FillConstraint extends Constraint {
     }
   }
 
-  static fillParent(controls: Control[], axis: CoordAxis, spacing: number) {
+  static fillParent(controls: Control[], axis: CoordAxis, spacing?: number) {
+    spacing = spacing || 0;
+
     if (axis === CoordAxis.X) {
       controls[0].coords.x.set(spacing);
       for (let i = 1; i < controls.length; ++i) {
         controls[i].coords.x.align(controls[i - 1].coords.xw, spacing);
       }
       controls[controls.length - 1].coords.x2.set(spacing);
-      new FillConstraint(controls, Coord.W);
+      return new FillConstraint(controls, Coord.W);
     } else if (axis === CoordAxis.Y) {
       controls[0].coords.y.set(spacing);
       for (let i = 1; i < controls.length; ++i) {
         controls[i].coords.y.align(controls[i - 1].coords.yh, spacing);
       }
       controls[controls.length - 1].coords.y2.set(spacing);
-      new FillConstraint(controls, Coord.H);
+      return new FillConstraint(controls, Coord.H);
     }
   }
 }

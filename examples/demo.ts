@@ -1,5 +1,5 @@
 import { FillConstraint } from "constraints/fill";
-import { Button } from "controls/button";
+import { Button, ButtonGroup } from "controls/button";
 import { CheckBox, RadioGroup } from "controls/checkbox";
 import { Dialog } from "controls/dialog";
 import { Grabber } from 'controls/grabber';
@@ -246,4 +246,19 @@ makeDemo('Tree', '', () => {
   const tree = c.add(new Tree(), 10, 10, 200, 500);
   tree.addRoot(new DemoTreeNode('A'));
   tree.addRoot(new DemoTreeNode('B'));
+});
+
+makeDemo('Button', '', () => {
+  const b1 = c.add(new Button('Hello'), 10, 10, 100, 26);
+
+  const g1 = c.add(new ButtonGroup(), 10, 100, 400, 26);
+  const gb1 = g1.add(new Button('One'));
+  const gb2 = g1.add(new Button('Two'));
+  const gb3 = g1.add(new Button('Three'));
+  const gb4 = g1.add(new Button('Four'));
+  const gb5 = g1.add(new Button('Five'));
+
+  gb1.click.add(() => {
+    const bx = g1.add(new Button('More!'));
+  });
 });

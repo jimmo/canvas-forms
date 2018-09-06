@@ -1,5 +1,8 @@
 import { Control } from '../core/control';
 import { Event } from '../core/events';
+import { FillConstraint } from '../constraints/fill';
+import { CoordAxis, Coord } from '../core/enums';
+import { StaticConstraint } from '../constraints/static';
 
 export class Button extends Control {
   private text: string;
@@ -36,7 +39,6 @@ export class Button extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-
     if (this.down) {
       ctx.fillStyle = '#ff9800';
     } else {
@@ -53,15 +55,28 @@ export class Button extends Control {
 
     const r = 6;
     ctx.beginPath();
-    ctx.moveTo(r, 0);
-    ctx.lineTo(this.w - r, 0);
-    ctx.arcTo(this.w, 0, this.w, r, r);
-    ctx.lineTo(this.w, this.h - r);
-    ctx.arcTo(this.w, this.h, this.w - r, this.h, r);
-    ctx.lineTo(r, this.h);
-    ctx.arcTo(0, this.h, 0, this.h - r, r);
-    ctx.lineTo(0, r);
-    ctx.arcTo(0, 0, r, 0, r);
+
+
+    let rl = 6;
+    let rr = 6;
+    if (this.parent instanceof ButtonGroup) {
+      if (this !== this.parent.controls[0]) {
+        rl = 0;
+      }
+      if (this !== this.parent.controls[this.parent.controls.length - 1]) {
+        rr = 0;
+      }
+    }
+
+    ctx.moveTo(rl, 0);
+    ctx.lineTo(this.w - rr, 0);
+    ctx.arcTo(this.w, 0, this.w, rr, rr);
+    ctx.lineTo(this.w, this.h - rr);
+    ctx.arcTo(this.w, this.h, this.w - rr, this.h, rr);
+    ctx.lineTo(rl, this.h);
+    ctx.arcTo(0, this.h, 0, this.h - rl, rl);
+    ctx.lineTo(0, rl);
+    ctx.arcTo(0, 0, rl, 0, rl);
 
     if (this.down) {
       ctx.shadowColor = '#c0c0c0';
@@ -86,5 +101,41 @@ export class Button extends Control {
     if (this.parent) {
       this.parent.relayout();
     }
+  }
+}
+
+export class ButtonGroup extends Control {
+  private fill: FillConstraint;
+  private end: StaticConstraint;
+
+  constructor() {
+    super();
+  }
+
+  add<T extends Control>(control: T, x?: number | any, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
+    super.add(control);
+    control.coords.y.set(0);
+    control.coords.y2.set(0);
+
+    if (this.fill) {
+      this.fill.remove();
+      this.fill = null;
+    }
+    if (this.end) {
+      this.end.remove();
+      this.end = null;
+    }
+
+    if (this.controls.length === 1) {
+      control.coords.x.set(0);
+    }
+    this.end = control.coords.x2.set(0);
+
+    if (this.controls.length >= 2) {
+      control.coords.x.align(this.controls[this.controls.length - 2].coords.xw);
+      this.fill = new FillConstraint(this.controls, Coord.W);
+    }
+
+    return control;
   }
 }
