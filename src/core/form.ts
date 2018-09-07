@@ -1,5 +1,6 @@
 import { Surface, MouseEventData, ScrollEventData } from './surface';
 import { Control, ControlAtPointData } from './control';
+import { Animator } from '../animation';
 
 export class MouseDownEventData extends MouseEventData {
   constructor(x: number, y: number, buttons: number, private readonly form: Form, private readonly hit: ControlAtPointData) {
@@ -39,6 +40,8 @@ export class Form extends Control {
   // Only controls that deliberately obscure other form content (e.g. modals, popups, etc)
   // should register as layers.
   private _layers: Control[] = [];
+
+  private _animators: Animator[] = [];
 
   constructor(readonly surface: Surface) {
     super();
@@ -163,6 +166,9 @@ export class Form extends Control {
       window.requestAnimationFrame((frameTime) => {
         //console.log('layout ' + frameTime);
         this.pendingLayout = false;
+        for (const a of this._animators) {
+          a.apply();
+        }
         this.layoutComplete = false;
         this.layout();
         if (!this.pendingPaint) {
@@ -248,5 +254,18 @@ export class Form extends Control {
       throw new Error('Wrong layer popped from stack.');
     }
     this._layers.pop();
+  }
+
+  addAnimator(animator: Animator) {
+    this._animators.push(animator);
+  }
+
+  removeAnimator(animator: Animator) {
+    for (let i = 0; i < this._animators.length; ++i) {
+      if (this._animators[i] === animator) {
+        this._animators.splice(i, 1);
+        return;
+      }
+    }
   }
 }

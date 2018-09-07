@@ -1,6 +1,7 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
 import { CoordData } from '../core/enums';
+import { CoordAnimator } from '../animation';
 
 // Represents a simple constraint that sets one coordinate to a static value.
 export class StaticConstraint extends Constraint {
@@ -59,5 +60,9 @@ export class StaticConstraint extends Constraint {
 
     this.v += dv;
     this.control.relayout();
+  }
+
+  animate() {
+    return new CoordAnimator(this);
   }
 }

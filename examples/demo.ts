@@ -260,3 +260,12 @@ makeDemo('Button', '', () => {
     const bx = g1.add(new Button('More!'));
   });
 });
+
+makeDemo('Animation', '', () => {
+  const b1 = c.add(new Button('Here'), null, 10, 100, 26);
+  const a1 = b1.coords.x.set(10).animate();
+  b1.click.add(async () => {
+    await a1.start();
+    b1.setText('There');
+  });
+});
