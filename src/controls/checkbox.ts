@@ -78,14 +78,15 @@ export class CheckBox extends Control {
     } else {
       ctx.strokeStyle = 'black';
     }
-    ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
 
     if (this.radio) {
       ctx.beginPath();
+      ctx.lineWidth = 1.2;
       ctx.arc(this.h / 2, this.h / 2, this.h / 2, 0, 2 * Math.PI);
       ctx.stroke();
     } else {
+      ctx.lineWidth = 1;
       ctx.strokeRect(0, 0, this.h, this.h);
     }
 

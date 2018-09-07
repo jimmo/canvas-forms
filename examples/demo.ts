@@ -35,10 +35,10 @@ class PromptDialog extends Dialog {
     this.name = this.add(new TextBox(), 20, 54);
     this.name.coords.x2.set(20);
 
-    this.add(new Button('Cancel'), { x2: 10, y2: 10 }).click.add(() => {
+    this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
       this.close('Cancel');
     });
-    this.add(new Button('OK'), { x2: 120, y2: 10 }).click.add(() => {
+    this.add(new Button('OK'), { x2: 130, y2: 20 }).click.add(() => {
       this.close(this.name.text);
     });
   }
@@ -152,6 +152,14 @@ makeDemo('TextBox', '', () => {
   t2.change.add(() => {
     l2.setText(t2.text);
   });
+
+
+  const t3 = c.add(new TextBox('One\nTwo\nThree'), 400, 10, 300, 200);
+  t3.multiline = true;
+  const l3 = c.add(new Label(t3.text), 400, 250);
+  t3.change.add(() => {
+    l3.setText(t3.text);
+  });
 });
 
 makeDemo('Grabber', '', () => {
@@ -235,6 +243,11 @@ makeDemo('Tree', '', () => {
 
 makeDemo('Button', '', () => {
   const b1 = c.add(new Button('Hello'), 10, 10, 100, 26);
+  b1.click.add(async () => {
+    b1.setText('Goodbye');
+    await delay(1000);
+    b1.setText('Hello');
+  });
 
   const g1 = c.add(new ButtonGroup(), 10, 100, 400, 26);
   const gb1 = g1.add(new Button('One'));

@@ -11,7 +11,8 @@ export class TextBoxChangeEventData extends ControlEventData {
 class _TextBox extends Control {
   text: string;
   change: Event;
-  protected elem: HTMLInputElement = null;
+  multiline: boolean = false;
+  protected elem: (HTMLTextAreaElement | HTMLInputElement) = null;
 
   constructor(text?: string) {
     super();
@@ -54,8 +55,13 @@ class _TextBox extends Control {
   }
 
   createElem() {
-    this.elem = document.createElement('input');
-    this.elem.type = 'text';
+    if (this.multiline) {
+      this.elem = document.createElement('textarea');
+    } else {
+      this.elem = document.createElement('input');
+      this.elem.type = 'text';
+    }
+    this.elem.value = this.text;
     this.elem.style.position = 'sticky';
     this.elem.style.boxSizing = 'border-box';
     this.elem.style.border = 'none';
@@ -63,12 +69,11 @@ class _TextBox extends Control {
     this.elem.style.paddingLeft = '3px';
     this.elem.style.fontSize = this.form().surface.htmlunits(this.getFontSize()) + 'px';
     this.elem.style.fontFamily = this.getFontName();
-    this.elem.value = this.text;
     this.elem.addEventListener('input', (ev) => {
       this.text = this.elem.value;
       this.change.fire(new TextBoxChangeEventData(this, this.text));
     });
-    this.elem.addEventListener('keypress', (ev) => {
+    (this.elem as HTMLElement).addEventListener('keypress', (ev) => {
       if (ev.keyCode === 13) {
         this.parent.submit();
       }

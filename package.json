@@ -7,6 +7,8 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -cw",
+    "build-examples": "rollup -c --environment EXAMPLES",
+    "watch-examples": "rollup -cw --environment EXAMPLES",
     "barrels": "barrelsby --delete -d src -l all -q -s flat"
   },
   "types": "dist/index.d.ts",

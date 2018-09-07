@@ -536,10 +536,24 @@ export class Control {
 
   paintDecorations(ctx: CanvasRenderingContext2D) {
     if (this.border) {
-      ctx.strokeStyle = 'black';
       ctx.lineWidth = 1;
       ctx.lineJoin = 'round';
-      ctx.strokeRect(0, 0, this.w, this.h);
+
+      // Left/Top
+      ctx.beginPath();
+      ctx.moveTo(0, this.h);
+      ctx.lineTo(0, 0);
+      ctx.lineTo(this.w, 0);
+      ctx.strokeStyle = '#202020';
+      ctx.stroke();
+
+      // Right/Bottom
+      ctx.beginPath();
+      ctx.moveTo(this.w, 0);
+      ctx.lineTo(this.w, this.h);
+      ctx.lineTo(0, this.h);
+      ctx.strokeStyle = '#707070';
+      ctx.stroke();
     }
   }
 

@@ -25,7 +25,7 @@ export class Form extends Control {
 
   fontSize = 16;
   fontName = 'sans';
-  color = 'black';
+  color = '#202020';
 
   private _editing = false;
 
