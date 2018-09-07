@@ -1,6 +1,6 @@
 import { Control } from '../core/control';
 import { Form } from '../core/form';
-import { Modal } from 'modal';
+import { Modal } from './modal';
 
 export class Dialog extends Control {
   private _modal: Modal = null;

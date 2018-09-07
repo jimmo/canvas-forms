@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
-    "module": "amd",
+    "module": "es6",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "baseUrl": "../",
-    "outDir": "../build",
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "paths": {
+      "canvas-forms": ["../src/index"]
+    },
     "target": "ES2017"
   },
   "files": [
-    "demo.ts",
-    "scratch.ts"
+    "demo.ts"
   ],
-  "compileOnSave": true,
   "indentSize": 2,
   "tabSize": 2
 }

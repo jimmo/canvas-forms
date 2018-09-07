@@ -1,22 +1,8 @@
-import { Event } from 'events';
+import { Event } from './events';
+import { ResizeObserver } from 'resize-observer';
 
-if (!window.ResizeObserver) {
-  // FireFox polyfill.
-  window.ResizeObserver = function(fn: (entries: any[]) => void) {
-    this.fn = fn;
-    this.ma = new MutationObserver((entries) => {
-      this.fn(entries);
-    });
-    setTimeout(() => { this.fn(); }, 0);
-  }
-
-  window.ResizeObserver.prototype.observe = function(x: any[]) {
-    this.ma.observe(x, {
-      attributes: true,
-      childList: false,
-      characterData: false
-    });
-  };
+interface ChromeCanvasRenderingContext2D extends CanvasRenderingContext2D {
+  resetTransform(): void;
 }
 
 // Fired by a surface when the browser cases the Canvas element to resize.
@@ -217,7 +203,7 @@ export class Surface {
       const s = window.devicePixelRatio;
       this.elem.width = Math.round(w * s);
       this.elem.height = Math.round(h * s);
-      this.ctx.resetTransform();
+      (<ChromeCanvasRenderingContext2D>(this.ctx)).resetTransform();
 
       let zoom = Math.floor(s);
       this.ctx.scale(zoom, zoom);

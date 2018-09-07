@@ -1,21 +1,6 @@
-import { FillConstraint } from "constraints/fill";
-import { Button, ButtonGroup } from "controls/button";
-import { CheckBox, RadioGroup } from "controls/checkbox";
-import { Dialog } from "controls/dialog";
-import { Grabber } from 'controls/grabber';
-import { Label } from "controls/label";
-import { List, TextListItem, CheckBoxListItem, ListItem } from "controls/list";
-import { Tree, TreeNode } from "controls/tree";
-import { Slider } from "controls/slider";
-import { TextBox, FocusTextBox } from "controls/textbox";
-import { Control } from "core/control";
-import { Coord, CoordAxis } from "core/enums";
-import { Form } from "core/form";
-import { Surface } from "core/surface";
-import { ScrollBox } from "controls/scrollbox";
+import { FillConstraint, Button, ButtonGroup, CheckBox, RadioGroup, Dialog, Label, CheckBoxListItem, List, ListItem, TextListItem, Slider, FocusTextBox, TextBox, Tree, TreeNode, Coord, CoordAxis, Form, Surface, Grabber, ScrollBox } from 'canvas-forms';
 
 const form = new Form(new Surface('canvas'));
-
 const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
 const c = form.add(new ScrollBox(), { y: 10, x2: 10, y2: 10 });
 c.border = true;
@@ -233,7 +218,7 @@ class DemoTreeNode implements TreeNode {
   }
 
   async treeChildren(): Promise<TreeNode[]> {
-    await delay(1000);
+    await delay(300);
     let children = [];
     for (let i = 0; i < 5; ++i) {
       children.push(new DemoTreeNode(this.name + '.' + i));

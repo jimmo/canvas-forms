@@ -1,8 +1,8 @@
 import { Control } from '../core/control';
 import { Event } from '../core/events';
-import { Label } from 'label';
-import { CheckBox } from 'checkbox';
-import { ScrollBox } from 'scrollbox';
+import { Label } from './label';
+import { CheckBox } from './checkbox';
+import { ScrollBox } from './scrollbox';
 
 export class ListItem extends Control {
   selected: boolean = false;

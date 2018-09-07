@@ -1,10 +1,11 @@
-import { CoordAxis, CoordData, Coord } from 'enums';
-import { Event } from 'events';
-import { Form } from 'form';
+import { CoordAxis, CoordData, Coord } from './enums';
+import { Event } from './events';
+import { Form } from './form';
 import { Constraint } from '../constraints/constraint';
 import { AlignConstraint } from '../constraints/align';
 import { StaticConstraint } from '../constraints/static';
 import { FillConstraint } from '../constraints/fill';
+
 
 // Base class for events raised from controls.
 export class ControlEventData {
@@ -141,7 +142,6 @@ export class Control {
   protected layoutComplete: boolean = false;
 
   protected clip: boolean;
-  protected scrollable: boolean;
   focused: boolean;
 
   fontSize: number;
@@ -191,7 +191,6 @@ export class Control {
 
     // Enable paint clipping for the bounds of this control.
     this.clip = true;
-    this.scrollable = false;
 
     // Is the mouse currently over this control.
     this.focused = false;
@@ -707,7 +706,8 @@ export class Control {
     }
   }
 
-  scrollBy(dx: number, dy: number) {
+  scrollBy(dx: number, dy: number): boolean {
+    return false;
   }
 
   get coords() {

@@ -1,4 +1,4 @@
-import { Dialog } from 'dialog';
+import { Dialog } from './dialog';
 import { Control } from '../core/control';
 import { CoordAxis } from '../core/enums';
 import { Form } from '../core/form';

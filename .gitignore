@@ -1,1 +1,4 @@
-build/
+/node_modules
+/build/compiled
+/.rpt2_cache
+/dist

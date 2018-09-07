@@ -1,7 +1,7 @@
 import { Control } from '../core/control';
 import { Event } from '../core/events';
-import { Label } from 'label';
-import { ScrollBox } from 'scrollbox';
+import { Label } from './label';
+import { ScrollBox } from './scrollbox';
 
 export interface TreeNode {
   treeChildren(): Promise<TreeNode[]>;

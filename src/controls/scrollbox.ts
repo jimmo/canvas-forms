@@ -10,7 +10,6 @@ export class ScrollBox extends Control {
   constructor() {
     super();
     this.clip = true;
-    this.scrollable = true;
 
     this.enableHitDetection();
   }
@@ -63,12 +62,13 @@ export class ScrollBox extends Control {
   }
 
 
-  scrollBy(dx: number, dy: number) {
+  scrollBy(dx: number, dy: number): boolean {
     // TODO: this should bubble up to parent scroll containers when bounds are hit.
     this.scrollX -= dx;
     this.scrollY -= dy;
     this.clipScroll();
     this.repaint();
+    return true;
   }
 
   clipScroll() {

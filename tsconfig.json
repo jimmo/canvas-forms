@@ -1,23 +1,21 @@
 {
   "compilerOptions": {
-    "module": "amd",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "outDir": "build",
-    "outFile": "build/combined.js",
-    "target": "ES2017"
+    "outDir": "./dist",
+    "target": "ES2017",
+    "moduleResolution": "node",
+    "declaration": true,
+    "module": "es6"
   },
-  "files": [
-    "candle.ts"
-  ],
   "include": [
-    "core/*.ts",
-    "constraints/*.ts",
-    "controls/*.ts"
+    "src/**/*.ts"
   ],
-  "compileOnSave": true,
+  "exclude": [
+    "node_modules"
+  ],
   "indentSize": 2,
   "tabSize": 2
 }

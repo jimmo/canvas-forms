@@ -1,5 +1,5 @@
-import { Surface, MouseEventData, ScrollEventData } from 'surface';
-import { Control, ControlAtPointData } from 'control';
+import { Surface, MouseEventData, ScrollEventData } from './surface';
+import { Control, ControlAtPointData } from './control';
 
 export class MouseDownEventData extends MouseEventData {
   constructor(x: number, y: number, buttons: number, private readonly form: Form, private readonly hit: ControlAtPointData) {
@@ -60,8 +60,7 @@ export class Form extends Control {
       if (this.focus) {
         let c = this.focus.control;
         while (c) {
-          if (c.scrollable) {
-            c.scrollBy(data.dx, data.dy);
+          if (c.scrollBy(data.dx, data.dy)) {
             break;
           }
           c = c.parent;

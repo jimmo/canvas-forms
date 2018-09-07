@@ -1,4 +1,4 @@
-import { Constraint } from 'constraint';
+import { Constraint } from './constraint';
 import { Control } from '../core/control';
 import { Coord, CoordAxis, CoordData } from '../core/enums';
 
