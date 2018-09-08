@@ -147,10 +147,13 @@ export class Form extends Control {
   // Default implementation of repaint does a full paint of the entire form.
   repaint() {
     this.pendingPaint = true;
-    window.requestAnimationFrame((frameTime) => {
+    window.requestAnimationFrame((frameTimeMs) => {
       //console.log('paint ' + frameTime);
       this.pendingPaint = false;
 
+      for (const a of this._animators) {
+        a.apply(frameTimeMs);
+      }
       this.paint(this.context());
     });
   }
@@ -163,11 +166,11 @@ export class Form extends Control {
 
     if (this.w && this.h) {
       this.pendingLayout = true;
-      window.requestAnimationFrame((frameTime) => {
+      window.requestAnimationFrame((frameTimeMs) => {
         //console.log('layout ' + frameTime);
         this.pendingLayout = false;
         for (const a of this._animators) {
-          a.apply();
+          a.apply(frameTimeMs);
         }
         this.layoutComplete = false;
         this.layout();

@@ -1,7 +1,7 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
 import { CoordData } from '../core/enums';
-import { CoordAnimator } from '../animation';
+import { CoordAnimator, EasingFunction } from '../animation';
 
 // Represents a simple constraint that sets one coordinate to a static value.
 export class StaticConstraint extends Constraint {
@@ -62,7 +62,7 @@ export class StaticConstraint extends Constraint {
     this.control.relayout();
   }
 
-  animate() {
-    return new CoordAnimator(this);
+  animate(min: number, max: number, duration?: number, easing?: EasingFunction) {
+    return new CoordAnimator(this, min, max, duration, easing);
   }
 }

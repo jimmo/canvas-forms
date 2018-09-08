@@ -86,6 +86,12 @@ class _TextBox extends Control {
     this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
     this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
     this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
+
+    // TODO: something's not quite right here when inside a modal and open/close
+    // is animating.
+    // Probably because the modal backdrop is mixing with the opaque dialog contents
+    // (but not with the HTML textbox).
+    this.elem.style.opacity = this.context().globalAlpha.toString();
   }
 
   removed() {

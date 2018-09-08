@@ -1,4 +1,4 @@
-import { FillConstraint, Button, ButtonGroup, CheckBox, RadioGroup, Dialog, Label, CheckBoxListItem, List, ListItem, TextListItem, Slider, FocusTextBox, TextBox, Tree, TreeNode, Coord, CoordAxis, Form, Surface, Grabber, ScrollBox } from 'canvas-forms';
+import { FillConstraint, Button, ButtonGroup, CheckBox, RadioGroup, Dialog, Label, CheckBoxListItem, List, ListItem, TextListItem, Slider, FocusTextBox, TextBox, Tree, TreeNode, Coord, CoordAxis, Form, Surface, Grabber, ScrollBox, Easing, OpacityAnimator } from 'canvas-forms';
 
 const form = new Form(new Surface('canvas'));
 const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
@@ -263,9 +263,24 @@ makeDemo('Button', '', () => {
 
 makeDemo('Animation', '', () => {
   const b1 = c.add(new Button('Here'), null, 10, 100, 26);
-  const a1 = b1.coords.x.set(10).animate();
+  const a1 = b1.coords.x.set(10).animate(10, 800, 1000, Easing.easeInOutCubic);
   b1.click.add(async () => {
     await a1.start();
     b1.setText('There');
   });
+
+  for (let i = 0; i < 6; ++i) {
+    const b = c.add(new Button(`${i}`), 10 + i * 110, 50, 100, 26);
+    b.click.add(async () => {
+      await new OpacityAnimator(b, 1, 0.1, 200).start();
+      b.remove();
+    });
+  }
+});
+
+makeDemo('Opacity', '', () => {
+  for (let i = 0; i < 10; ++i) {
+    const b = c.add(new Button(`${i}`), 10 + i * 56, 10 + i * 16, 100, 26);
+    b.opacity = (i + 1) / 10;
+  }
 });

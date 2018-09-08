@@ -148,6 +148,7 @@ export class Control {
   fontName: string;
   color: string;
   border: boolean = false;
+  opacity: number = 1;
 
   mousedown: Event;
   mouseup: Event;
@@ -503,7 +504,9 @@ export class Control {
         ctx.clip();
       }
 
+      ctx.globalAlpha *= c.opacity;
       c.paint(ctx);
+      ctx.globalAlpha /= c.opacity;
 
       ctx.restore();
     }

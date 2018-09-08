@@ -2,6 +2,7 @@ import { Dialog } from './dialog';
 import { Control } from '../core/control';
 import { CoordAxis } from '../core/enums';
 import { Form } from '../core/form';
+import { OpacityAnimator } from '../animation/opacity';
 
 export class Modal extends Control {
   _resolve: (data?: any) => void;
@@ -17,10 +18,11 @@ export class Modal extends Control {
   }
 
   paint(ctx: CanvasRenderingContext2D) {
-    ctx.globalAlpha = 0.5;
+    const a = ctx.globalAlpha;
+    ctx.globalAlpha *= 0.5;
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, this.w, this.h);
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = a;
 
     super.paint(ctx);
   }
@@ -34,14 +36,17 @@ export class Modal extends Control {
   }
 
   show(f: Form) {
+    this.opacity = 0;
     f.add(this);
     f.pushLayer(this);
-    return new Promise<any>(resolve => {
+    return new Promise<any>(async resolve => {
+      await new OpacityAnimator(this, 0, 1, 200).start();
       this._resolve = resolve;
     });
   }
 
-  close(data: any) {
+  async close(data: any) {
+    await new OpacityAnimator(this, 1, 0, 200).start();
     this.form().popLayer(this);
     this.remove();
     if (this._resolve) {
