@@ -147,8 +147,8 @@ makeDemo('TextBox', '', () => {
   });
 
 
-  const t2 = c.add(new FocusTextBox('Created when focused'), 10, 100, 300);
-  const l2 = c.add(new Label(t2.text), 10, 150);
+  const t2 = c.add(new FocusTextBox('Created when focused'), 10, 100, 300, 60);
+  const l2 = c.add(new Label(t2.text), 10, 200);
   t2.change.add(() => {
     l2.setText(t2.text);
   });

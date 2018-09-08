@@ -48,10 +48,22 @@ class _TextBox extends Control {
     ctx.strokeRect(0, 0, this.w, this.h);
 
     if (!this.elem) {
+      // TODO: This positioning is sometimes off by one pixel.
+      // Possibly due to pixel rounding of the input/textarea positioning.
       ctx.font = this.getFont();
-      ctx.textBaseline = 'middle';
+      let y = 3;
+      if (this.multiline) {
+        ctx.textBaseline = 'top';
+      } else {
+        ctx.textBaseline = 'middle';
+        y = Math.round(this.h / 2);
+      }
       ctx.fillStyle = this.getColor();
-      ctx.fillText(this.text, 3, this.h / 2);
+
+      const lines = this.text.split('\n');
+      for (let i = 0; i < lines.length; ++i) {
+        ctx.fillText(lines[i], 3, y + i * (this.getFontSize() + 3));
+      }
     }
   }
 
@@ -63,7 +75,7 @@ class _TextBox extends Control {
       this.elem.type = 'text';
     }
     this.elem.value = this.text;
-    this.elem.style.position = 'absolute'; //'sticky';
+    this.elem.style.position = 'absolute';
     this.elem.style.boxSizing = 'border-box';
     this.elem.style.border = 'none';
     this.elem.style.background = 'none';
@@ -134,13 +146,16 @@ export class FocusTextBox extends _TextBox {
       setTimeout(() => {
         this.elem.focus();
 
-        // Figure out which letter they clicked on and set the cursor appropriately.
-        this.context().font = this.getFont();
-        for (let i = 0; i < this.text.length; ++i) {
-          // TODO: This should round, rathern than trunc.
-          if (data.x < this.context().measureText(this.text.substr(0, i)).width) {
-            this.elem.setSelectionRange(i - 1, i - 1);
-            break;
+        // TODO: Make 2d version of this for multiline.
+        if (!this.multiline) {
+          // Figure out which letter they clicked on and set the cursor appropriately.
+          this.context().font = this.getFont();
+          for (let i = 0; i < this.text.length; ++i) {
+            // TODO: This should round, rathern than trunc.
+            if (data.x < this.context().measureText(this.text.substr(0, i)).width) {
+              this.elem.setSelectionRange(i - 1, i - 1);
+              break;
+            }
           }
         }
       }, 0);

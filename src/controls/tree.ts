@@ -59,6 +59,7 @@ class SubTree extends Control {
 class TreeItem extends Control {
   selected: boolean = false;
   open: boolean = false;
+  label: Label;
   private sub: SubTree;
 
   constructor(private readonly tree: Tree, private readonly node: TreeNode) {
@@ -66,17 +67,17 @@ class TreeItem extends Control {
 
     this.clip = false;
 
-    const l = this.add(new Label(this.node.treeText()), 22, 1);
+    this.label = this.add(new Label(this.node.treeText()), 22, 1);
 
     this.mouseup.add((data) => {
       this.selected = true;
 
       console.log(data);
-      if (data.y <= 26) {
+      if (data.y <= this.label.h) {
         if (!this.open) {
           this.open = true;
           this.sub = this.add(new SubTree(this.tree, this.node), { x: 22 });
-          this.sub.coords.y.align(l.coords.yh);
+          this.sub.coords.y.align(this.label.coords.yh);
         } else {
           this.open = false;
           this.sub.remove();
@@ -89,18 +90,24 @@ class TreeItem extends Control {
   paint(ctx: CanvasRenderingContext2D) {
     if (this.selected) {
       ctx.fillStyle = 'orange';
-      ctx.fillRect(0, 0, this.tree.scrollWidth(), 26);
+      ctx.fillRect(0, 0, this.tree.scrollWidth(), this.label.h);
     }
 
     ctx.beginPath();
+
+    const arrowX = 22 / 2;
+    const arrowY = this.label.h / 2;
+
     if (this.open) {
-      ctx.moveTo(6, 8);
-      ctx.lineTo(16, 8);
-      ctx.lineTo(11, 17);
+      // Down
+      ctx.moveTo(arrowX - 5, arrowY - 4);
+      ctx.lineTo(arrowX + 5, arrowY - 4);
+      ctx.lineTo(arrowX, arrowY + 4);
     } else {
-      ctx.moveTo(8, 7);
-      ctx.lineTo(14, 13);
-      ctx.lineTo(8, 20);
+      // Right
+      ctx.moveTo(arrowX - 4, arrowY - 5);
+      ctx.lineTo(arrowX + 4, arrowY);
+      ctx.lineTo(arrowX - 4, arrowY + 5);
     }
     ctx.closePath();
 

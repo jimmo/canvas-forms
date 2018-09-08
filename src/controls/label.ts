@@ -22,7 +22,13 @@ export class Label extends Control {
     ctx.font = this.getFont();
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
-    ctx.fillText(this.text, 0, this.h / 2);
+
+    const lines = this.text.split('\n');
+    const lineHeight = (this.getFontSize() + 3);
+    const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
+    for (let i = 0; i < lines.length; ++i) {
+      ctx.fillText(lines[i], 0, y + i * lineHeight);
+    }
   }
 
   setText(text: string) {
@@ -37,8 +43,12 @@ export class Label extends Control {
       return false;
     }
     this.context().font = this.getFont();
-    this.w = Math.ceil(this.context().measureText(this.text).width) + 10;
-    this.h = Math.max(this.form().defaultHeight(), this.getFontSize() + 2);
+    const lines = this.text.split('\n');
+    this.w = 0;
+    for (const line of lines) {
+      this.w = Math.max(this.w, Math.ceil(this.context().measureText(this.text).width) + 10);
+    }
+    this.h = Math.max(this.form().defaultHeight(), lines.length * (this.getFontSize() + 3));
     return true;
   }
 }
