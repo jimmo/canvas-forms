@@ -30,6 +30,7 @@ export class MouseEventData {
 // Manages the HTML Canvas element, in particular keeping it sized correctly.
 export class Surface {
   elem: HTMLCanvasElement;
+  container: HTMLDivElement;
   scrollContainer: HTMLDivElement;
   scrollElems: HTMLDivElement[];
 
@@ -45,6 +46,7 @@ export class Surface {
   constructor(selector: string) {
     // The <canvas> DOM element.
     this.elem = document.querySelector(selector);
+    this.container = null;
     this.scrollContainer = null;
     this.scrollElems = [];
 
@@ -61,39 +63,59 @@ export class Surface {
     this.mousemove = new Event();
     this.mousewheel = new Event();
 
+    // To allow the canvas to take focus.
+    this.container.tabIndex = 1;
+
+    const createTouchEventData = (ev: TouchEvent) => {
+      const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+      const offsetX = ev.changedTouches[0].clientX - rect.left;
+      const offsetY = ev.changedTouches[0].clientY - rect.top;
+      return new MouseEventData(this.pixels(offsetX), this.pixels(offsetY), ev.touches.length);
+    }
+
+    const createMouseEventData = (ev: MouseEvent) => {
+      const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+      const offsetX = ev.clientX - rect.left;
+      const offsetY = ev.clientY - rect.top;
+      return new MouseEventData(this.pixels(offsetX), this.pixels(offsetY), ev.buttons);
+    }
+
     // Forward DOM events to our own events.
-    // if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
-    //   let tx = 0; let ty = 0;
-    //   this.elem.addEventListener('touchstart', (ev) => {
-    //     const s = window.devicePixelRatio;
-    //     tx = ev.touches[0].clientX * s;
-    //     ty = ev.touches[0].clientY * s;
-    //     this.mousedown.fire(new MouseEventData(tx, ty));
-    //   });
-    //   this.elem.addEventListener('touchend', (ev) => {
-    //     const s = window.devicePixelRatio;
-    //     this.mouseup.fire(new MouseEventData(tx, ty));
-    //   });
-    //   this.elem.addEventListener('touchmove', (ev) => {
-    //     const s = window.devicePixelRatio;
-    //     tx = ev.touches[0].clientX * s;
-    //     ty = ev.touches[0].clientY * s;
-    //     this.mousemove.fire(new MouseEventData(tx, ty));
-    //   });
-    // }
-    this.elem.addEventListener('mousedown', (ev) => {
-      this.mousedown.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
-      ev.preventDefault();
-    });
-    this.elem.addEventListener('mouseup', (ev) => {
-      this.mouseup.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
-      ev.preventDefault();
-    });
-    this.elem.addEventListener('mousemove', (ev) => {
-      this.mousemove.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
-      ev.preventDefault();
-    });
-    this.elem.addEventListener('wheel', (ev) => {
+    if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
+      this.container.addEventListener('touchstart', (ev) => {
+        this.mousedown.fire(createTouchEventData(ev));
+        if (ev.target === this.container) {
+          ev.preventDefault();
+        }
+      });
+      this.container.addEventListener('touchend', (ev) => {
+        this.mouseup.fire(createTouchEventData(ev));
+      });
+      this.container.addEventListener('touchmove', (ev) => {
+        this.mousemove.fire(createTouchEventData(ev));
+      });
+      this.container.addEventListener('mousedown', (ev) => {
+        this.mousedown.fire(createMouseEventData(ev));
+      });
+      this.container.addEventListener('mouseup', (ev) => {
+        this.mouseup.fire(createMouseEventData(ev));
+      });
+      this.container.addEventListener('mousemove', (ev) => {
+        this.mousemove.fire(createMouseEventData(ev));
+      });
+    } else {
+      this.container.addEventListener('mousedown', (ev) => {
+        this.mousedown.fire(createMouseEventData(ev));
+      });
+      this.container.addEventListener('mouseup', (ev) => {
+        this.mouseup.fire(createMouseEventData(ev));
+      });
+      this.container.addEventListener('mousemove', (ev) => {
+        this.mousemove.fire(createMouseEventData(ev));
+      });
+    }
+
+    this.container.addEventListener('wheel', (ev) => {
       let dx = ev.deltaX;
       let dy = ev.deltaY;
       if (ev.deltaMode === 0) {
@@ -125,67 +147,31 @@ export class Surface {
     }
     parent.style.overflow = 'hidden';
 
+    parent.style.touchAction = 'none';
+
     if (parent === document.body) {
       // So that the resize observer can track height.
       parent.style.height = '100%';
       parent.parentElement.style.height = '100%';
     }
 
-    // // Investigate whether this can be entirely replaced by using onwheel only.
-    // // It seems like you still get scroll inertia, and this would make scroll
-    // // focus simpler.
-    // this.scrollContainer = document.createElement('div');
-    // this.elem.remove();
-    // this.scrollContainer.appendChild(this.elem);
-    // parent.appendChild(this.scrollContainer);
+    this.container = document.createElement('div');
+    this.elem.remove();
+    this.container.appendChild(this.elem);
+    parent.appendChild(this.container);
 
-    // this.scrollContainer.style.position = 'absolute';
-    // this.scrollContainer.style.boxSizing = 'border-box';
-    // this.scrollContainer.style.left = '0px';
-    // this.scrollContainer.style.top = '0px';
-    // this.scrollContainer.style.overflow = 'hidden';//'scroll';
-
-    // this.scrollElems.push(document.createElement('div'));
-    // this.scrollElems.push(document.createElement('div'));
-    // for (const e of this.scrollElems) {
-    //   e.style.position = 'absolute';
-    //   e.style.width = '10px';
-    //   e.style.height = '10px';
-    //   this.scrollContainer.appendChild(e);
-    // }
-    // const v = 0;//window.innerWidth;
-    // this.scrollElems[0].style.left = '0px';
-    // this.scrollElems[0].style.top = '0px';
-    // this.scrollElems[1].style.left = v * 5 + 'px';
-    // this.scrollElems[1].style.top = v * 5 + 'px';
-
-    // this.scrollContainer.scrollLeft = v * 2;
-    // this.scrollContainer.scrollTop = v * 2;
+    this.container.style.position = 'absolute';
+    this.container.style.boxSizing = 'border-box';
+    this.container.style.left = '0px';
+    this.container.style.top = '0px';
+    this.container.style.overflow = 'hidden';
 
     // Position in top-left of parent.
     this.elem.style.position = 'absolute';//'sticky';
     this.elem.style.boxSizing = 'border-box';
     this.elem.style.left = 0 + 'px';
     this.elem.style.top = 0 + 'px';
-
-    // let sx = 0;
-    // let sy = 0;
-    // this.scrollContainer.addEventListener('scroll', () => {
-    //   let dx = this.pixels(v * 2 - this.scrollContainer.scrollLeft);
-    //   let dy = this.pixels(v * 2 - this.scrollContainer.scrollTop);
-    //   this.scroll.fire(new ScrollEventData(dx - sx, dy - sy));
-    //   sx = dx;
-    //   sy = dy;
-
-    //   if (Math.abs(dx) > v) {
-    //     sx = 0;
-    //     this.scrollContainer.scrollLeft = v * 2;
-    //   }
-    //   if (Math.abs(dy) > v) {
-    //     sy = 0;
-    //     this.scrollContainer.scrollTop = v * 2;
-    //   }
-    // });
+    this.elem.style.pointerEvents = 'none';
 
     // Listen for the parent's size changing.
     new ResizeObserver((entries: any[]) => {
@@ -200,15 +186,9 @@ export class Surface {
         h = parent.clientHeight;
       }
 
-      // const scrollbarMaxSize = 0;
-      // // debug scrollbars
-      // //w -= scrollbarMaxSize * 1.5;
-      // //h -= scrollbarMaxSize * 1.5;
-
-      // this.scrollContainer.style.width = (w + scrollbarMaxSize) + 'px';
-      // this.scrollContainer.style.height = (h + scrollbarMaxSize) + 'px';
-
       // Make our element sized correctly (CSS).
+      this.container.style.width = w + 'px';
+      this.container.style.height = h + 'px';
       this.elem.style.width = w + 'px';
       this.elem.style.height = h + 'px';
 

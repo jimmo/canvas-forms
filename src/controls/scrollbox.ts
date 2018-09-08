@@ -72,8 +72,8 @@ export class ScrollBox extends Control {
   }
 
   clipScroll() {
-    this.scrollX = Math.min(Math.max(0, this.xmax - this.w), Math.max(0, this.scrollX));
-    this.scrollY = Math.min(Math.max(0, this.ymax - this.h), Math.max(0, this.scrollY));
+    this.scrollX = Math.round(Math.min(Math.max(0, this.xmax - this.w), Math.max(0, this.scrollX)));
+    this.scrollY = Math.round(Math.min(Math.max(0, this.ymax - this.h), Math.max(0, this.scrollY)));
   }
 
   layout() {

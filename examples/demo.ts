@@ -153,8 +153,7 @@ makeDemo('TextBox', '', () => {
     l2.setText(t2.text);
   });
 
-
-  const t3 = c.add(new TextBox('One\nTwo\nThree'), 400, 10, 300, 200);
+  const t3 = c.add(new FocusTextBox('One\nTwo\nThree'), 400, 10, 300, 200);
   t3.multiline = true;
   const l3 = c.add(new Label(t3.text), 400, 250);
   t3.change.add(() => {

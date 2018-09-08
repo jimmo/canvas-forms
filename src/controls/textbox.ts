@@ -38,8 +38,7 @@ class _TextBox extends Control {
       this.positionElem();
     }
 
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, this.w, this.h);
+    ctx.clearRect(0, 0, this.w, this.h);
 
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
@@ -78,7 +77,11 @@ class _TextBox extends Control {
         this.parent.submit();
       }
     });
-    this.context().canvas.parentElement.appendChild(this.elem);
+    this.elem.addEventListener('blur', (ev) => {
+      this.unpaint();
+      this.repaint();
+    });
+    this.context().canvas.parentElement.insertBefore(this.elem, this.context().canvas);
   }
 
   positionElem() {
@@ -118,10 +121,28 @@ export class FocusTextBox extends _TextBox {
   constructor(text?: string) {
     super(text);
 
-    this.mousedown.add(() => {
+    this.mousedown.add((data) => {
+      if (this.elem) {
+        return;
+      }
+
       this.createElem();
       this.positionElem();
-      this.elem.focus();
+
+      setTimeout(() => {
+        this.elem.focus();
+
+        // Figure out which letter they clicked on and set the cursor appropriately.
+        this.context().font = this.getFont();
+        for (let i = 0; i < this.text.length; ++i) {
+          // TODO: This should round, rathern than trunc.
+          if (data.x < this.context().measureText(this.text.substr(0, i)).width) {
+            this.elem.setSelectionRange(i - 1, i - 1);
+            break;
+          }
+        }
+      }, 0);
+
       this.repaint();
     });
   }
