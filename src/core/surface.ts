@@ -118,6 +118,9 @@ export class Surface {
       parent.parentElement.style.height = '100%';
     }
 
+    // Investigate whether this can be entirely replaced by using onwheel only.
+    // It seems like you still get scroll inertia, and this would make scroll
+    // focus simpler.
     this.scrollContainer = document.createElement('div');
     this.elem.remove();
     this.scrollContainer.appendChild(this.elem);

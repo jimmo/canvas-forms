@@ -280,7 +280,7 @@ makeDemo('Animation', '', () => {
 
 makeDemo('Opacity', '', () => {
   for (let i = 0; i < 10; ++i) {
-    const b = c.add(new Button(`${i}`), 10 + i * 56, 10 + i * 16, 100, 26);
+    const b = c.add(new Button(`${(i + 1) / 10}`), 10 + i * 56, 10 + i * 16, 100, 26);
     b.opacity = (i + 1) / 10;
   }
 });

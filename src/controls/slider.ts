@@ -31,13 +31,17 @@ export class Slider extends Control {
       if (!down) {
         return;
       }
-      this.value = Math.min(1, Math.max(0, ((data.x - 8) / (this.w - 16)))) * (this.max - this.min) + this.min;
-      if (this.snap) {
-        this.value = Math.round(this.value / this.snap) * this.snap;
-      }
-      this.change.fire();
-      this.repaint();
+      this.setValue(Math.min(1, Math.max(0, ((data.x - 8) / (this.w - 16)))) * (this.max - this.min) + this.min);
     });
+  }
+
+  setValue(v: number) {
+    this.value = Math.min(this.max, Math.max(this.min, v));
+    if (this.snap) {
+      this.value = Math.round(this.value / this.snap) * this.snap;
+    }
+    this.change.fire();
+    this.repaint();
   }
 
   paint(ctx: CanvasRenderingContext2D) {
@@ -52,5 +56,14 @@ export class Slider extends Control {
 
     let x = (this.w - 16) * (this.value - this.min) / (this.max - this.min);
     ctx.fillRect(x, 2, 16, this.h - 4);
+  }
+
+  scrollBy(dx: number, dy: number): boolean {
+    if (this.snap) {
+      this.setValue(this.value + Math.sign(dy) * this.snap);
+    } else {
+      this.setValue(this.value + dy * (this.max - this.min) / 2000);
+    }
+    return true;
   }
 }
