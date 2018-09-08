@@ -72,7 +72,6 @@ class TreeItem extends Control {
     this.mouseup.add((data) => {
       this.selected = true;
 
-      console.log(data);
       if (data.y <= this.label.h) {
         if (!this.open) {
           this.open = true;

@@ -146,19 +146,26 @@ export class Form extends Control {
     this.focus.control.focused = true;
   }
 
+  layout() {
+    //const t = new Date().getTime();
+    super.layout();
+    //console.log('layout: ', new Date().getTime() - t);
+  }
+
   paint(ctx: CanvasRenderingContext2D) {
     // Forms have a default (opaque) background color.
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);
 
+    //const t = new Date().getTime();
     super.paint(ctx);
+    //console.log('paint: ', new Date().getTime() - t);
   }
 
   // Default implementation of repaint does a full paint of the entire form.
   repaint() {
     this.pendingPaint = true;
     window.requestAnimationFrame((frameTimeMs) => {
-      //console.log('paint ' + frameTime);
       this.pendingPaint = false;
 
       for (const a of this._animators) {
@@ -177,7 +184,6 @@ export class Form extends Control {
     if (this.w && this.h) {
       this.pendingLayout = true;
       window.requestAnimationFrame((frameTimeMs) => {
-        //console.log('layout ' + frameTime);
         this.pendingLayout = false;
         for (const a of this._animators) {
           a.apply(frameTimeMs);
@@ -185,7 +191,6 @@ export class Form extends Control {
         this.layoutComplete = false;
         this.layout();
         if (!this.pendingPaint) {
-          //console.log('paint ' + frameTime);
           this.paint(this.context());
         }
       });

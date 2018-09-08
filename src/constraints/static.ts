@@ -48,8 +48,10 @@ export class StaticConstraint extends Constraint {
     }
     v = Math.floor(v);
 
-    this.v = v;
-    this.control.relayout();
+    if (this.v !== v) {
+      this.v = v;
+      this.control.relayout();
+    }
   }
 
   add(dv: number) {

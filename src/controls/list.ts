@@ -43,7 +43,7 @@ export class ListItem extends Control {
 export class TextListItem extends ListItem {
   constructor(text: string) {
     super();
-    const l = this.add(new Label(text), 3, 1, null, null, 3, 1);
+    const l = this.add(new Label(text), 5, 1, null, null, 3, 1);
     l.fit = false;
 
     this.mouseup.add(() => {
