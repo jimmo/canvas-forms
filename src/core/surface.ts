@@ -94,7 +94,20 @@ export class Surface {
       ev.preventDefault();
     });
     this.elem.addEventListener('wheel', (ev) => {
+      let dx = ev.deltaX;
+      let dy = ev.deltaY;
+      if (ev.deltaMode === 0) {
+        // Pixels
+      } else if (ev.deltaMode === 1) {
+        // Lines
+        dx *= 20;
+        dy *= 20;
+      } else if (ev.deltaMode === 2) {
+        // Pages
+        // ?
+      }
       this.mousewheel.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      this.scroll.fire(new ScrollEventData(-dx, -dy));
     });
   }
 
@@ -118,61 +131,61 @@ export class Surface {
       parent.parentElement.style.height = '100%';
     }
 
-    // Investigate whether this can be entirely replaced by using onwheel only.
-    // It seems like you still get scroll inertia, and this would make scroll
-    // focus simpler.
-    this.scrollContainer = document.createElement('div');
-    this.elem.remove();
-    this.scrollContainer.appendChild(this.elem);
-    parent.appendChild(this.scrollContainer);
+    // // Investigate whether this can be entirely replaced by using onwheel only.
+    // // It seems like you still get scroll inertia, and this would make scroll
+    // // focus simpler.
+    // this.scrollContainer = document.createElement('div');
+    // this.elem.remove();
+    // this.scrollContainer.appendChild(this.elem);
+    // parent.appendChild(this.scrollContainer);
 
-    this.scrollContainer.style.position = 'absolute';
-    this.scrollContainer.style.boxSizing = 'border-box';
-    this.scrollContainer.style.left = '0px';
-    this.scrollContainer.style.top = '0px';
-    this.scrollContainer.style.overflow = 'scroll';
+    // this.scrollContainer.style.position = 'absolute';
+    // this.scrollContainer.style.boxSizing = 'border-box';
+    // this.scrollContainer.style.left = '0px';
+    // this.scrollContainer.style.top = '0px';
+    // this.scrollContainer.style.overflow = 'hidden';//'scroll';
 
-    this.scrollElems.push(document.createElement('div'));
-    this.scrollElems.push(document.createElement('div'));
-    for (const e of this.scrollElems) {
-      e.style.position = 'absolute';
-      e.style.width = '10px';
-      e.style.height = '10px';
-      this.scrollContainer.appendChild(e);
-    }
-    const v = window.innerWidth;
-    this.scrollElems[0].style.left = '0px';
-    this.scrollElems[0].style.top = '0px';
-    this.scrollElems[1].style.left = v * 5 + 'px';
-    this.scrollElems[1].style.top = v * 5 + 'px';
+    // this.scrollElems.push(document.createElement('div'));
+    // this.scrollElems.push(document.createElement('div'));
+    // for (const e of this.scrollElems) {
+    //   e.style.position = 'absolute';
+    //   e.style.width = '10px';
+    //   e.style.height = '10px';
+    //   this.scrollContainer.appendChild(e);
+    // }
+    // const v = 0;//window.innerWidth;
+    // this.scrollElems[0].style.left = '0px';
+    // this.scrollElems[0].style.top = '0px';
+    // this.scrollElems[1].style.left = v * 5 + 'px';
+    // this.scrollElems[1].style.top = v * 5 + 'px';
 
-    this.scrollContainer.scrollLeft = v * 2;
-    this.scrollContainer.scrollTop = v * 2;
+    // this.scrollContainer.scrollLeft = v * 2;
+    // this.scrollContainer.scrollTop = v * 2;
 
     // Position in top-left of parent.
-    this.elem.style.position = 'sticky';
+    this.elem.style.position = 'absolute';//'sticky';
     this.elem.style.boxSizing = 'border-box';
     this.elem.style.left = 0 + 'px';
     this.elem.style.top = 0 + 'px';
 
-    let sx = 0;
-    let sy = 0;
-    this.scrollContainer.addEventListener('scroll', () => {
-      let dx = this.pixels(v * 2 - this.scrollContainer.scrollLeft);
-      let dy = this.pixels(v * 2 - this.scrollContainer.scrollTop);
-      this.scroll.fire(new ScrollEventData(dx - sx, dy - sy));
-      sx = dx;
-      sy = dy;
+    // let sx = 0;
+    // let sy = 0;
+    // this.scrollContainer.addEventListener('scroll', () => {
+    //   let dx = this.pixels(v * 2 - this.scrollContainer.scrollLeft);
+    //   let dy = this.pixels(v * 2 - this.scrollContainer.scrollTop);
+    //   this.scroll.fire(new ScrollEventData(dx - sx, dy - sy));
+    //   sx = dx;
+    //   sy = dy;
 
-      if (Math.abs(dx) > v) {
-        sx = 0;
-        this.scrollContainer.scrollLeft = v * 2;
-      }
-      if (Math.abs(dy) > v) {
-        sy = 0;
-        this.scrollContainer.scrollTop = v * 2;
-      }
-    });
+    //   if (Math.abs(dx) > v) {
+    //     sx = 0;
+    //     this.scrollContainer.scrollLeft = v * 2;
+    //   }
+    //   if (Math.abs(dy) > v) {
+    //     sy = 0;
+    //     this.scrollContainer.scrollTop = v * 2;
+    //   }
+    // });
 
     // Listen for the parent's size changing.
     new ResizeObserver((entries: any[]) => {
@@ -187,12 +200,13 @@ export class Surface {
         h = parent.clientHeight;
       }
 
-      // debug scrollbars
-      // w -= 20;
-      // h -= 20;
+      // const scrollbarMaxSize = 0;
+      // // debug scrollbars
+      // //w -= scrollbarMaxSize * 1.5;
+      // //h -= scrollbarMaxSize * 1.5;
 
-      this.scrollContainer.style.width = (w + 100) + 'px';
-      this.scrollContainer.style.height = (h + 100) + 'px';
+      // this.scrollContainer.style.width = (w + scrollbarMaxSize) + 'px';
+      // this.scrollContainer.style.height = (h + scrollbarMaxSize) + 'px';
 
       // Make our element sized correctly (CSS).
       this.elem.style.width = w + 'px';
@@ -222,12 +236,12 @@ export class Surface {
 
   // Gets the x coordinate of this control relative to the surface.
   htmlX(): number {
-    return this.pixels(this.scrollContainer.scrollLeft);
+    return 0;//this.pixels(this.scrollContainer.scrollLeft);
   }
 
   // Gets the y coordinate of this control relative to the surface.
   htmlY(): number {
-    return this.pixels(this.scrollContainer.scrollTop);
+    return 0;//this.pixels(this.scrollContainer.scrollTop);
   }
 
   pixels(v: number): number {
@@ -235,6 +249,6 @@ export class Surface {
   }
 
   htmlunits(v: number): number {
-    return v / window.devicePixelRatio / Math.floor(window.devicePixelRatio);
+    return v / window.devicePixelRatio * Math.floor(window.devicePixelRatio);
   }
 }

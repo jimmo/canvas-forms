@@ -100,13 +100,13 @@ export class ScrollBox extends Control {
 
 
   // Gets the x coordinate of this control relative to the surface.
-  surfaceX(): number {
-    return super.surfaceX() - this.scrollX;
+  formX(): number {
+    return super.formX() - this.scrollX;
   }
 
   // Gets the y coordinate of this control relative to the surface.
-  surfaceY(): number {
-    return super.surfaceY() - this.scrollY;
+  formY(): number {
+    return super.formY() - this.scrollY;
   }
 
   scrollWidth(): number {

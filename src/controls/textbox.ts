@@ -62,7 +62,7 @@ class _TextBox extends Control {
       this.elem.type = 'text';
     }
     this.elem.value = this.text;
-    this.elem.style.position = 'sticky';
+    this.elem.style.position = 'absolute'; //'sticky';
     this.elem.style.boxSizing = 'border-box';
     this.elem.style.border = 'none';
     this.elem.style.background = 'none';
@@ -82,8 +82,8 @@ class _TextBox extends Control {
   }
 
   positionElem() {
-    this.elem.style.left = this.form().surface.htmlunits(this.surfaceX()) + 'px';
-    this.elem.style.top = this.form().surface.htmlunits(this.surfaceY()) + 'px';
+    this.elem.style.left = this.form().surface.htmlunits(this.formX()) + 'px';
+    this.elem.style.top = this.form().surface.htmlunits(this.formY()) + 'px';
     this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
     this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
 

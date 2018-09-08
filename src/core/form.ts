@@ -207,13 +207,13 @@ export class Form extends Control {
     return 26;
   }
 
-  // Gets the x coordinate of this control relative to the surface.
-  surfaceX(): number {
+  // Gets the x coordinate of this control relative to the form.
+  formX(): number {
     return 0;
   }
 
-  // Gets the y coordinate of this control relative to the surface.
-  surfaceY(): number {
+  // Gets the y coordinate of this control relative to the form.
+  formY(): number {
     return 0;
   }
 

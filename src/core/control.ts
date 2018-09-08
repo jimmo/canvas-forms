@@ -705,19 +705,19 @@ export class Control {
     }
   }
 
-  // Gets the x coordinate of this control relative to the surface.
-  surfaceX(): number {
+  // Gets the x coordinate of this control relative to the form.
+  formX(): number {
     if (this.parent) {
-      return this.x + this.parent.surfaceX();
+      return this.x + this.parent.formX();
     } else {
       return this.x;
     }
   }
 
-  // Gets the y coordinate of this control relative to the surface.
-  surfaceY(): number {
+  // Gets the y coordinate of this control relative to the form.
+  formY(): number {
     if (this.parent) {
-      return this.y + this.parent.surfaceY();
+      return this.y + this.parent.formY();
     } else {
       return this.y;
     }
