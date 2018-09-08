@@ -23,8 +23,10 @@ class _TextBox extends Control {
 
   unpaint() {
     if (this.elem) {
-      this.elem.remove();
+      // The blur event may be fired by 'remove', so clear this.elem first.
+      const e = this.elem;
       this.elem = null;
+      e.remove();
     }
   }
 

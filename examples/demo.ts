@@ -29,7 +29,7 @@ class PromptDialog extends Dialog {
   name: TextBox;
 
   constructor() {
-    super(300, 160);
+    super(420, 180);
 
     this.add(new Label('What is your name?'), 20, 20);
     this.name = this.add(new TextBox(), 20, 54);
@@ -38,7 +38,7 @@ class PromptDialog extends Dialog {
     this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
       this.close('Cancel');
     });
-    this.add(new Button('OK'), { x2: 130, y2: 20 }).click.add(() => {
+    this.add(new Button('OK'), { x2: 190, y2: 20 }).click.add(() => {
       this.close(this.name.text);
     });
   }
@@ -120,7 +120,7 @@ makeDemo('CheckBox', 'The button only works when the checkbox is enabled.', () =
 
   const r = new RadioGroup();
   for (let i = 0; i < 5; ++i) {
-    const cb = c.add(new CheckBox('Radio ' + i), 10, 100 + i * 30);
+    const cb = c.add(new CheckBox('Radio ' + i), 10, 100 + i * 40);
     r.add(cb);
   }
 });
@@ -241,14 +241,14 @@ makeDemo('Tree', '', () => {
 });
 
 makeDemo('Button', '', () => {
-  const b1 = c.add(new Button('Hello'), 10, 10, 100, 26);
+  const b1 = c.add(new Button('Hello'), 10, 10);
   b1.click.add(async () => {
     b1.setText('Goodbye');
     await delay(1000);
     b1.setText('Hello');
   });
 
-  const g1 = c.add(new ButtonGroup(), 10, 100, 400, 26);
+  const g1 = c.add(new ButtonGroup(), 10, 100, 400, 32);
   const gb1 = g1.add(new Button('One'));
   const gb2 = g1.add(new Button('Two'));
   const gb3 = g1.add(new Button('Three'));
@@ -261,7 +261,7 @@ makeDemo('Button', '', () => {
 });
 
 makeDemo('Animation', '', () => {
-  const b1 = c.add(new Button('Here'), null, 10, 100, 26);
+  const b1 = c.add(new Button('Here'), null, 10);
   const a1 = b1.coords.x.set(10).animate(10, 800, 1000, Easing.easeInOutCubic);
   b1.click.add(async () => {
     await a1.start();
@@ -269,7 +269,7 @@ makeDemo('Animation', '', () => {
   });
 
   for (let i = 0; i < 6; ++i) {
-    const b = c.add(new Button(`${i}`), 10 + i * 110, 50, 100, 26);
+    const b = c.add(new Button(`${i}`), 10 + i * 170, 50);
     b.click.add(async () => {
       await new OpacityAnimator(b, 1, 0.1, 200).start();
       b.remove();
@@ -279,7 +279,7 @@ makeDemo('Animation', '', () => {
 
 makeDemo('Opacity', '', () => {
   for (let i = 0; i < 10; ++i) {
-    const b = c.add(new Button(`${(i + 1) / 10}`), 10 + i * 56, 10 + i * 16, 100, 26);
+    const b = c.add(new Button(`${(i + 1) / 10}`), 10 + i * 56, 10 + i * 16);
     b.opacity = (i + 1) / 10;
   }
 });

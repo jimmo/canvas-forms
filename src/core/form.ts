@@ -24,7 +24,7 @@ export class Form extends Control {
   pendingLayout = false;
   pendingPaint = false;
 
-  fontSize = 16;
+  fontSize = 20;
   fontName = 'sans';
   color = '#202020';
 
@@ -200,11 +200,11 @@ export class Form extends Control {
   }
 
   defaultWidth(): number {
-    return 100;
+    return 160;
   }
 
   defaultHeight(): number {
-    return 26;
+    return 32;
   }
 
   // Gets the x coordinate of this control relative to the form.
