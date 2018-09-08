@@ -27,6 +27,17 @@ export class ListItem extends Control {
     this.h = this.form().defaultHeight();
     return true;
   }
+
+  setSelected(value: boolean) {
+    if (value === this.selected) {
+      return;
+    }
+    this.selected = value;
+    this.repaint();
+    if (this.selected) {
+      this.select.fire();
+    }
+  }
 }
 
 export class TextListItem extends ListItem {
@@ -36,11 +47,7 @@ export class TextListItem extends ListItem {
     l.fit = false;
 
     this.mouseup.add(() => {
-      if (!this.selected) {
-        this.selected = true;
-        this.select.fire();
-        this.repaint();
-      }
+      this.setSelected(true);
     });
   }
 };
@@ -68,6 +75,28 @@ export class List<T> extends ScrollBox {
       }
       this.change.fire();
       this.repaint();
+    });
+
+    this.keydown.add((data) => {
+      if (data.key === 38) {
+        // Up
+        for (let i = 1; i < this.controls.length; ++i) {
+          if ((this.controls[i] as ListItem).selected) {
+            (this.controls[i] as ListItem).setSelected(false);
+            (this.controls[i - 1] as ListItem).setSelected(true);
+            break;
+          }
+        }
+      } else if (data.key === 40) {
+        // Down
+        for (let i = 0; i < this.controls.length - 1; ++i) {
+          if ((this.controls[i] as ListItem).selected) {
+            (this.controls[i] as ListItem).setSelected(false);
+            (this.controls[i + 1] as ListItem).setSelected(true);
+            break;
+          }
+        }
+      }
     });
   }
 

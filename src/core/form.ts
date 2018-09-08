@@ -1,4 +1,4 @@
-import { Surface, MouseEventData, ScrollEventData } from './surface';
+import { Surface, MouseEventData, ScrollEventData, KeyEventData } from './surface';
 import { Control, ControlAtPointData } from './control';
 import { Animator } from '../animation';
 
@@ -125,6 +125,16 @@ export class Form extends Control {
     this.surface.mousewheel.add(data => {
       const hit = this.controlAtPoint(data.x, data.y);
       this.updateFocus(hit);
+    });
+
+    this.surface.keydown.add(data => {
+      if (this.focus) {
+        let control = this.focus.control;
+        while (control) {
+          control.keydown.fire(new KeyEventData(data.key));
+          control = control.parent;
+        }
+      }
     });
   }
 

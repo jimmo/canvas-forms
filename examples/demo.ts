@@ -177,11 +177,7 @@ class CustomListItem extends ListItem {
 
     const b = this.add(new Button(text), 3, 3, null, null, 3, 3);
     b.click.add(() => {
-      if (!this.selected) {
-        this.selected = true;
-        this.select.fire();
-        this.repaint();
-      }
+      this.setSelected(true);
     });
   }
 

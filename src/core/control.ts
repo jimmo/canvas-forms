@@ -154,6 +154,8 @@ export class Control {
   mouseup: Event;
   mousemove: Event;
 
+  keydown: Event;
+
   constructor() {
     // Child controls.
     this.controls = [];
@@ -211,6 +213,9 @@ export class Control {
       this.enableHitDetection();
     });
     this.mousemove = new Event(() => {
+      this.enableHitDetection();
+    });
+    this.keydown = new Event(() => {
       this.enableHitDetection();
     });
   }

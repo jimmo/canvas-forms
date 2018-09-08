@@ -27,12 +27,15 @@ export class MouseEventData {
   }
 }
 
+export class KeyEventData {
+  constructor(readonly key: number) {
+  }
+}
+
 // Manages the HTML Canvas element, in particular keeping it sized correctly.
 export class Surface {
   elem: HTMLCanvasElement;
   container: HTMLDivElement;
-  scrollContainer: HTMLDivElement;
-  scrollElems: HTMLDivElement[];
 
   ctx: CanvasRenderingContext2D;
 
@@ -42,26 +45,25 @@ export class Surface {
   mouseup: Event;
   mousemove: Event;
   mousewheel: Event;
+  keydown: Event;
 
   constructor(selector: string) {
     // The <canvas> DOM element.
     this.elem = document.querySelector(selector);
-    this.container = null;
-    this.scrollContainer = null;
-    this.scrollElems = [];
 
     this.fitParent();
 
     // The 2D rendering context (used by all the `paint` methods).
     this.ctx = this.elem.getContext('2d');
 
-    // Events (mostly used by Surface).
+    // Events (mostly used by Form).
     this.resize = new Event();
     this.scroll = new Event();
     this.mousedown = new Event();
     this.mouseup = new Event();
     this.mousemove = new Event();
     this.mousewheel = new Event();
+    this.keydown = new Event();
 
     // To allow the canvas to take focus.
     this.container.tabIndex = 1;
@@ -114,6 +116,10 @@ export class Surface {
         this.mousemove.fire(createMouseEventData(ev));
       });
     }
+
+    this.container.addEventListener('keydown', (ev) => {
+      this.keydown.fire(new KeyEventData(ev.keyCode));
+    });
 
     this.container.addEventListener('wheel', (ev) => {
       let dx = ev.deltaX;
@@ -216,12 +222,12 @@ export class Surface {
 
   // Gets the x coordinate of this control relative to the surface.
   htmlX(): number {
-    return 0;//this.pixels(this.scrollContainer.scrollLeft);
+    return 0;
   }
 
   // Gets the y coordinate of this control relative to the surface.
   htmlY(): number {
-    return 0;//this.pixels(this.scrollContainer.scrollTop);
+    return 0;
   }
 
   pixels(v: number): number {
