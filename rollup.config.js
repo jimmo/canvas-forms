@@ -2,6 +2,7 @@ import typescript from 'rollup-plugin-typescript2';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
+//import terser from 'rollup-plugin-terser';
 import pkg from './package.json'
 
 const rules = [
@@ -31,6 +32,7 @@ if (process.env.EXAMPLES) {
           tsconfig: 'examples/tsconfig.json'
         }),
         sourcemaps()
+        //terser.terser()
       ]
     }
   );
