@@ -5,20 +5,20 @@ import { CoordAxis } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
 
 export class Grabber extends Control {
-  private startX: number;
-  private startY: number;
-  private xConstraint: StaticConstraint;
-  private yConstraint: StaticConstraint;
-  private bounds: Map<CoordAxis, [number, number]> = new Map();
+  private _startX: number;
+  private _startY: number;
+  private _xConstraint: StaticConstraint;
+  private _yConstraint: StaticConstraint;
+  private _bounds: Map<CoordAxis, [number, number]> = new Map();
 
   constructor(x: number, y: number, private readonly axes: CoordAxis[]) {
     super();
 
-    this.startX = x;
-    this.startY = y;
+    this._startX = x;
+    this._startY = y;
 
-    this.bounds.set(CoordAxis.X, [null, null]);
-    this.bounds.set(CoordAxis.Y, [null, null]);
+    this._bounds.set(CoordAxis.X, [null, null]);
+    this._bounds.set(CoordAxis.Y, [null, null]);
 
     let down: MouseEventData = null;
     this.mousedown.add((data) => {
@@ -27,25 +27,25 @@ export class Grabber extends Control {
     });
     this.mouseup.add((data) => {
       down = null;
-      this.startX = this.x;
-      this.startY = this.y;
+      this._startX = this.x;
+      this._startY = this.y;
     });
     this.mousemove.add((data) => {
       if (!down) {
         return;
       }
 
-      if (this.xConstraint && this.axes.indexOf(CoordAxis.X) >= 0) {
-        this.xConstraint.set(this.clamp(CoordAxis.X, this.startX + data.dx));
+      if (this._xConstraint && this.axes.indexOf(CoordAxis.X) >= 0) {
+        this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + data.dx));
       }
-      if (this.yConstraint && this.axes.indexOf(CoordAxis.Y) >= 0) {
-        this.yConstraint.set(this.clamp(CoordAxis.Y, this.startY + data.dy));
+      if (this._yConstraint && this.axes.indexOf(CoordAxis.Y) >= 0) {
+        this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + data.dy));
       }
     });
   }
 
   private clamp(axis: CoordAxis, v: number) {
-    const range = this.bounds.get(axis);
+    const range = this._bounds.get(axis);
     if (range[0] !== null && range[0] !== undefined) {
       v = Math.max(range[0], v);
     }
@@ -56,11 +56,11 @@ export class Grabber extends Control {
   }
 
   bound(axis: CoordAxis, min?: number, max?: number) {
-    this.bounds.set(axis, [min, max]);
+    this._bounds.set(axis, [min, max]);
   }
 
   protected added() {
-    this.xConstraint = this.coords.x.set(this.startX);
-    this.yConstraint = this.coords.y.set(this.startY);
+    this._xConstraint = this.coords.x.set(this._startX);
+    this._yConstraint = this.coords.y.set(this._startY);
   }
 }

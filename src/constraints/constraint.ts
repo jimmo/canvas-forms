@@ -4,8 +4,21 @@ import { Coord, CoordData, CoordAxis } from '../core/enums';
 // Base class for constraints that can be applied to control coordinates.
 export abstract class Constraint {
   protected parent: Control;
+  order: number = 0;
 
-  constructor(controls: Control[]) {
+  constructor(readonly controls: Control[], readonly coords: CoordData[]) {
+    if (controls.length !== coords.length) {
+      throw new Error('Mismatched controls and coords.');
+    }
+    // Don't take ownership of the controls array that we were passed in.
+    // We modify it, which might be surprising.
+    this.controls = this.controls.slice();
+    this.coords = this.coords.slice();
+
+    for (let i = 0; i < this.controls.length; ++i) {
+      this.controls[i].refConstraint(this, this.coords[i].axis);
+    }
+
     // This is the control using this constraint to layout a child control.
     // i.e. a.constrain(b) --> b.parent === a
     this.parent = controls[0].parent;
@@ -30,8 +43,12 @@ export abstract class Constraint {
 
   // Remove this constraint from it's parent control (and unref it
   // from any controls that it constrains).
-  // Should be overriden by derived classes (and call super).
+  // When overriden by derived classes, must call super.
   remove() {
+    for (let i = 0; i < this.controls.length; ++i) {
+      this.controls[i].unrefConstraint(this, this.coords[i].axis);
+    }
+
     if (this.parent) {
       for (let i = 0; i < this.parent.childConstraints.length; ++i) {
         if (this.parent.childConstraints[i] === this) {
@@ -46,22 +63,22 @@ export abstract class Constraint {
   // In layout mode, show this constraint on the form.
   abstract paint(ctx: CanvasRenderingContext2D): void;
 
-  // Helper for constraints to tell a control that it is referenced
-  // by this contraints.
-  static refControl(constraint: Constraint, control: Control) {
-    control.refConstraints.push(constraint);
-  }
+  // // Helper for constraints to tell a control that it is referenced
+  // // by this contraints.
+  // static refControl(constraint: Constraint, control: Control, axis: CoordAxis) {
+  //     control.refConstraints.push(constraint);
+  // }
 
-  // Helper for constraints to tell a control that it is no longer
-  // being referenced by this constraint (usually because the control
-  // has requested it via `removeControl`).
-  static unrefControl(constraint: Constraint, control: Control) {
-    const i = control.refConstraints.indexOf(constraint);
-    if (i < 0) {
-      throw new Error('Cannot unref control.');
-    }
-    control.refConstraints.splice(i, 1);
-  }
+  // // Helper for constraints to tell a control that it is no longer
+  // // being referenced by this constraint (usually because the control
+  // // has requested it via `removeControl`).
+  // static unrefControl(constraint: Constraint, control: Control) {
+  //   const i = control.refConstraints.indexOf(constraint);
+  //   if (i >= 0) {
+  //     control.refConstraints.splice(i, 1);
+  //   }
+  //   throw new Error('Cannot unref control.');
+  // }
 
   // Helper to map the Coord enum to the various properties on controls.
   // e.g. Coord.X --> control.x
@@ -158,12 +175,12 @@ export abstract class Constraint {
   // this was able to be done successfully.
   // Return false if the constraint could not yet be calculated, which will cause
   // it to be moved to the end of the list and tried again later.
+  // Must call super.apply() if successful.
   apply() {
-    return false;
-  }
-
-  unstick() {
-    return false;
+    for (let i = 0; i < this.controls.length; ++i) {
+      this.controls[i].constraintApplied(this.coords[i].axis);
+    }
+    return true;
   }
 
   // Return true if this constraint has converged.

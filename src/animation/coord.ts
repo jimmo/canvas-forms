@@ -3,7 +3,7 @@ import { Animator, Easing, EasingFunction } from './animator';
 
 export class CoordAnimator extends Animator {
   constructor(private readonly constraint: StaticConstraint, private readonly min: number, private readonly max: number, duration?: number, easing?: EasingFunction) {
-    super([constraint.control], duration, easing);
+    super(constraint.controls, duration, easing);
   }
 
   update(t: number): void {

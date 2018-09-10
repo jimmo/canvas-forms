@@ -54,6 +54,10 @@ export class Form extends Control {
       this.h = data.h;
       this.x2 = 0;
       this.y2 = 0;
+      this.x2w = this.w;
+      this.y2h = this.h
+      this.xw = this.w;
+      this.yh = this.h;
 
       // Asynchronously relayout (and repaint) the form.
       this.relayout();
@@ -147,9 +151,9 @@ export class Form extends Control {
   }
 
   layout() {
-    //const t = new Date().getTime();
+    // const t = new Date().getTime();
     super.layout();
-    //console.log('layout: ', new Date().getTime() - t);
+    // console.log('layout: ', new Date().getTime() - t);
   }
 
   paint(ctx: CanvasRenderingContext2D) {
@@ -157,9 +161,9 @@ export class Form extends Control {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);
 
-    //const t = new Date().getTime();
+    // const t = new Date().getTime();
     super.paint(ctx);
-    //console.log('paint: ', new Date().getTime() - t);
+    // console.log('paint: ', new Date().getTime() - t);
   }
 
   // Default implementation of repaint does a full paint of the entire form.
@@ -188,7 +192,6 @@ export class Form extends Control {
         for (const a of this._animators) {
           a.apply(frameTimeMs);
         }
-        this.layoutComplete = false;
         this.layout();
         if (!this.pendingPaint) {
           this.paint(this.context());

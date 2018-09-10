@@ -16,7 +16,23 @@ export enum CoordType {
 
 // Represents a CoordType on a CoordAxis.
 export class CoordData {
+  name: string;
   constructor(readonly axis: CoordAxis, readonly type: CoordType) {
+    this.name = this.toString();
+  }
+
+  isParentDependent() {
+    return (this.type === CoordType.C || this.type === CoordType.E);
+  }
+
+  toString() {
+    if (this.axis === CoordAxis.X) {
+      return { 1: 'X', 2: 'W', 3: 'X2', 4: 'XW', 5: 'X2W' }[this.type];
+    } else if (this.axis === CoordAxis.Y) {
+      return { 1: 'Y', 2: 'H', 3: 'Y2', 4: 'YH', 5: 'Y2H' }[this.type];
+    } else {
+      return '?';
+    }
   }
 }
 

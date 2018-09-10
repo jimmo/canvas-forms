@@ -1,11 +1,7 @@
 import { CoordAxis, CoordData, Coord } from './enums';
 import { Event } from './events';
 import { Form } from './form';
-import { Constraint } from '../constraints/constraint';
-import { AlignConstraint } from '../constraints/align';
-import { StaticConstraint } from '../constraints/static';
-import { FillConstraint } from '../constraints/fill';
-
+import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint } from '../constraints';
 
 // Base class for events raised from controls.
 export class ControlEventData {
@@ -57,6 +53,10 @@ class ControlCoord {
       return null;
     }
     return new StaticConstraint(this.control, this.coord, v);
+  }
+
+  fit(padding?: number, min?: number) {
+    return new ContentConstraint(this.control, this.coord, padding, min);
   }
 }
 
@@ -128,29 +128,54 @@ class ControlCoords {
 // Base control class - represents a control on a form.
 // Do not instantiate directly.
 export class Control {
-  controls: Control[];
-  childConstraints: Constraint[];
-  refConstraints: Constraint[];
-  parent: Control;
-  private _enableHitDetection: boolean;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  x2: number;
-  y2: number;
-  xw: number;
-  yh: number;
-  x2w: number;
-  y2h: number;
-  protected layoutComplete: boolean = false;
+  // Child controls.
+  controls: Control[] = [];
 
-  protected clip: boolean;
-  focused: boolean;
+  // Constraints applied to children.
+  childConstraints: Constraint[] = [];
 
-  fontSize: number;
-  fontName: string;
-  color: string;
+  // Constraints that use this control.
+  private refConstraintsX: Constraint[] = [];
+  private refConstraintsY: Constraint[] = [];
+  private constraintsAppliedX: number = 0;
+  private constraintsAppliedY: number = 0;
+
+  // Parent control (set automatically in add()).
+  // Will be null for the root (Form) control.
+  parent: Control = null;
+  // Whether to include this control in hit detection.
+  // Only enabled for controls that need hit detection and their ancestors.
+  // Disabled by default so that hit detection is as cheap as possible and only
+  // has to search controls that might care.
+  private _enableHitDetection: boolean = false;
+  // Read-only coordinates for this control.
+  // Set by the `layout` process from the various constraints.
+  // Regardless of which coordinates the constraints set, once
+  // any two on the same axis are set, then all the others will
+  // be calculated automatically.
+  // TODO: Consider aggregating these under a 'layout' member,
+  // i.e. c.layout.x instead of c.x.
+  x: number = null;
+  y: number = null;
+  w: number = null;
+  h: number = null;
+  x2: number = null;
+  y2: number = null;
+  xw: number = null;
+  yh: number = null;
+  x2w: number = null;
+  y2h: number = null;
+
+  // Enable paint clipping for the bounds of this control.
+  protected clip: boolean = true;
+  // Is the mouse currently over this control.
+  focused: boolean = false;
+
+  // Default font and color used by many controls (e.g. Label, Button, Checkbox, etc).
+  fontSize: number = null;
+  fontName: string = null;
+  color: string = null;
+
   border: boolean = false;
   opacity: number = 1;
 
@@ -161,52 +186,6 @@ export class Control {
   keydown: Event;
 
   constructor() {
-    // Child controls.
-    this.controls = [];
-    // Constraints applied to children.
-    this.childConstraints = [];
-    // Constraints that use this control.
-    this.refConstraints = [];
-
-    // Parent control (set automatically in add()).
-    // Will be null for the root (Form) control.
-    this.parent = null;
-
-    // Whether to include this control in hit detection.
-    // Only enabled for controls that need hit detection and their ancestors.
-    // Disabled by default so that hit detection is as cheap as possible and only
-    // has to search controls that might care.
-    this._enableHitDetection = false;
-
-    // Read-only coordinates for this control.
-    // Set by the `layout` process from the various constraints.
-    // Regardless of which coordinates the constraints set, once
-    // any two on the same axis are set, then all the others will
-    // be calculated automatically.
-    // TODO: Consider aggregating these under a 'layout' member,
-    // i.e. c.layout.x instead of c.x.
-    this.x = null;
-    this.y = null;
-    this.w = null;
-    this.h = null;
-    this.x2 = null;
-    this.y2 = null;
-    this.xw = null;
-    this.yh = null;
-    this.x2w = null;
-    this.y2h = null;
-
-    // Enable paint clipping for the bounds of this control.
-    this.clip = true;
-
-    // Is the mouse currently over this control.
-    this.focused = false;
-
-    // Default font and color used by many controls (e.g. Label, Button, Checkbox, etc).
-    this.fontSize = null;
-    this.fontName = null;
-    this.color = null;
-
     // When the surface detects a mouse event on this control, it will fire
     // these events. Use the `addCallback` to only enable hit detection if
     // something is actually listening to these events.
@@ -224,6 +203,10 @@ export class Control {
     });
   }
 
+  bounds() {
+    return { x: this.x, w: this.w, x2: this.x2, xw: this.xw, x2w: this.x2w, y: this.y, h: this.h, y2: this.y2, y2h: this.y2h, yh: this.yh };
+  }
+
   // Whenever any coordinate is set (via a constraint being applied), try
   // and see if we have enough information to figure out the others.
   recalculate(axis: CoordAxis) {
@@ -231,81 +214,140 @@ export class Control {
       return v !== null;
     }
 
+    function unspecified(coords: number[]) {
+      let n = 0;
+      for (const c of coords) {
+        if (c === null) {
+          n += 1;
+        }
+      }
+      return n;
+    }
+
+    let prevUnspecified = 0;
+    let nowUnspecified = 0;
+
     if (axis === CoordAxis.X) {
+      prevUnspecified = unspecified([this.x, this.w, this.x2, this.x2w, this.xw]);
+
       if (nn(this.x) && nn(this.w)) {
-        this.x2 = this.parent.w - this.x - this.w;
         this.xw = this.x + this.w;
-        this.x2w = this.x2 + this.w;
+        if (nn(this.parent.w)) {
+          this.x2 = this.parent.w - this.x - this.w;
+          this.x2w = this.x2 + this.w;
+        }
       } else if (nn(this.x) && nn(this.x2)) {
-        this.w = this.parent.w - this.x - this.x2;
-        this.xw = this.x + this.w;
-        this.x2w = this.x2 + this.w;
+        if (nn(this.parent.w)) {
+          this.w = this.parent.w - this.x - this.x2;
+          this.xw = this.x + this.w;
+          this.x2w = this.x2 + this.w;
+        }
       } else if (nn(this.x) && nn(this.xw)) {
         this.w = this.xw - this.x;
-        this.x2 = this.parent.w - this.xw;
-        this.x2w = this.x2 + this.w;
+        if (nn(this.parent.w)) {
+          this.x2 = this.parent.w - this.xw;
+          this.x2w = this.x2 + this.w;
+        }
       } else if (nn(this.x) && nn(this.x2w)) {
         // ignore.
       } else if (nn(this.w) && nn(this.x2)) {
-        this.x = this.parent.w - this.w - this.x2;
-        this.xw = this.x + this.w;
+        if (nn(this.parent.w)) {
+          this.x = this.parent.w - this.w - this.x2;
+          this.xw = this.x + this.w;
+        }
         this.x2w = this.x2 + this.w;
       } else if (nn(this.w) && nn(this.xw)) {
         this.x = this.xw - this.w;
-        this.x2 = this.parent.w - this.xw;
-        this.x2w = this.x2 + this.w;
+        if (nn(this.parent.w)) {
+          this.x2 = this.parent.w - this.xw;
+          this.x2w = this.x2 + this.w;
+        }
       } else if (nn(this.w) && nn(this.x2w)) {
         this.x2 = this.x2w - this.w;
-        this.x = this.parent.w - this.x2w;
-        this.xw = this.x + this.w;
+        if (nn(this.parent.w)) {
+          this.x = this.parent.w - this.x2w;
+          this.xw = this.x + this.w;
+        }
       } else if (nn(this.x2) && nn(this.xw)) {
         // ignore.
       } else if (nn(this.x2) && nn(this.x2w)) {
         this.w = this.x2w - this.x2;
-        this.x = this.parent.w - this.x2w;
-        this.xw = this.x + this.w;
+        if (nn(this.parent.w)) {
+          this.x = this.parent.w - this.x2w;
+          this.xw = this.x + this.w;
+        }
       } else if (nn(this.xw) && nn(this.x2w)) {
-        this.w = -(this.parent.w - this.xw - this.x2w);
-        this.x = this.xw - this.w;
-        this.x2 = this.x2w - this.w;
+        if (nn(this.parent.w)) {
+          this.w = -(this.parent.w - this.xw - this.x2w);
+          this.x = this.xw - this.w;
+          this.x2 = this.x2w - this.w;
+        }
       }
+
+      nowUnspecified = unspecified([this.x, this.w, this.x2, this.x2w, this.xw]);
     } else if (axis === CoordAxis.Y) {
+      prevUnspecified = unspecified([this.y, this.h, this.y2, this.y2h, this.yh]);
+
       if (nn(this.y) && nn(this.h)) {
-        this.y2 = this.parent.h - this.y - this.h;
         this.yh = this.y + this.h;
-        this.y2h = this.y2 + this.h;
+        if (nn(this.parent.h)) {
+          this.y2 = this.parent.h - this.y - this.h;
+          this.y2h = this.y2 + this.h;
+        }
       } else if (nn(this.y) && nn(this.y2)) {
-        this.h = this.parent.h - this.y - this.y2;
-        this.yh = this.y + this.h;
-        this.y2h = this.y2 + this.h;
+        if (nn(this.parent.h)) {
+          this.h = this.parent.h - this.y - this.y2;
+          this.yh = this.y + this.h;
+          this.y2h = this.y2 + this.h;
+        }
       } else if (nn(this.y) && nn(this.yh)) {
         this.h = this.yh - this.y;
-        this.y2 = this.parent.h - this.yh;
-        this.y2h = this.y2 + this.h;
+        if (nn(this.parent.h)) {
+          this.y2 = this.parent.h - this.yh;
+          this.y2h = this.y2 + this.h;
+        }
       } else if (nn(this.y) && nn(this.y2h)) {
         // ignore.
       } else if (nn(this.h) && nn(this.y2)) {
-        this.y = this.parent.h - this.h - this.y2;
-        this.yh = this.y + this.h;
+        if (nn(this.parent.h)) {
+          this.y = this.parent.h - this.h - this.y2;
+          this.yh = this.y + this.h;
+        }
         this.y2h = this.y2 + this.h;
       } else if (nn(this.h) && nn(this.yh)) {
         this.y = this.yh - this.h;
-        this.y2 = this.parent.h - this.yh;
-        this.y2h = this.y2 + this.h;
+        if (nn(this.parent.h)) {
+          this.y2 = this.parent.h - this.yh;
+          this.y2h = this.y2 + this.h;
+        }
       } else if (nn(this.h) && nn(this.y2h)) {
         this.y2 = this.y2h - this.h;
-        this.y = this.parent.h - this.y2h;
-        this.yh = this.y + this.h;
+        if (nn(this.parent.h)) {
+          this.y = this.parent.h - this.y2h;
+          this.yh = this.y + this.h;
+        }
       } else if (nn(this.y2) && nn(this.yh)) {
         // ignore.
       } else if (nn(this.y2) && nn(this.y2h)) {
         this.h = this.y2h - this.y2;
-        this.y = this.parent.h - this.y2h;
-        this.yh = this.y + this.h;
+        if (nn(this.parent.h)) {
+          this.y = this.parent.h - this.y2h;
+          this.yh = this.y + this.h;
+        }
       } else if (nn(this.yh) && nn(this.y2h)) {
-        this.h = -(this.parent.h - this.yh - this.y2h);
-        this.y = this.yh - this.h;
-        this.y2 = this.y2h - this.h;
+        if (nn(this.parent.h)) {
+          this.h = -(this.parent.h - this.yh - this.y2h);
+          this.y = this.yh - this.h;
+          this.y2 = this.y2h - this.h;
+        }
+      }
+
+      nowUnspecified = unspecified([this.y, this.h, this.y2, this.y2h, this.yh]);
+    }
+
+    if (prevUnspecified !== nowUnspecified) {
+      for (const c of this.controls) {
+        c.recalculate(axis);
       }
     }
   }
@@ -343,33 +385,193 @@ export class Control {
     return x >= 0 && y >= 0 && x < this.w && y < this.h;
   }
 
+  // Layout:
+  // Controls can:
+  //  - be fully specified by (StaticConstraint / AlignConstraint / self).
+  //  - additionally require the parent's size (StaticConstraint for x2[w] / y2[h]).
+  //  - use their children's max bounds (ContentConstraint)
+  //  - have a default size (set when all other constraints are applied).
+
+  refConstraint(constraint: Constraint, axis: CoordAxis) {
+    if (axis === CoordAxis.X) {
+      this.refConstraintsX.push(constraint);
+    } else if (axis === CoordAxis.Y) {
+      this.refConstraintsY.push(constraint);
+    }
+  }
+
+  unrefConstraint(constraint: Constraint, axis: CoordAxis) {
+    if (axis === CoordAxis.X) {
+      const i = this.refConstraintsX.indexOf(constraint);
+      if (i < 0) {
+        throw new Error('Unable to unref constraint.');
+      }
+      this.refConstraintsX.splice(i, 1);
+    } else if (axis === CoordAxis.Y) {
+      const i = this.refConstraintsY.indexOf(constraint);
+      if (i < 0) {
+        throw new Error('Unable to unref constraint.');
+      }
+      this.refConstraintsY.splice(i, 1);
+    }
+  }
+
+  // TODO: private
+  applyDefaultLayout(axis: CoordAxis) {
+    if (axis === CoordAxis.X) {
+      if (this.w === null) {
+        this.w = this.form().defaultWidth();
+        this.recalculate(CoordAxis.X);
+      }
+      if (this.x === null) {
+        this.x = 10;
+        this.recalculate(CoordAxis.X);
+      }
+    } else if (axis === CoordAxis.Y) {
+      if (this.h === null) {
+        this.h = this.form().defaultHeight();
+        this.recalculate(CoordAxis.Y);
+      }
+      if (this.y === null) {
+        this.y = 10;
+        this.recalculate(CoordAxis.Y);
+      }
+    }
+  }
+
+  // TODO: private
+  outstandingConstraints(axis: CoordAxis) {
+    if (axis === CoordAxis.X) {
+      return this.refConstraintsX.length - this.constraintsAppliedX;
+    } else if (axis === CoordAxis.Y) {
+      return this.refConstraintsY.length - this.constraintsAppliedY;
+    } else {
+      return 0;
+    }
+  }
+
+  constraintApplied(axis: CoordAxis) {
+    if (axis === CoordAxis.X) {
+      this.constraintsAppliedX += 1;
+    } else if (axis === CoordAxis.Y) {
+      this.constraintsAppliedY += 1;
+    }
+    if (this.outstandingConstraints(axis) === 0) {
+      this.applyDefaultLayout(axis);
+    }
+  }
+
+  resetLayout() {
+    this.x = null;
+    this.y = null;
+    this.w = null;
+    this.h = null;
+    this.x2 = null;
+    this.y2 = null;
+    this.xw = null;
+    this.yh = null;
+    this.x2w = null;
+    this.y2h = null;
+    this.constraintsAppliedX = 0;
+    this.constraintsAppliedY = 0;
+
+    // Recursively reset state for all child controls.
+    for (const control of this.controls) {
+      control.resetLayout();
+    }
+
+    // For controls that can automatically figure out their own coordinates
+    // (i.e. label sets its own width and height) then apply that.
+    if (this.selfConstrain()) {
+      this.recalculate(CoordAxis.X);
+      this.recalculate(CoordAxis.Y);
+    }
+
+    // If the control has no constraints on a given axis, then automatically give
+    // it default layout. (applyDefaultLayout ill not override anything set in selfConstrain).
+    if (this.refConstraintsX.length === 0) {
+      this.applyDefaultLayout(CoordAxis.X);
+    }
+    if (this.refConstraintsY.length === 0) {
+      this.applyDefaultLayout(CoordAxis.Y);
+    }
+  }
+
+  findConstraints(pending: Constraint[]) {
+    for (const c of this.childConstraints) {
+      pending.push(c);
+    }
+    for (const c of this.controls) {
+      c.findConstraints(pending);
+    }
+  }
+
+  // Override this if you wnat to get notified when layout is complete.
+  // Must call super.
+  layoutComplete() {
+    const b = [this.x, this.y, this.w, this.h, this.x2, this.y2, this.x2w, this.y2h, this.xw, this.yh];
+    for (const bb of b) {
+      if (bb === null) {
+        throw new Error('Control was not fully specified after layout.');
+      }
+    }
+    for (const control of this.controls) {
+      control.layoutComplete();
+    }
+  }
+
+  layoutAttempt(round: number): boolean {
+    // Recursively reset all controls in this form.
+    for (const control of this.controls) {
+      control.resetLayout();
+    }
+
+    let i = 0;
+    let constraints: Constraint[] = [];
+    this.findConstraints(constraints);
+    constraints.sort((a, b) => a.order - b.order);
+    let pending = constraints;
+    while (pending.length > 0) {
+      let next = [];
+      for (const c of pending) {
+        if (c.apply()) {
+          c.order = i;
+          ++i;
+        } else {
+          next.push(c);
+        }
+      }
+      if (next.length === pending.length) {
+        throw new Error('Unable to apply remaining constraints.');
+      }
+      pending = next;
+    }
+
+    // Check if all constraints have converged (only fill constraints can fail this).
+    // If they all have, then we're done. Otherwise, go another iteration.
+    // Any constraints that aren't done will get moved to the end of the queue
+    // so they get applied last next round.
+    let done = true;
+    for (const c of constraints) {
+      if (!c.done(round)) {
+        c.order = i;
+        ++i;
+        done = false;
+      }
+    }
+    if (!done) {
+      return false;
+    }
+
+    // Notify controls that they've been laid out.
+    this.layoutComplete();
+
+    return true;
+  }
+
   // Applies all constraints to direct children of this control.
   // Don't call this directly -- call `relayout` instead.
   layout() {
-    if (this.layoutComplete) {
-      return;
-    }
-
-    // First give it a size if it doesn't have one, and can't calculate from its children.
-    if (this.w === null && this.controls.length === 0) {
-      this.w = this.form().defaultWidth();
-      this.recalculate(CoordAxis.X);
-    }
-    if (this.h === null && this.controls.length === 0) {
-      this.h = this.form().defaultHeight();
-      this.recalculate(CoordAxis.Y);
-    }
-
-    // Ensure each control is positioned somewhere.
-    if (this.x === null) {
-      this.x = 10;
-      this.recalculate(CoordAxis.X);
-    }
-    if (this.y === null) {
-      this.y = 10;
-      this.recalculate(CoordAxis.Y);
-    }
-
     // Constraints are applied until they converge.
     // If there are no fill constraints, they will all solve on the first iteration of this loop.
     // The fill constraints converge on a solution by redistributing remaining space each iteration.
@@ -386,96 +588,13 @@ export class Control {
       if (i === 20) {
         throw new Error('Unable to solve constraints after ' + i + ' iterations.');
       }
-
-      // Start by resetting all controls to remove all layout.
-      for (const c of this.controls) {
-        c.x = null;
-        c.y = null;
-        c.w = null;
-        c.h = null;
-        c.x2 = null;
-        c.y2 = null;
-        c.xw = null;
-        c.yh = null;
-        c.x2w = null;
-        c.y2h = null;
-        c.layoutComplete = false;
-
-        // For controls that can automatically figure out their own coordinates
-        // (i.e. label sets its own width and height) then apply that.
-        if (c.selfConstrain()) {
-          c.recalculate(CoordAxis.X);
-          c.recalculate(CoordAxis.Y);
-        }
-      }
-
-      // Attempt to apply each constraint in order.
-      // If it fails, that means it depeneded on a constraint that hasn't been applied yet,
-      // so move it to the end of the list (to be tried again).
-      // Constraints must not modify their controls if they do not successfully apply.
-      // At the end of this, update `this.childConstraints` with the new re-ordered list.
-      // Hopefully this means that next time `layout` is called, we're in the right order
-      // and all constraints should apply first go.
-      const applied = [];
-      let pending = this.childConstraints;
-      while (pending.length > 0) {
-        const next = [];
-        for (const c of pending) {
-          if (c.apply()) {
-            applied.push(c);
-          } else {
-            next.push(c);
-          }
-        }
-        if (next.length === pending.length) {
-          let unstuck = false;
-          for (const c of pending) {
-            unstuck = unstuck || c.unstick();
-          }
-          if (!unstuck) {
-            throw new Error('Unable to apply remaining constraints.');
-          }
-        }
-        pending = next;
-      }
-      this.childConstraints = applied;
-
-      // Check if all constraints have converged (only fill constraints can fail this).
-      // If they all have, then we're done. Otherwise, go another iteration.
-      let done = true;
-      for (const c of this.childConstraints) {
-        if (!c.done(i)) {
-          done = false;
-        }
-      }
-      if (done) {
+      if (this.layoutAttempt(i)) {
         if (i >= 2) {
           console.warn('Warning: Layout took ' + (i + 1) + ' rounds.');
         }
         break;
       }
     }
-
-    // Now that all the controls have constraints applied, recursively layout their children.
-    for (const c of this.controls) {
-      c.layout();
-    }
-
-    // If it still doesn't have a size, then fit to its children.
-    if (!this.w && this.controls.length > 0) {
-      for (const cc of this.controls) {
-        this.w = Math.max(this.w, cc.xw);
-      }
-      this.recalculate(CoordAxis.X);
-    }
-    if (!this.h && this.controls.length > 0) {
-      for (const cc of this.controls) {
-        this.h = Math.max(this.h, cc.yh);
-      }
-      this.recalculate(CoordAxis.Y);
-    }
-
-    this.layoutComplete = true;
   }
 
   selfConstrain(): boolean {
@@ -527,7 +646,12 @@ export class Control {
         }
 
         if (c.focused) {
-          for (const cx of c.refConstraints) {
+          for (const cx of c.refConstraintsX) {
+            ctx.save();
+            cx.paint(ctx);
+            ctx.restore();
+          }
+          for (const cx of c.refConstraintsY) {
             ctx.save();
             cx.paint(ctx);
             ctx.restore();
@@ -618,11 +742,15 @@ export class Control {
   remove() {
     this.clear();
 
-    for (const c of this.refConstraints.slice()) {
+    for (const c of this.refConstraintsX.slice()) {
       c.removeControl(this);
     }
 
-    if (this.refConstraints.length > 0) {
+    for (const c of this.refConstraintsY.slice()) {
+      c.removeControl(this);
+    }
+
+    if (this.refConstraintsX.length > 0 || this.refConstraintsY.length > 0) {
       throw new Error('Control still referenced by constraints.');
     }
 

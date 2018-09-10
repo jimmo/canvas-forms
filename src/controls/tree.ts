@@ -24,6 +24,8 @@ class SubTree extends Control {
     } else {
       ti.coords.y.align(this.controls[this.controls.length - 2].coords.yh);
     }
+    ti.coords.w.fit();
+    ti.coords.h.fit();
   }
 
   added() {
@@ -77,6 +79,9 @@ class TreeItem extends Control {
           this.open = true;
           this.sub = this.add(new SubTree(this.tree, this.node), { x: 22 });
           this.sub.coords.y.align(this.label.coords.yh);
+          this.sub.coords.w.fit();
+          // Min height set to 20 to make room for the loading ... icon.
+          this.sub.coords.h.fit(0, 20);
         } else {
           this.open = false;
           this.sub.remove();
@@ -137,6 +142,8 @@ export class Tree extends ScrollBox {
 
   added() {
     this.add(this.sub, 0, 0);
+    this.sub.coords.w.fit();
+    this.sub.coords.h.fit();
   }
 
   addRoot(node: TreeNode) {

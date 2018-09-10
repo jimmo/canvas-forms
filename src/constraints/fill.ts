@@ -24,25 +24,26 @@ export class FillConstraint extends Constraint {
   // won't cause this fill to change.
   private total: number;
 
-  constructor(readonly controls: Control[], readonly coord: CoordData, readonly ratios?: number[]) {
-    super(controls);
+  static makeCoords(controls: Control[], coord: CoordData) {
+    const coords = [];
+    for (const c of controls) {
+      coords.push(coord);
+    }
+    return coords;
+  }
 
-    // Don't take ownership of the controls array that we were passed in.
-    // We modify it, which might be surprising.
-    this.controls = this.controls.slice();
+  constructor(controls: Control[], coord: CoordData, readonly ratios?: number[]) {
+    super(controls, FillConstraint.makeCoords(controls, coord));
 
     // Fill makes no sense for anything other than width/height.
-    if (this.coord !== Coord.W && this.coord !== Coord.H) {
+    if (this.coords[0] !== Coord.W && this.coords[0] !== Coord.H) {
       throw new Error('Can only set fill constraints on width/height.');
     }
 
     // TODO: make ratios work.
     // TOOD: controls must all be unique.
 
-    // Save controls, coords, and generate default ratios if not specified.
-    for (const c of this.controls) {
-      Constraint.refControl(this, c);
-    }
+    // Generate default ratios if not specified.
     if (!this.ratios) {
       this.ratios = [];
       for (const c of this.controls) {
@@ -69,17 +70,10 @@ export class FillConstraint extends Constraint {
     }
     this.controls.splice(i, 1);
     this.ratios.splice(i, 1);
-    Constraint.unrefControl(this, control);
+    control.unrefConstraint(this, this.coords[0].axis);
     if (this.controls.length < 2) {
       this.remove();
     }
-  }
-
-  remove() {
-    for (const c of this.controls) {
-      Constraint.unrefControl(this, c);
-    }
-    super.remove();
   }
 
   apply() {
@@ -108,7 +102,7 @@ export class FillConstraint extends Constraint {
       const c = this.controls[i];
 
       // Verify that some other constraint isn't fighting against us.
-      if (Constraint.getCoord(c, this.coord) !== null) {
+      if (Constraint.getCoord(c, this.coords[0]) !== null) {
         throw new Error('Control already has width for fill');
       }
 
@@ -125,7 +119,7 @@ export class FillConstraint extends Constraint {
       }
 
       // Set the size for this control.
-      Constraint.setCoord(c, this.coord, vv);
+      Constraint.setCoord(c, this.coords[0], vv);
     }
 
     // We always apply successfully - no dependencies.
@@ -135,7 +129,7 @@ export class FillConstraint extends Constraint {
   done(round: number) {
     // We set all the other controls in `apply`, see what the resulting size for the
     // first control was.
-    let v = Constraint.getCoord(this.controls[0], this.coord);
+    let v = Constraint.getCoord(this.controls[0], this.coords[0]);
     // Total width of all controls.
     let t = v;
     // Total error.
@@ -144,7 +138,7 @@ export class FillConstraint extends Constraint {
     // Get the width that we set on each of the other controls.
     // (We could recalculate this, the values will be the same as what we set in `apply`).
     for (let i = 1; i < this.controls.length; ++i) {
-      const vv = Constraint.getCoord(this.controls[i], this.coord);
+      const vv = Constraint.getCoord(this.controls[i], this.coords[0]);
       e += Math.abs(v - vv);
       t += vv;
     }
@@ -171,11 +165,11 @@ export class FillConstraint extends Constraint {
   }
 
   paint(ctx: CanvasRenderingContext2D) {
-    if (this.coord === Coord.W) {
+    if (this.coords[0] === Coord.W) {
       for (const c of this.controls) {
         Constraint.drawCoord(ctx, 'purple', c, Coord.W, 30);
       }
-    } else if (this.coord === Coord.H) {
+    } else if (this.coords[0] === Coord.H) {
       for (const c of this.controls) {
         Constraint.drawCoord(ctx, 'purple', c, Coord.H, 30);
       }

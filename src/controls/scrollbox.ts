@@ -76,13 +76,13 @@ export class ScrollBox extends Control {
     this.scrollY = Math.round(Math.min(Math.max(0, this.ymax - this.h), Math.max(0, this.scrollY)));
   }
 
-  layout() {
+  layoutComplete() {
     // TODO: investigate skipping layout for controls that are outside the visible
     // area. This means we'd need to re-layout on scrolll potentially? Maybe there
     // could be a buffer of N px in all directions that can trigger relayout.
     // Need to figure out how much layout costs. Skipping painting is probably a much
     // better optimisation as layout happens less often.
-    super.layout();
+    super.layoutComplete();
 
     this.xmax = 0;
     this.ymax = 0;

@@ -1,16 +1,14 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { CoordData } from '../core/enums';
+import { CoordData, CoordAxis, CoordType } from '../core/enums';
 import { CoordAnimator, EasingFunction } from '../animation';
 
 // Represents a simple constraint that sets one coordinate to a static value.
 export class StaticConstraint extends Constraint {
   private v: number;
 
-  constructor(readonly control: Control, readonly coord: CoordData, v: number) {
-    super([control]);
-
-    Constraint.refControl(this, this.control);
+  constructor(control: Control, readonly coord: CoordData, v: number) {
+    super([control], [coord]);
 
     if (v - Math.floor(v) > 0.001) {
       console.log('Non-integer value for new static constraint.');
@@ -21,25 +19,29 @@ export class StaticConstraint extends Constraint {
   }
 
   removeControl(control: Control) {
-    if (control !== this.control) {
+    if (control !== this.controls[0]) {
       throw new Error('StaticConstraint removed from incorrect control.');
     }
     this.remove();
   }
 
-  remove() {
-    Constraint.unrefControl(this, this.control);
-    super.remove();
-  }
-
   paint(ctx: CanvasRenderingContext2D) {
-    Constraint.drawCoord(ctx, 'cornflowerblue', this.control, this.coord, 0);
+    Constraint.drawCoord(ctx, 'cornflowerblue', this.controls[0], this.coord, 0);
   }
 
   apply() {
-    // Static constraints have no dependency and will always apply successfully.
-    Constraint.setCoord(this.control, this.coord, this.v);
-    return true;
+    // The X2[W] can't be applied until the parent has a W/H.
+    if (this.coord.isParentDependent()) {
+      if (this.coord.axis === CoordAxis.X && this.parent.w === null) {
+        return false;
+      }
+      if (this.coord.axis === CoordAxis.Y && this.parent.h === null) {
+        return false;
+      }
+    }
+    // Most static constraints have no dependency and will always apply successfully.
+    Constraint.setCoord(this.controls[0], this.coord, this.v);
+    return super.apply();
   }
 
   set(v: number) {
@@ -50,7 +52,7 @@ export class StaticConstraint extends Constraint {
 
     if (this.v !== v) {
       this.v = v;
-      this.control.relayout();
+      this.controls[0].relayout();
     }
   }
 
@@ -61,7 +63,7 @@ export class StaticConstraint extends Constraint {
     dv = Math.floor(dv);
 
     this.v += dv;
-    this.control.relayout();
+    this.controls[0].relayout();
   }
 
   animate(min: number, max: number, duration?: number, easing?: EasingFunction) {

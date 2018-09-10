@@ -14,13 +14,17 @@ import { CoordData, Coord } from '../core/enums';
 export class AlignConstraint extends Constraint {
   offset: number;
 
-  constructor(readonly control1: Control, readonly coord1: CoordData, readonly control2: Control, readonly coord2: CoordData, offset?: number) {
-    super([control1, control2]);
-
-    Constraint.refControl(this, this.control1);
-    if (this.control1 !== this.control2) {
-      Constraint.refControl(this, this.control2);
+  static uniqueControls(control1: Control, control2: Control) {
+    if (control1 === control2) {
+      return [control1];
+    } else {
+      return [control1, control2];
     }
+  }
+
+  constructor(readonly control1: Control, readonly coord1: CoordData, readonly control2: Control, readonly coord2: CoordData, offset?: number) {
+    super([control1, control2], [coord1, coord2]);
+
     this.offset = offset || 0;
   }
 
@@ -31,17 +35,9 @@ export class AlignConstraint extends Constraint {
     this.remove();
   }
 
-  remove() {
-    Constraint.unrefControl(this, this.control1);
-    if (this.control1 !== this.control2) {
-      Constraint.unrefControl(this, this.control2);
-    }
-    super.remove();
-  }
-
   apply() {
-    const v1 = Constraint.getCoord(this.control1, this.coord1);
-    const v2 = Constraint.getCoord(this.control2, this.coord2);
+    let v1 = Constraint.getCoord(this.control1, this.coord1);
+    let v2 = Constraint.getCoord(this.control2, this.coord2);
 
     if (v1 !== null && v2 !== null) {
       // This means that both have already been set, either:
@@ -52,39 +48,31 @@ export class AlignConstraint extends Constraint {
       throw new Error('Aligning two coordinates that are already specified.');
     }
 
+    // TODO: this might be a useful thing to move to getCoord.
+    // if (v1 === null && v2 === null && this.control1.outstandingConstraints(this.coord1.axis) <= 1 && this.control2.outstandingConstraints(this.coord2.axis) <= 1) {
+    //   this.control2.applyDefaultLayout(this.coord2.axis);
+    //   v2 = Constraint.getCoord(this.control2, this.coord2);
+
+    //   if (v2 === null) {
+    //     this.control1.applyDefaultLayout(this.coord1.axis);
+    //     v1 = Constraint.getCoord(this.control1, this.coord1);
+    //   }
+    // }
+
     if (v1 !== null) {
       // We have c1, so set c2.
       Constraint.setCoord(this.control2, this.coord2, v1 - this.offset);
-      return true;
+      return super.apply();
     }
 
     if (v2 !== null) {
       // We have c2, so set c1.
       Constraint.setCoord(this.control1, this.coord1, v2 + this.offset);
-      return true;
+      return super.apply();
     }
 
     // Neither was set, so we can't be applied yet.
     return false;
-  }
-
-  unstick() {
-    if (this.control1.w === null && (this.coord1 === Coord.W || this.coord1 === Coord.XW || this.coord1 === Coord.X2W)) {
-      this.control1.layout();
-      return true;
-    }
-    if (this.control2.w === null && (this.coord2 === Coord.W || this.coord2 === Coord.XW || this.coord2 === Coord.X2W)) {
-      this.control2.layout();
-      return true;
-    }
-    if (this.control1.h === null && (this.coord1 === Coord.H || this.coord1 === Coord.YH || this.coord1 === Coord.Y2H)) {
-      this.control1.layout();
-      return true;
-    }
-    if (this.control2.h === null && (this.coord2 === Coord.H || this.coord2 === Coord.YH || this.coord2 === Coord.Y2H)) {
-      this.control2.layout();
-      return true;
-    }
   }
 
   paint(ctx: CanvasRenderingContext2D) {
