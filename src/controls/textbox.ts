@@ -42,7 +42,11 @@ class _TextBox extends Control {
 
     ctx.clearRect(0, 0, this.w, this.h);
 
-    ctx.strokeStyle = 'black';
+    if (this.dragTarget) {
+      ctx.strokeStyle = 'cornflowerblue';
+    } else {
+      ctx.strokeStyle = 'black';
+    }
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
     ctx.strokeRect(0, 0, this.w, this.h);
@@ -113,6 +117,19 @@ class _TextBox extends Control {
 
   removed() {
     this.unpaint();
+  }
+
+  allowDrop(data: any) {
+    return typeof data === 'string';
+  }
+
+  drop(data: any) {
+    this.setText(data);
+  }
+
+  setText(text: string) {
+    this.text = text;
+    this.repaint();
   }
 }
 

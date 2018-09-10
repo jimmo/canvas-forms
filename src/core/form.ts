@@ -214,7 +214,7 @@ export class Form extends Control {
       ctx.save();
 
       // Not we offset the context so that all drawing operations are relative to the control.
-      ctx.translate(this.dragCoordinates.x, this.dragCoordinates.y);
+      ctx.translate(this.dragCoordinates.x + 10, this.dragCoordinates.y + 10);
 
       // Clip always.
       ctx.beginPath();
