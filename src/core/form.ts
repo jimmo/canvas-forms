@@ -10,6 +10,12 @@ export class MouseDownEventData extends MouseEventData {
   capture() {
     this.form.capture = this.hit;
   }
+
+  allowDrag(data: any) {
+    this.capture();
+    this.form.dragAllowed = true;
+    this.form.dragData = data;
+  }
 }
 
 export class MouseMoveEventData extends MouseEventData {
@@ -32,6 +38,10 @@ export class Form extends Control {
 
   focus: ControlAtPointData;
   capture: ControlAtPointData;
+  dragAllowed: boolean;
+  dragData: any;
+  dragCoordinates: MouseEventData;
+  dragTargetControl: Control;
 
   // A list of top-level controls that should prevent all other controls from
   // using DOM content (i.e. textboxes).
@@ -83,6 +93,26 @@ export class Form extends Control {
         this.capture.update(data.x, data.y);
         this.capture.control.mouseup.fire(new MouseEventData(this.capture.x, this.capture.y, data.buttons));
         this.capture = null;
+        this.dragAllowed = false;
+        this.dragData = null;
+        if (this.dragTargetControl) {
+          this.dragTargetControl.dragTarget = false;
+        }
+        this.dragTargetControl = null;
+        this.dragCoordinates = null;
+      }
+
+      if (this.capture && this.dragAllowed) {
+        this.dragCoordinates = data;
+
+        if (this.dragTargetControl) {
+          this.dragTargetControl.dragTarget = false;
+        }
+        const dragTarget = this.controlAtPoint(data.x, data.y).control;
+        if (dragTarget !== this.capture.control && dragTarget.allowDrop(this.dragData)) {
+          dragTarget.dragTarget = true;
+          this.dragTargetControl = dragTarget;
+        }
       }
 
       let target = this.capture;
@@ -96,6 +126,9 @@ export class Form extends Control {
       target.control.mousemove.fire(new MouseMoveEventData(target.x, target.y, data.buttons, data.x - target.startX, data.y - target.startY));
 
       if (!this.capture && this.editing()) {
+        this.repaint();
+      }
+      if (this.capture && this.dragCoordinates) {
         this.repaint();
       }
     });
@@ -119,7 +152,19 @@ export class Form extends Control {
       let target = this.capture;
       if (target) {
         target.update(data.x, data.y);
+
+        if (this.dragCoordinates) {
+          this.controlAtPoint(data.x, data.y).control.drop(this.dragData);
+        }
         this.capture = null;
+        this.dragAllowed = false;
+        this.dragData = null;
+        if (this.dragTargetControl) {
+          this.dragTargetControl.dragTarget = false;
+        }
+        this.dragTarget = null;
+        this.dragCoordinates = null;
+        this.repaint();
       } else {
         target = this.controlAtPoint(data.x, data.y);
       }
@@ -164,6 +209,28 @@ export class Form extends Control {
     // const t = new Date().getTime();
     super.paint(ctx);
     // console.log('paint: ', new Date().getTime() - t);
+
+    if (this.capture && this.dragCoordinates) {
+      ctx.save();
+
+      // Not we offset the context so that all drawing operations are relative to the control.
+      ctx.translate(this.dragCoordinates.x, this.dragCoordinates.y);
+
+      // Clip always.
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(this.capture.control.w, 0);
+      ctx.lineTo(this.capture.control.w, this.capture.control.h);
+      ctx.lineTo(0, this.capture.control.h);
+      ctx.closePath();
+      ctx.clip();
+
+      ctx.globalAlpha *= 0.5;
+      this.capture.control.paint(ctx);
+      ctx.globalAlpha /= 0.5;
+
+      ctx.restore();
+    }
   }
 
   // Default implementation of repaint does a full paint of the entire form.

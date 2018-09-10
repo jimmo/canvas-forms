@@ -6,6 +6,9 @@ import { ScrollBox } from './scrollbox';
 export interface TreeNode {
   treeChildren(): Promise<TreeNode[]>;
   treeText(): string;
+  treeDrag(): boolean;
+  treeDropAllowed(data: any): boolean;
+  treeDrop(data: any): void;
 }
 
 class SubTree extends Control {
@@ -60,7 +63,7 @@ class SubTree extends Control {
 
 class TreeItem extends Control {
   selected: boolean = false;
-  open: boolean = false;
+  private _open: boolean = false;
   label: Label;
   private sub: SubTree;
 
@@ -75,25 +78,54 @@ class TreeItem extends Control {
       this.selected = true;
 
       if (data.y <= this.label.h) {
-        if (!this.open) {
-          this.open = true;
-          this.sub = this.add(new SubTree(this.tree, this.node), { x: 22 });
-          this.sub.coords.y.align(this.label.coords.yh);
-          this.sub.coords.w.fit();
-          // Min height set to 20 to make room for the loading ... icon.
-          this.sub.coords.h.fit(0, 20);
+        if (!this._open) {
+          if (data.x < 22) {
+            this.open();
+          }
         } else {
-          this.open = false;
-          this.sub.remove();
-          this.sub = null;
+          if (data.x < 22) {
+            this.close();
+          }
         }
+      }
+
+      if (this.node.treeDrag()) {
+        data.allowDrag(this.node);
       }
     });
   }
 
+  open() {
+    this._open = true;
+    this.sub = this.add(new SubTree(this.tree, this.node), { x: 22 });
+    this.sub.coords.y.align(this.label.coords.yh);
+    this.sub.coords.w.fit();
+    // Min height set to 20 to make room for the loading ... icon.
+    this.sub.coords.h.fit(0, 20);
+  }
+
+  close() {
+    if (!this._open) {
+      return;
+    }
+    this._open = false;
+    this.sub.remove();
+    this.sub = null;
+  }
+
+  allowDrop(data: any) {
+    return this.node.treeDropAllowed(data);
+  }
+
+  drop(data: any) {
+    this.node.treeDrop(data);
+    this.close();
+    this.open();
+  }
+
   paint(ctx: CanvasRenderingContext2D) {
-    if (this.selected) {
-      ctx.fillStyle = 'orange';
+    if (this.selected || this.dragTarget) {
+      ctx.fillStyle = this.dragTarget ? 'cornflowerblue' : 'orange';
       ctx.fillRect(0, 0, this.tree.scrollWidth(), this.label.h);
     }
 
@@ -102,7 +134,7 @@ class TreeItem extends Control {
     const arrowX = 22 / 2;
     const arrowY = this.label.h / 2;
 
-    if (this.open) {
+    if (this._open) {
       // Down
       ctx.moveTo(arrowX - 5, arrowY - 4);
       ctx.lineTo(arrowX + 5, arrowY - 4);

@@ -48,8 +48,9 @@ export class TextListItem extends ListItem {
     const l = this.add(new Label(text), 5, 1, null, null, 3, 1);
     l.fit = false;
 
-    this.mousedown.add(() => {
+    this.mousedown.add((ev) => {
       this.setSelected(true);
+      ev.allowDrag('hello');
     });
   }
 };

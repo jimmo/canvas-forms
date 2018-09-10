@@ -178,6 +178,7 @@ export class Control {
 
   border: boolean = false;
   opacity: number = 1;
+  dragTarget: boolean = false;
 
   mousedown: Event;
   mouseup: Event;
@@ -872,5 +873,12 @@ export class Control {
     if (this.parent) {
       this.parent.submit();
     }
+  }
+
+  allowDrop(data: any) {
+    return false;
+  }
+
+  drop(data: any) {
   }
 }
