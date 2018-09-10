@@ -25,11 +25,11 @@ export class Grabber extends Control {
     this.mousedown.add((data) => {
       data.capture();
       down = data;
+      this._startX = this.x;
+      this._startY = this.y;
     });
     this.mouseup.add((data) => {
       down = null;
-      this._startX = this.x;
-      this._startY = this.y;
     });
     this.mousemove.add((data) => {
       if (!down) {

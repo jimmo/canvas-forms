@@ -66,33 +66,52 @@ class TreeItem extends Control {
   private _open: boolean = false;
   label: Label;
   private sub: SubTree;
+  select: Event;
 
   constructor(private readonly tree: Tree, private readonly node: TreeNode) {
     super();
 
     this.clip = false;
 
+    this.select = new Event();
+
     this.label = this.add(new Label(() => this.node.treeText()), 22, 1);
 
     this.mousedown.add((data) => {
-      this.selected = true;
+      if (data.y > this.label.h) {
+        return;
+      }
 
-      if (data.y <= this.label.h) {
-        if (!this._open) {
-          if (data.x < 22) {
-            this.open();
-          }
-        } else {
-          if (data.x < 22) {
-            this.close();
-          }
-        }
+      this.setSelected(true);
+
+      if (data.x < 22) {
+        this.toggle();
       }
 
       if (this.node.treeDrag()) {
         data.allowDrag(this.node);
       }
     });
+  }
+
+  setSelected(value: boolean) {
+    if (value === this.selected) {
+      return;
+    }
+    this.selected = value;
+    this.repaint();
+    if (this.selected) {
+      this.select.fire();
+      this.tree.setSelected(this);
+    }
+  }
+
+  toggle() {
+    if (this._open) {
+      this.close();
+    } else {
+      this.open();
+    }
   }
 
   open() {
@@ -119,6 +138,7 @@ class TreeItem extends Control {
 
   drop(data: any) {
     this.node.treeDrop(data);
+    this.setSelected(true);
     this.close();
     this.open();
   }
@@ -161,6 +181,7 @@ class TreeItem extends Control {
 export class Tree extends ScrollBox {
   change: Event;
   sub: SubTree;
+  selected: TreeItem;
 
   constructor() {
     super();
@@ -180,5 +201,13 @@ export class Tree extends ScrollBox {
 
   addRoot(node: TreeNode) {
     this.sub.addItem(node);
+  }
+
+  setSelected(node: TreeItem) {
+    if (this.selected && this.selected !== node) {
+      this.selected.setSelected(false);
+    }
+    this.selected = node;
+    node.setSelected(true);
   }
 }

@@ -5,7 +5,7 @@ const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10
 const c = form.add(new ScrollBox(), { y: 10, x2: 10, y2: 10 });
 c.border = true;
 
-const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]), { w: 10, y2: 10 });
+const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]), { w: 20, y2: 10 });
 demoList.coords.xw.align(grabber.coords.x);
 c.coords.x.align(grabber.coords.xw);
 grabber.bound(CoordAxis.X, 100, 400);
@@ -239,6 +239,9 @@ class DemoTreeNode implements TreeNode {
   }
 
   treeDropAllowed(data: any): boolean {
+    if (data === this) {
+      return false;
+    }
     return true;
   }
 
@@ -289,14 +292,14 @@ makeDemo('Animation', '', () => {
     });
   }
 
-  const b3 = c.add(new Button('Open'), 10, 100);
-  const b4 = c.add(new Button('Close'), 180, 100);
+  const b3 = c.add(new Button('Open / Close'), 10, 100);
 
   b3.click.add(() => {
-    grabber.animate(CoordAxis.X, grabber.x, 400, 100).start();
-  });
-  b4.click.add(() => {
-    grabber.animate(CoordAxis.X, grabber.x, 100, 100).start();
+    if (grabber.x > 110) {
+      grabber.animate(CoordAxis.X, grabber.x, 100, 100).start();
+    } else {
+      grabber.animate(CoordAxis.X, grabber.x, 400, 100).start();
+    }
   });
 });
 

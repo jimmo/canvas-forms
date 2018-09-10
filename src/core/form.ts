@@ -154,7 +154,10 @@ export class Form extends Control {
         target.update(data.x, data.y);
 
         if (this.dragCoordinates) {
-          this.controlAtPoint(data.x, data.y).control.drop(this.dragData);
+          const dropTarget = this.controlAtPoint(data.x, data.y).control;
+          if (dropTarget.allowDrop(this.dragData)) {
+            dropTarget.drop(this.dragData);
+          }
         }
         this.capture = null;
         this.dragAllowed = false;
