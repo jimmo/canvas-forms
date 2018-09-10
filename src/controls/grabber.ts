@@ -3,6 +3,7 @@ import { Control } from '../core/control';
 import { Event } from '../core/events';
 import { CoordAxis } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
+import { CoordAnimator, EasingFunction } from '../animation';
 
 export class Grabber extends Control {
   private _startX: number;
@@ -62,5 +63,20 @@ export class Grabber extends Control {
   protected added() {
     this._xConstraint = this.coords.x.set(this._startX);
     this._yConstraint = this.coords.y.set(this._startY);
+  }
+
+  animate(axis: CoordAxis, min: number, max: number, duration?: number, easing?: EasingFunction) {
+    if (axis === CoordAxis.X) {
+      return new CoordAnimator(this._xConstraint, min, max, duration, easing);
+    } else if (axis === CoordAxis.Y) {
+      return new CoordAnimator(this._yConstraint, min, max, duration, easing);
+    }
+  }
+
+  paint(ctx: CanvasRenderingContext2D) {
+    super.paint(ctx);
+
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, this.w, this.h);
   }
 }

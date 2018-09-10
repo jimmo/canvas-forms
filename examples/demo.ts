@@ -271,6 +271,16 @@ makeDemo('Animation', '', () => {
       b.remove();
     });
   }
+
+  const b3 = c.add(new Button('Open'), 10, 100);
+  const b4 = c.add(new Button('Close'), 180, 100);
+
+  b3.click.add(() => {
+    grabber.animate(CoordAxis.X, grabber.x, 400, 100).start();
+  });
+  b4.click.add(() => {
+    grabber.animate(CoordAxis.X, grabber.x, 100, 100).start();
+  });
 });
 
 makeDemo('Opacity', '', () => {
