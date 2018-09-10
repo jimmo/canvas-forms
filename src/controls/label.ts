@@ -1,11 +1,11 @@
-import { Control } from '../core/control';
+import { Control, LabelText } from '../core/control';
 
 // Simple single-line text control that sizes to content.
 export class Label extends Control {
-  text: string;
+  text: LabelText;
   fit: boolean = true;
 
-  constructor(text?: string) {
+  constructor(text?: LabelText) {
     super();
 
     this.text = text || '';
@@ -23,11 +23,19 @@ export class Label extends Control {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
 
-    const lines = this.text.split('\n');
+    const lines = this.evalText().split('\n');
     const lineHeight = (this.getFontSize() + 3);
     const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
     for (let i = 0; i < lines.length; ++i) {
       ctx.fillText(lines[i], 0, y + i * lineHeight);
+    }
+  }
+
+  private evalText(): string {
+    if (this.text instanceof Function) {
+      return this.text();
+    } else {
+      return this.text;
     }
   }
 
@@ -43,10 +51,10 @@ export class Label extends Control {
       return false;
     }
     this.context().font = this.getFont();
-    const lines = this.text.split('\n');
+    const lines = this.evalText().split('\n');
     this.w = 0;
     for (const line of lines) {
-      this.w = Math.max(this.w, Math.ceil(this.context().measureText(this.text).width) + 10);
+      this.w = Math.max(this.w, Math.ceil(this.context().measureText(this.evalText()).width) + 10);
     }
     this.h = Math.max(this.form().defaultHeight(), lines.length * (this.getFontSize() + 3));
     return true;

@@ -67,9 +67,9 @@ class TreeItem extends Control {
 
     this.clip = false;
 
-    this.label = this.add(new Label(this.node.treeText()), 22, 1);
+    this.label = this.add(new Label(() => this.node.treeText()), 22, 1);
 
-    this.mouseup.add((data) => {
+    this.mousedown.add((data) => {
       this.selected = true;
 
       if (data.y <= this.label.h) {

@@ -4,6 +4,8 @@ import { Label } from './label';
 import { CheckBox } from './checkbox';
 import { ScrollBox } from './scrollbox';
 
+// TODO: make this API work more like Tree.
+
 export class ListItem extends Control {
   selected: boolean = false;
   select: Event;
@@ -46,7 +48,7 @@ export class TextListItem extends ListItem {
     const l = this.add(new Label(text), 5, 1, null, null, 3, 1);
     l.fit = false;
 
-    this.mouseup.add(() => {
+    this.mousedown.add(() => {
       this.setSelected(true);
     });
   }
@@ -69,7 +71,7 @@ export class List<T> extends ScrollBox {
 
     this.change = new Event();
 
-    this.mouseup.add(() => {
+    this.mousedown.add(() => {
       for (const c of this.controls) {
         (c as ListItem).selected = false;
       }

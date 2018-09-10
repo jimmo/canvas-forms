@@ -13,6 +13,10 @@ export class ControlEventData {
   }
 }
 
+// For simple text controls (label, button, checkbox), their text can
+// be set directly or bound via a function.
+export type LabelText = string | (() => string);
+
 // Structure to represent a successful hit test.
 export class ControlAtPointData {
   // These coordinates are relative to the control.
