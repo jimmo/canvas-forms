@@ -3,3 +3,4 @@ export * from './constraint';
 export * from './fill';
 export * from './static';
 export * from './content';
+export * from './center';

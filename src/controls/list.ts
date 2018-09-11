@@ -34,6 +34,7 @@ export class ListItem extends Control {
     if (value === this.selected) {
       return;
     }
+    // TODO: scroll into view.
     this.selected = value;
     this.repaint();
     if (this.selected) {

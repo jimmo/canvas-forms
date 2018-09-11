@@ -34,11 +34,25 @@ export class CoordData {
       return '?';
     }
   }
+
+  equals(rhs: CoordData) {
+    return this.axis === rhs.axis && this.type === rhs.type;
+  }
+
+  static create(axis: CoordAxis, type: CoordType) {
+    const c = new CoordData(axis, type);
+    for (const key of Object.keys(Coord)) {
+      if (Coord[key].equals(c)) {
+        return Coord[key];
+      }
+    }
+    throw new Error('Unknown axis/type combination.');
+  }
 }
 
 // All the different ways that a control's layout can be specified.
 // Any two on the same axis are enough to specify that axis (other than x2+xw or x+x2w).
-export const Coord = {
+export const Coord: { [key: string]: CoordData } = {
   X: new CoordData(CoordAxis.X, CoordType.A),
   Y: new CoordData(CoordAxis.Y, CoordType.A),
   W: new CoordData(CoordAxis.X, CoordType.B),

@@ -1,7 +1,7 @@
 import { CoordAxis, CoordData, Coord } from './enums';
 import { Event } from './events';
 import { Form } from './form';
-import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint } from '../constraints';
+import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint, CenterConstraint } from '../constraints';
 
 // Base class for events raised from controls.
 export class ControlEventData {
@@ -99,29 +99,14 @@ class ControlCoords {
     this.h.set(h);
   }
   center(axis: CoordAxis, wh?: number) {
-    const s1 = new Control();
-    const s2 = new Control();
-    this.control.parent.add(s1);
-    this.control.parent.add(s2);
-    if (axis === CoordAxis.X) {
-      s1.coords.x.set(0);
-      s2.coords.x2.set(0);
-      this.x.align(s1.coords.xw);
-      this.xw.align(s2.coords.x);
-      new FillConstraint([s1, s2], Coord.W);
-      if (wh !== undefined) {
+    if (wh !== undefined) {
+      if (axis === CoordAxis.X) {
         this.w.set(wh);
-      }
-    } else if (axis === CoordAxis.Y) {
-      s1.coords.y.set(0);
-      s2.coords.y2.set(0);
-      this.y.align(s1.coords.yh);
-      this.yh.align(s2.coords.y);
-      new FillConstraint([s1, s2], Coord.H);
-      if (wh !== undefined) {
+      } else if (axis === CoordAxis.Y) {
         this.h.set(wh);
       }
     }
+    return new CenterConstraint(this.control, axis);
   }
 }
 
