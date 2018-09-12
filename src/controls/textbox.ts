@@ -30,7 +30,7 @@ class _TextBox extends Control {
     }
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     if (this.elem && !this.form().allowDom(this)) {
@@ -139,7 +139,7 @@ export class TextBox extends _TextBox {
     super(text);
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     if (!this.elem && this.form().allowDom(this)) {
       this.createElem();
     }

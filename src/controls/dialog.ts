@@ -13,7 +13,7 @@ export class Dialog extends Control {
     this._h = h || this._h;
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;

@@ -73,7 +73,7 @@ export class Grabber extends Control {
     }
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     ctx.fillStyle = '#f0f0f0';

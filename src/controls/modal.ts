@@ -17,7 +17,7 @@ export class Modal extends Control {
     this.enableHitDetection();
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     const a = ctx.globalAlpha;
     ctx.globalAlpha *= 0.5;
     ctx.fillStyle = 'black';

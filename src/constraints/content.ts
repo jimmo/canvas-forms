@@ -1,11 +1,11 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { Coord, CoordAxis } from '../core/enums';
+import { Coord, CoordAxis, CoordType } from '../core/enums';
 
 // Represents a simple constraint that sets one coordinate to a static value.
 export class ContentConstraint extends Constraint {
-  constructor(control: Control, coord: Coord, private padding?: number, private min?: number) {
-    super([control], [coord]);
+  constructor(control: Control, axis: CoordAxis, private padding?: number, private min?: number) {
+    super([control], [Coord.create(axis, CoordType.B)]);
 
     this.padding = this.padding || 0;
     this.min = this.min || 0;

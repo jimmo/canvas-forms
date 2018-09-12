@@ -1,6 +1,7 @@
 import { EventSource } from './events';
 import { ResizeObserver } from 'resize-observer';
 
+// Canvas context methods that TypeScript doesn't seem to know about.
 interface ChromeCanvasRenderingContext2D extends CanvasRenderingContext2D {
   resetTransform(): void;
 }
@@ -27,6 +28,7 @@ export class SurfaceMouseEvent {
   }
 }
 
+// Fired when a key event happens on the canvas.
 export class SurfaceKeyEvent {
   constructor(readonly key: number) {
   }
@@ -51,6 +53,7 @@ export class Surface {
     // The <canvas> DOM element.
     this.elem = document.querySelector(selector);
 
+    // Position and automatically resize the canvas element.
     this.fitParent();
 
     // The 2D rendering context (used by all the `paint` methods).
@@ -65,9 +68,10 @@ export class Surface {
     this.mousewheel = new EventSource();
     this.keydown = new EventSource();
 
-    // To allow the canvas to take focus.
+    // To allow the canvas to take focus (e.g. away from any input text elements).
     this.container.tabIndex = 1;
 
+    // Maps browser touch events into our mouse events.
     const createTouchEvent = (ev: TouchEvent) => {
       const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
       const offsetX = ev.changedTouches[0].clientX - rect.left;
@@ -75,6 +79,7 @@ export class Surface {
       return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), ev.touches.length);
     }
 
+    // Maps browser mouse events into our mouse events.
     const createMouseEvent = (ev: MouseEvent) => {
       const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
       const offsetX = ev.clientX - rect.left;
@@ -86,6 +91,10 @@ export class Surface {
     if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
       this.container.addEventListener('touchstart', (ev) => {
         this.mousedown.fire(createTouchEvent(ev));
+
+        // Chrome (Android and desktop-with-touchscreen) immediately fires
+        // a regular mouse up event immediately after the touchstart.
+        // Disable this, unless it was on a different element (i.e. input text).
         if (ev.target === this.container) {
           ev.preventDefault();
         }
@@ -125,15 +134,19 @@ export class Surface {
       let dx = ev.deltaX;
       let dy = ev.deltaY;
       if (ev.deltaMode === 0) {
-        // Pixels
+        // Pixels (Chrome default).
       } else if (ev.deltaMode === 1) {
-        // Lines
+        // Lines (FireFox default)
+        // Map to pixels.
         dx *= 20;
         dy *= 20;
       } else if (ev.deltaMode === 2) {
         // Pages
         // ?
       }
+      // The form uses this to track which element is actually going to receive the scroll.
+      // TODO: This is a bit of a relic from how scroll used to work, we should instead
+      // add the mouse coordinates to the SurfaceScrolLEvent.
       this.mousewheel.fire(new SurfaceMouseEvent(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
       this.scroll.fire(new SurfaceScrollEvent(-dx, -dy));
     });
@@ -153,26 +166,38 @@ export class Surface {
     }
     parent.style.overflow = 'hidden';
 
+    // Disable pinch zoom and drag to refresh etc default behaviors.
+    // We handle all touch gestures manually.
     parent.style.touchAction = 'none';
 
     if (parent === document.body) {
-      // So that the resize observer can track height.
-      parent.style.height = '100%';
-      parent.parentElement.style.height = '100%';
+      // So that the resize observer can track height (pages otherwise have the size
+      // of their content).
+      parent.style.height = '100%'; // <body>
+      parent.parentElement.style.height = '100%'; // <html>
     }
 
+    // Re-add the canvas into a <div>. The idea is that the canvas is the last child of
+    // the container div, sitting on top of any helper elements.
+    // In order to make mouse events pass through to other elements, we disable
+    // pointerEvents on the canvas, but catch all the relevant events on the div.
+    // The canvas also makes sure that any HTML elements below it are visible by
+    // using ctx.clearRect in the relevant areas.
+    // (Where possible, form controls should avoid needing any HTML elements, but
+    // textboxes and iframes are two good examples).
     this.container = document.createElement('div');
     this.elem.remove();
     this.container.appendChild(this.elem);
     parent.appendChild(this.container);
 
+    // Position the container.
     this.container.style.position = 'absolute';
     this.container.style.boxSizing = 'border-box';
     this.container.style.left = '0px';
     this.container.style.top = '0px';
     this.container.style.overflow = 'hidden';
 
-    // Position in top-left of parent.
+    // Position the canvas.
     this.elem.style.position = 'absolute';//'sticky';
     this.elem.style.boxSizing = 'border-box';
     this.elem.style.left = 0 + 'px';
@@ -198,6 +223,15 @@ export class Surface {
       this.elem.style.width = w + 'px';
       this.elem.style.height = h + 'px';
 
+      // The canvas is positioned and sized in the browser based on its CSS dimensions.
+      // The actual drawing operations use the width/height HTML attributes.
+      // The browser might have pixel scaling enabled (e.g. high-dpi display, mobile).
+      // So the goal here is to make it so that one unit in canvas coordinates is exactly
+      // a whole number of real device pixels.
+      // So in the simple case, by sizing the canvas element using the browser's idea of what
+      // a pixel is, but then adjusting the canvas's apparant width/height, we can "undo"
+      // browser pixel scaling.
+
       // Get the content size of the canvas (just incase it has a border).
       w = this.elem.clientWidth;
       h = this.elem.clientHeight;
@@ -208,6 +242,9 @@ export class Surface {
       this.elem.height = Math.round(h * s);
       (<ChromeCanvasRenderingContext2D>(this.ctx)).resetTransform();
 
+      // However, on super high DPI displays, pixels are really tiny, so all our
+      // UI elements will look tiny. So scale everything up to the nearest integer multiple
+      // (integer multiple, so things still render clearly on the pixel grid).
       let zoom = Math.floor(s);
       this.ctx.scale(zoom, zoom);
 
@@ -216,24 +253,19 @@ export class Surface {
       // pixel boundaries by default?
       this.ctx.translate(0.5, 0.5);
 
+      // Let the form know that it needs to re-layout.
       this.resize.fire(new SurfaceResizeEvent(Math.round(w * s / zoom), Math.round(h * s / zoom)));
     }).observe(parent);
   }
 
-  // Gets the x coordinate of this control relative to the surface.
-  htmlX(): number {
-    return 0;
-  }
-
-  // Gets the y coordinate of this control relative to the surface.
-  htmlY(): number {
-    return 0;
-  }
-
+  // Maps what the browser thinks a pixel is (e.g. event coordinates) into what
+  // we think a pixel is (i.e. one unit in form coordinates).
   pixels(v: number): number {
     return Math.round(v * window.devicePixelRatio / Math.floor(window.devicePixelRatio));
   }
 
+  // Inverse of `pixels`. Maps our units into browser units (e.g. so that we can
+  // position an HTML element to align with our form).
   htmlunits(v: number): number {
     return v / window.devicePixelRatio * Math.floor(window.devicePixelRatio);
   }

@@ -16,7 +16,7 @@ export class ListItem extends Control {
     this.select = new EventSource();
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     if (this.selected) {
       ctx.fillStyle = 'orange';
       ctx.fillRect(0, 0, this.w, this.h);
@@ -104,7 +104,7 @@ export class List<T> extends ScrollBox {
     });
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
   }
 

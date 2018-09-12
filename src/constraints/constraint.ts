@@ -61,6 +61,7 @@ export abstract class Constraint {
   }
 
   // In layout mode, show this constraint on the form.
+  // TODO: rename to not confuse with Control::paint.
   abstract paint(ctx: CanvasRenderingContext2D): void;
 
   // // Helper for constraints to tell a control that it is referenced

@@ -44,7 +44,7 @@ export class Slider extends Control {
     this.repaint();
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     ctx.fillStyle = '#ff9800';

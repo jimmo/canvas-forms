@@ -216,7 +216,7 @@ export class Form extends Control {
     // console.log('layout: ', new Date().getTime() - t);
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     // Forms have a default (opaque) background color.
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);
@@ -241,7 +241,8 @@ export class Form extends Control {
       ctx.clip();
 
       ctx.globalAlpha *= 0.5;
-      this.capture.control.paint(ctx);
+      // Cast to workaround the way protected works in typescript.
+      (this.capture.control as Form).paint(ctx);
       ctx.globalAlpha /= 0.5;
 
       ctx.restore();

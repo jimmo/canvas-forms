@@ -11,24 +11,30 @@ export class EventSource {
     this.listeners = [];
 
     // Optionally specify a callback to be invoked when a new listener is added.
+    // This allows an optimisation where Whatever owns this event source might
+    // only want to enable certain functionality if anyone is actually listening
+    // to this event.
     this.addCallback = addCallback;
   }
 
+  // Invoke all the listeners with the specified data payload.
   fire(data?: any) {
-    // Invoke all the listeners with the specified data payload.
     for (const h of this.listeners) {
       try {
         h(data);
       } catch (ex) {
+        // TODO: Perhaps rethrow? Work make noticing errors easier.
         console.log('Exception in event handler', ex);
       }
     }
   }
 
+  // Adds the listener to the set of callbacks for when this event is fired.
   add(h: Listener) {
-    // Register listener and optionally notify the owner of this event that a listener was added.
     this.listeners.push(h);
+
     if (this.addCallback) {
+      // Notify the owner that someone now cares about this event.
       this.addCallback();
     }
   }

@@ -17,11 +17,19 @@ export enum CoordType {
 // Represents a CoordType on a CoordAxis.
 export class Coord {
   name: string;
+
+  // Private so that we can ensure that only the singletons exist and don't
+  // end up accidentally comparing two value-identical but reference-different
+  // instances of Coord.
+  // Use `create()` instead.
   private constructor(readonly axis: CoordAxis, readonly type: CoordType) {
     this.name = this.toString();
   }
 
+  // Returns true if converting this coord into screen coordinates would
+  // require knowing the parents width/height.
   isParentDependent() {
+    // X2, Y2, X2W, Y2W.
     return (this.type === CoordType.C || this.type === CoordType.E);
   }
 
@@ -35,10 +43,7 @@ export class Coord {
     }
   }
 
-  equals(rhs: Coord) {
-    return this.axis === rhs.axis && this.type === rhs.type;
-  }
-
+  // Returns the singleton instance from the set below.
   static create(axis: CoordAxis, type: CoordType): Coord {
     for (const c of Coord.All) {
       if (c.axis === axis && c.type === type) {
@@ -61,6 +66,7 @@ export class Coord {
   static X2W = new Coord(CoordAxis.X, CoordType.E);
   static Y2H = new Coord(CoordAxis.Y, CoordType.E);
 
+  // Helper for `create` to find the relevant singleton instance.
   private static All = [
     Coord.X, Coord.Y, Coord.W, Coord.H, Coord.X2, Coord.Y2, Coord.XW, Coord.YH, Coord.X2W, Coord.Y2H
   ];

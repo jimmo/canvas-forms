@@ -21,7 +21,7 @@ export class ScrollBox extends Control {
     return control.xw - this.scrollX >= 0 && control.x - this.scrollX <= this.w && control.yh - this.scrollY >= 0 && control.y - this.scrollY <= this.h;
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     // Do regular paint, but offset by the scroll coordinates.
     ctx.translate(-this.scrollX, -this.scrollY);
     super.paint(ctx);

@@ -11,7 +11,7 @@ export class Label extends Control {
     this.text = text || '';
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     // // For testing, fill the background.

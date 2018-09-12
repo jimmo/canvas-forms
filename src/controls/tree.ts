@@ -45,7 +45,7 @@ class SubTree extends Control {
     }
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     if (this.loading) {
@@ -143,7 +143,7 @@ class TreeItem extends Control {
     this.open();
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     if (this.selected || this.dragTarget) {
       ctx.fillStyle = this.dragTarget ? 'cornflowerblue' : 'orange';
       ctx.fillRect(0, 0, this.tree.scrollWidth(), this.label.h);

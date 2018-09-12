@@ -67,7 +67,7 @@ export class CheckBox extends Control {
     }
   }
 
-  paint(ctx: CanvasRenderingContext2D) {
+  protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
     ctx.fillStyle = 'white';
