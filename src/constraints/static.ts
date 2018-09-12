@@ -1,13 +1,13 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { CoordData, CoordAxis, CoordType } from '../core/enums';
+import { Coord, CoordAxis, CoordType } from '../core/enums';
 import { CoordAnimator, EasingFunction } from '../animation';
 
 // Represents a simple constraint that sets one coordinate to a static value.
 export class StaticConstraint extends Constraint {
   private v: number;
 
-  constructor(control: Control, readonly coord: CoordData, v: number) {
+  constructor(control: Control, readonly coord: Coord, v: number) {
     super([control], [coord]);
 
     if (v - Math.floor(v) > 0.001) {

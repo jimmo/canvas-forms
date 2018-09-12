@@ -1,19 +1,19 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { Coord, CoordData, CoordAxis, CoordType } from '../core/enums';
+import { Coord, CoordAxis, CoordType } from '../core/enums';
 import { CoordAnimator, EasingFunction } from '../animation';
 
 // TODO: optionally take one or two control/coord pairs to center between.
 
 // Represents a constraint that centers a control in its parent.
 export class CenterConstraint extends Constraint {
-  parentCoord: CoordData;
-  controlCoord: CoordData;
+  parentCoord: Coord;
+  controlCoord: Coord;
 
   constructor(control: Control, axis: CoordAxis) {
-    super([control], [CoordData.create(axis, CoordType.A)]);
-    this.parentCoord = CoordData.create(axis, CoordType.B);
-    this.controlCoord = CoordData.create(axis, CoordType.B);
+    super([control], [Coord.create(axis, CoordType.A)]);
+    this.parentCoord = Coord.create(axis, CoordType.B);
+    this.controlCoord = Coord.create(axis, CoordType.B);
   }
 
   removeControl(control: Control) {

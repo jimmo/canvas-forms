@@ -1,10 +1,10 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { Coord, CoordData, CoordAxis } from '../core/enums';
+import { Coord, CoordAxis } from '../core/enums';
 
 // Represents a simple constraint that sets one coordinate to a static value.
 export class ContentConstraint extends Constraint {
-  constructor(control: Control, coord: CoordData, private padding?: number, private min?: number) {
+  constructor(control: Control, coord: Coord, private padding?: number, private min?: number) {
     super([control], [coord]);
 
     this.padding = this.padding || 0;

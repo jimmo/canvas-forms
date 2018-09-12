@@ -1,12 +1,12 @@
 import { Control } from '../core/control';
-import { Coord, CoordData, CoordAxis } from '../core/enums';
+import { Coord, CoordAxis } from '../core/enums';
 
 // Base class for constraints that can be applied to control coordinates.
 export abstract class Constraint {
   protected parent: Control;
   order: number = 0;
 
-  constructor(readonly controls: Control[], readonly coords: CoordData[]) {
+  constructor(readonly controls: Control[], readonly coords: Coord[]) {
     if (controls.length !== coords.length) {
       throw new Error('Mismatched controls and coords.');
     }
@@ -84,7 +84,7 @@ export abstract class Constraint {
   // e.g. Coord.X --> control.x
   // Note: this will also cause the control to attempt to calculate any
   // other coordinates on the same axis.
-  static setCoord(control: Control, coord: CoordData, v: number) {
+  static setCoord(control: Control, coord: Coord, v: number) {
     if (v - Math.floor(v) > 0.001) {
       console.log('Non-integer coord value.');
     }
@@ -147,7 +147,7 @@ export abstract class Constraint {
 
   // Helper to map the Coord enum to the various properties on controls.
   // e.g. Coord.X --> control.x
-  static getCoord(control: Control, coord: CoordData) {
+  static getCoord(control: Control, coord: Coord) {
     if (coord === Coord.X) {
       return control.x;
     } else if (coord === Coord.Y) {
@@ -192,7 +192,7 @@ export abstract class Constraint {
     return true;
   }
 
-  static drawCoord(ctx: CanvasRenderingContext2D, color: string, control: Control, coord: CoordData, offset: number) {
+  static drawCoord(ctx: CanvasRenderingContext2D, color: string, control: Control, coord: Coord, offset: number) {
     let xmid = control.x + Math.round(control.w / 3);
     let ymid = control.y + Math.round(control.h / 3);
 

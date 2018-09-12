@@ -1,6 +1,6 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { CoordData, Coord } from '../core/enums';
+import { Coord } from '../core/enums';
 
 // This constrains two coordinates from the same axis.
 // As soon as one is set, the other will copy it. This means the constraint is bidirectional.
@@ -22,7 +22,7 @@ export class AlignConstraint extends Constraint {
     }
   }
 
-  constructor(readonly control1: Control, readonly coord1: CoordData, readonly control2: Control, readonly coord2: CoordData, offset?: number) {
+  constructor(readonly control1: Control, readonly coord1: Coord, readonly control2: Control, readonly coord2: Coord, offset?: number) {
     super([control1, control2], [coord1, coord2]);
 
     this.offset = offset || 0;

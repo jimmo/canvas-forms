@@ -15,9 +15,9 @@ export enum CoordType {
 };
 
 // Represents a CoordType on a CoordAxis.
-export class CoordData {
+export class Coord {
   name: string;
-  constructor(readonly axis: CoordAxis, readonly type: CoordType) {
+  private constructor(readonly axis: CoordAxis, readonly type: CoordType) {
     this.name = this.toString();
   }
 
@@ -35,32 +35,33 @@ export class CoordData {
     }
   }
 
-  equals(rhs: CoordData) {
+  equals(rhs: Coord) {
     return this.axis === rhs.axis && this.type === rhs.type;
   }
 
-  static create(axis: CoordAxis, type: CoordType) {
-    const c = new CoordData(axis, type);
-    for (const key of Object.keys(Coord)) {
-      if (Coord[key].equals(c)) {
-        return Coord[key];
+  static create(axis: CoordAxis, type: CoordType): Coord {
+    for (const c of Coord.All) {
+      if (c.axis === axis && c.type === type) {
+        return c;
       }
     }
     throw new Error('Unknown axis/type combination.');
   }
-}
 
-// All the different ways that a control's layout can be specified.
-// Any two on the same axis are enough to specify that axis (other than x2+xw or x+x2w).
-export const Coord: { [key: string]: CoordData } = {
-  X: new CoordData(CoordAxis.X, CoordType.A),
-  Y: new CoordData(CoordAxis.Y, CoordType.A),
-  W: new CoordData(CoordAxis.X, CoordType.B),
-  H: new CoordData(CoordAxis.Y, CoordType.B),
-  X2: new CoordData(CoordAxis.X, CoordType.C),
-  Y2: new CoordData(CoordAxis.Y, CoordType.C),
-  XW: new CoordData(CoordAxis.X, CoordType.D),
-  YH: new CoordData(CoordAxis.Y, CoordType.D),
-  X2W: new CoordData(CoordAxis.X, CoordType.E),
-  Y2H: new CoordData(CoordAxis.Y, CoordType.E),
-};
+  // All the different ways that a control's layout can be specified.
+  // Any two on the same axis are enough to specify that axis (other than x2+xw or x+x2w).
+  static X = new Coord(CoordAxis.X, CoordType.A);
+  static Y = new Coord(CoordAxis.Y, CoordType.A);
+  static W = new Coord(CoordAxis.X, CoordType.B);
+  static H = new Coord(CoordAxis.Y, CoordType.B);
+  static X2 = new Coord(CoordAxis.X, CoordType.C);
+  static Y2 = new Coord(CoordAxis.Y, CoordType.C);
+  static XW = new Coord(CoordAxis.X, CoordType.D);
+  static YH = new Coord(CoordAxis.Y, CoordType.D);
+  static X2W = new Coord(CoordAxis.X, CoordType.E);
+  static Y2H = new Coord(CoordAxis.Y, CoordType.E);
+
+  private static All = [
+    Coord.X, Coord.Y, Coord.W, Coord.H, Coord.X2, Coord.Y2, Coord.XW, Coord.YH, Coord.X2W, Coord.Y2H
+  ];
+}

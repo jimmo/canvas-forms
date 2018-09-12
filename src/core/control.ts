@@ -1,4 +1,4 @@
-import { CoordAxis, CoordData, Coord } from './enums';
+import { CoordAxis, Coord } from './enums';
 import { Event } from './events';
 import { Form } from './form';
 import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint, CenterConstraint } from '../constraints';
@@ -41,7 +41,7 @@ export class ControlAtPointData {
 }
 
 class ControlCoord {
-  constructor(readonly control: Control, readonly coord: CoordData) {
+  constructor(readonly control: Control, readonly coord: Coord) {
   }
 
   align(other: ControlCoord, offset?: number) {

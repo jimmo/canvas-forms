@@ -1,6 +1,6 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { Coord, CoordAxis, CoordData } from '../core/enums';
+import { Coord, CoordAxis } from '../core/enums';
 
 // This makes two or more constraints fill to fit available space.
 // It essentially constrains all the controls to be the same width (or height), and then
@@ -24,7 +24,7 @@ export class FillConstraint extends Constraint {
   // won't cause this fill to change.
   private total: number;
 
-  static makeCoords(controls: Control[], coord: CoordData) {
+  static makeCoords(controls: Control[], coord: Coord) {
     const coords = [];
     for (const c of controls) {
       coords.push(coord);
@@ -32,7 +32,7 @@ export class FillConstraint extends Constraint {
     return coords;
   }
 
-  constructor(controls: Control[], coord: CoordData, readonly ratios?: number[]) {
+  constructor(controls: Control[], coord: Coord, readonly ratios?: number[]) {
     super(controls, FillConstraint.makeCoords(controls, coord));
 
     // Fill makes no sense for anything other than width/height.

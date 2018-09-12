@@ -30,7 +30,7 @@ export class Form extends Control {
   pendingLayout = false;
   pendingPaint = false;
 
-  fontSize = 20;
+  fontSize = 18;
   fontName = 'sans';
   color = '#202020';
 
