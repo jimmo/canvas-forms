@@ -1,10 +1,10 @@
 import { CoordAxis, Coord } from './enums';
-import { Event } from './events';
+import { EventSource } from './events';
 import { Form } from './form';
 import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint, CenterConstraint } from '../constraints';
 
 // Base class for events raised from controls.
-export class ControlEventData {
+export class ControlEvent {
   constructor(readonly control: Control) {
   }
 }
@@ -165,26 +165,26 @@ export class Control {
   opacity: number = 1;
   dragTarget: boolean = false;
 
-  mousedown: Event;
-  mouseup: Event;
-  mousemove: Event;
+  mousedown: EventSource;
+  mouseup: EventSource;
+  mousemove: EventSource;
 
-  keydown: Event;
+  keydown: EventSource;
 
   constructor() {
     // When the surface detects a mouse event on this control, it will fire
     // these events. Use the `addCallback` to only enable hit detection if
     // something is actually listening to these events.
-    this.mousedown = new Event(() => {
+    this.mousedown = new EventSource(() => {
       this.enableHitDetection();
     });
-    this.mouseup = new Event(() => {
+    this.mouseup = new EventSource(() => {
       this.enableHitDetection();
     });
-    this.mousemove = new Event(() => {
+    this.mousemove = new EventSource(() => {
       this.enableHitDetection();
     });
-    this.keydown = new Event(() => {
+    this.keydown = new EventSource(() => {
       this.enableHitDetection();
     });
   }

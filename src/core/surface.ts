@@ -1,4 +1,4 @@
-import { Event } from './events';
+import { EventSource } from './events';
 import { ResizeObserver } from 'resize-observer';
 
 interface ChromeCanvasRenderingContext2D extends CanvasRenderingContext2D {
@@ -6,19 +6,19 @@ interface ChromeCanvasRenderingContext2D extends CanvasRenderingContext2D {
 }
 
 // Fired by a surface when the browser cases the Canvas element to resize.
-export class ResizeEventData {
+export class SurfaceResizeEvent {
   constructor(readonly w: number, readonly h: number) {
   }
 }
 
 // Fired when the container scrolls.
-export class ScrollEventData {
+export class SurfaceScrollEvent {
   constructor(readonly dx: number, readonly dy: number) {
   }
 }
 
 // Fired by a surface when a mouse event happens on the canvas.
-export class MouseEventData {
+export class SurfaceMouseEvent {
   constructor(readonly x: number, readonly y: number, readonly buttons: number) {
   }
 
@@ -27,7 +27,7 @@ export class MouseEventData {
   }
 }
 
-export class KeyEventData {
+export class SurfaceKeyEvent {
   constructor(readonly key: number) {
   }
 }
@@ -39,13 +39,13 @@ export class Surface {
 
   ctx: CanvasRenderingContext2D;
 
-  resize: Event;
-  scroll: Event;
-  mousedown: Event;
-  mouseup: Event;
-  mousemove: Event;
-  mousewheel: Event;
-  keydown: Event;
+  resize: EventSource;
+  scroll: EventSource;
+  mousedown: EventSource;
+  mouseup: EventSource;
+  mousemove: EventSource;
+  mousewheel: EventSource;
+  keydown: EventSource;
 
   constructor(selector: string) {
     // The <canvas> DOM element.
@@ -57,68 +57,68 @@ export class Surface {
     this.ctx = this.elem.getContext('2d');
 
     // Events (mostly used by Form).
-    this.resize = new Event();
-    this.scroll = new Event();
-    this.mousedown = new Event();
-    this.mouseup = new Event();
-    this.mousemove = new Event();
-    this.mousewheel = new Event();
-    this.keydown = new Event();
+    this.resize = new EventSource();
+    this.scroll = new EventSource();
+    this.mousedown = new EventSource();
+    this.mouseup = new EventSource();
+    this.mousemove = new EventSource();
+    this.mousewheel = new EventSource();
+    this.keydown = new EventSource();
 
     // To allow the canvas to take focus.
     this.container.tabIndex = 1;
 
-    const createTouchEventData = (ev: TouchEvent) => {
+    const createTouchEvent = (ev: TouchEvent) => {
       const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
       const offsetX = ev.changedTouches[0].clientX - rect.left;
       const offsetY = ev.changedTouches[0].clientY - rect.top;
-      return new MouseEventData(this.pixels(offsetX), this.pixels(offsetY), ev.touches.length);
+      return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), ev.touches.length);
     }
 
-    const createMouseEventData = (ev: MouseEvent) => {
+    const createMouseEvent = (ev: MouseEvent) => {
       const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
       const offsetX = ev.clientX - rect.left;
       const offsetY = ev.clientY - rect.top;
-      return new MouseEventData(this.pixels(offsetX), this.pixels(offsetY), ev.buttons);
+      return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), ev.buttons);
     }
 
     // Forward DOM events to our own events.
     if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
       this.container.addEventListener('touchstart', (ev) => {
-        this.mousedown.fire(createTouchEventData(ev));
+        this.mousedown.fire(createTouchEvent(ev));
         if (ev.target === this.container) {
           ev.preventDefault();
         }
       });
       this.container.addEventListener('touchend', (ev) => {
-        this.mouseup.fire(createTouchEventData(ev));
+        this.mouseup.fire(createTouchEvent(ev));
       });
       this.container.addEventListener('touchmove', (ev) => {
-        this.mousemove.fire(createTouchEventData(ev));
+        this.mousemove.fire(createTouchEvent(ev));
       });
       this.container.addEventListener('mousedown', (ev) => {
-        this.mousedown.fire(createMouseEventData(ev));
+        this.mousedown.fire(createMouseEvent(ev));
       });
       this.container.addEventListener('mouseup', (ev) => {
-        this.mouseup.fire(createMouseEventData(ev));
+        this.mouseup.fire(createMouseEvent(ev));
       });
       this.container.addEventListener('mousemove', (ev) => {
-        this.mousemove.fire(createMouseEventData(ev));
+        this.mousemove.fire(createMouseEvent(ev));
       });
     } else {
       this.container.addEventListener('mousedown', (ev) => {
-        this.mousedown.fire(createMouseEventData(ev));
+        this.mousedown.fire(createMouseEvent(ev));
       });
       this.container.addEventListener('mouseup', (ev) => {
-        this.mouseup.fire(createMouseEventData(ev));
+        this.mouseup.fire(createMouseEvent(ev));
       });
       this.container.addEventListener('mousemove', (ev) => {
-        this.mousemove.fire(createMouseEventData(ev));
+        this.mousemove.fire(createMouseEvent(ev));
       });
     }
 
     this.container.addEventListener('keydown', (ev) => {
-      this.keydown.fire(new KeyEventData(ev.keyCode));
+      this.keydown.fire(new SurfaceKeyEvent(ev.keyCode));
     });
 
     this.container.addEventListener('wheel', (ev) => {
@@ -134,8 +134,8 @@ export class Surface {
         // Pages
         // ?
       }
-      this.mousewheel.fire(new MouseEventData(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
-      this.scroll.fire(new ScrollEventData(-dx, -dy));
+      this.mousewheel.fire(new SurfaceMouseEvent(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      this.scroll.fire(new SurfaceScrollEvent(-dx, -dy));
     });
   }
 
@@ -216,7 +216,7 @@ export class Surface {
       // pixel boundaries by default?
       this.ctx.translate(0.5, 0.5);
 
-      this.resize.fire(new ResizeEventData(Math.round(w * s / zoom), Math.round(h * s / zoom)));
+      this.resize.fire(new SurfaceResizeEvent(Math.round(w * s / zoom), Math.round(h * s / zoom)));
     }).observe(parent);
   }
 

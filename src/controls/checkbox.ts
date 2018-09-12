@@ -1,9 +1,9 @@
-import { Control, ControlEventData } from '../core/control';
-import { Event } from '../core/events';
+import { Control, ControlEvent } from '../core/control';
+import { EventSource } from '../core/events';
 
 
 // Fired when a checkbox state changes by user input.
-export class CheckBoxToggleEventData extends ControlEventData {
+export class CheckBoxToggleEvent extends ControlEvent {
   constructor(control: Control, readonly checked: boolean) {
     super(control);
   }
@@ -16,9 +16,9 @@ export class CheckBox extends Control {
   private down: boolean;
   radio: RadioGroup;
 
-  on: Event;
-  off: Event;
-  toggle: Event;
+  on: EventSource;
+  off: EventSource;
+  toggle: EventSource;
 
   constructor(text?: string, checked?: boolean) {
     super();
@@ -27,9 +27,9 @@ export class CheckBox extends Control {
     this.down = false;
     this.checked = checked || false;
 
-    this.on = new Event();
-    this.off = new Event();
-    this.toggle = new Event();
+    this.on = new EventSource();
+    this.off = new EventSource();
+    this.toggle = new EventSource();
 
     this.mousedown.add((data) => {
       this.down = true;
@@ -58,7 +58,7 @@ export class CheckBox extends Control {
       this.radio.clear(this);
     }
     this.checked = checked;
-    const ev = new CheckBoxToggleEventData(this, this.checked);
+    const ev = new CheckBoxToggleEvent(this, this.checked);
     this.toggle.fire(ev);
     if (this.checked) {
       this.on.fire(ev);

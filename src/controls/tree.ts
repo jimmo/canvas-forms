@@ -1,5 +1,5 @@
 import { Control } from '../core/control';
-import { Event } from '../core/events';
+import { EventSource } from '../core/events';
 import { Label } from './label';
 import { ScrollBox } from './scrollbox';
 
@@ -66,14 +66,14 @@ class TreeItem extends Control {
   private _open: boolean = false;
   label: Label;
   private sub: SubTree;
-  select: Event;
+  select: EventSource;
 
   constructor(private readonly tree: Tree, private readonly node: TreeNode) {
     super();
 
     this.clip = false;
 
-    this.select = new Event();
+    this.select = new EventSource();
 
     this.label = this.add(new Label(() => this.node.treeText()), 22, 1);
 
@@ -179,7 +179,7 @@ class TreeItem extends Control {
 }
 
 export class Tree extends ScrollBox {
-  change: Event;
+  change: EventSource;
   sub: SubTree;
   selected: TreeItem;
 
@@ -188,7 +188,7 @@ export class Tree extends ScrollBox {
 
     this.border = true;
 
-    this.change = new Event();
+    this.change = new EventSource();
 
     this.sub = new SubTree(this, null);
   }

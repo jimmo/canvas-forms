@@ -1,4 +1,4 @@
-import { Control, ControlEventData } from '../core/control';
+import { Control, ControlEvent } from '../core/control';
 
 export class ScrollBox extends Control {
   // Scroll coordinates.

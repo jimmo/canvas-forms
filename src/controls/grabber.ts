@@ -1,6 +1,6 @@
-import { MouseEventData } from '../core/surface';
+import { SurfaceMouseEvent } from '../core/surface';
 import { Control } from '../core/control';
-import { Event } from '../core/events';
+import { EventSource } from '../core/events';
 import { CoordAxis } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
 import { CoordAnimator, EasingFunction } from '../animation';
@@ -21,7 +21,7 @@ export class Grabber extends Control {
     this._bounds.set(CoordAxis.X, [null, null]);
     this._bounds.set(CoordAxis.Y, [null, null]);
 
-    let down: MouseEventData = null;
+    let down: MouseEvent = null;
     this.mousedown.add((data) => {
       data.capture();
       down = data;

@@ -2,7 +2,7 @@ type Listener = (data?: any) => void;
 type AddCallback = () => void;
 
 // Represents a single event that can be fired or listened to.
-export class Event {
+export class EventSource {
   listeners: Listener[];
   addCallback: AddCallback;
 

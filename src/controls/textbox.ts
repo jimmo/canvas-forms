@@ -1,8 +1,8 @@
-import { Control, ControlEventData } from '../core/control';
-import { Event } from '../core/events';
+import { Control, ControlEvent } from '../core/control';
+import { EventSource } from '../core/events';
 
 // Fired when a textbox's text changes by user input.
-export class TextBoxChangeEventData extends ControlEventData {
+export class TextBoxChangeEvent extends ControlEvent {
   constructor(control: Control, readonly text: string) {
     super(control)
   }
@@ -10,7 +10,7 @@ export class TextBoxChangeEventData extends ControlEventData {
 
 class _TextBox extends Control {
   text: string;
-  change: Event;
+  change: EventSource;
   multiline: boolean = false;
   protected elem: (HTMLTextAreaElement | HTMLInputElement) = null;
 
@@ -18,7 +18,7 @@ class _TextBox extends Control {
     super();
 
     this.text = text || '';
-    this.change = new Event();
+    this.change = new EventSource();
   }
 
   unpaint() {
@@ -88,7 +88,7 @@ class _TextBox extends Control {
     this.elem.style.fontFamily = this.getFontName();
     this.elem.addEventListener('input', (ev) => {
       this.text = this.elem.value;
-      this.change.fire(new TextBoxChangeEventData(this, this.text));
+      this.change.fire(new TextBoxChangeEvent(this, this.text));
     });
     (this.elem as HTMLElement).addEventListener('keypress', (ev) => {
       if (ev.keyCode === 13) {

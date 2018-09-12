@@ -1,8 +1,8 @@
-import { Surface, MouseEventData, ScrollEventData, KeyEventData } from './surface';
+import { Surface, SurfaceMouseEvent, SurfaceScrollEvent, SurfaceKeyEvent } from './surface';
 import { Control, ControlAtPointData } from './control';
 import { Animator } from '../animation';
 
-export class MouseDownEventData extends MouseEventData {
+export class FormMouseDownEvent extends SurfaceMouseEvent {
   constructor(x: number, y: number, buttons: number, private readonly form: Form, private readonly hit: ControlAtPointData) {
     super(x, y, buttons);
   }
@@ -18,9 +18,21 @@ export class MouseDownEventData extends MouseEventData {
   }
 }
 
-export class MouseMoveEventData extends MouseEventData {
+export class FormMouseMoveEvent extends SurfaceMouseEvent {
   constructor(x: number, y: number, buttons: number, readonly dx: number, readonly dy: number) {
     super(x, y, buttons);
+  }
+}
+
+export class FormMouseUpEvent extends SurfaceMouseEvent {
+  constructor(x: number, y: number, buttons: number) {
+    super(x, y, buttons);
+  }
+}
+
+export class FormKeyEvent extends SurfaceKeyEvent {
+  constructor(key: number) {
+    super(key);
   }
 }
 
@@ -40,7 +52,7 @@ export class Form extends Control {
   capture: ControlAtPointData;
   dragAllowed: boolean;
   dragData: any;
-  dragCoordinates: MouseEventData;
+  dragCoordinates: MouseEvent;
   dragTargetControl: Control;
 
   // A list of top-level controls that should prevent all other controls from
@@ -91,7 +103,7 @@ export class Form extends Control {
         // We missed the mouseup event (maybe happened outside browser), so
         // inject a fake one.
         this.capture.update(data.x, data.y);
-        this.capture.control.mouseup.fire(new MouseEventData(this.capture.x, this.capture.y, data.buttons));
+        this.capture.control.mouseup.fire(new FormMouseUpEvent(this.capture.x, this.capture.y, data.buttons));
         this.capture = null;
         this.dragAllowed = false;
         this.dragData = null;
@@ -123,7 +135,7 @@ export class Form extends Control {
         this.updateFocus(target);
       }
 
-      target.control.mousemove.fire(new MouseMoveEventData(target.x, target.y, data.buttons, data.x - target.startX, data.y - target.startY));
+      target.control.mousemove.fire(new FormMouseMoveEvent(target.x, target.y, data.buttons, data.x - target.startX, data.y - target.startY));
 
       if (!this.capture && this.editing()) {
         this.repaint();
@@ -142,7 +154,7 @@ export class Form extends Control {
         return;
       }
       const hit = this.controlAtPoint(data.x, data.y);
-      hit.control.mousedown.fire(new MouseDownEventData(hit.x, hit.y, data.buttons, this, hit));
+      hit.control.mousedown.fire(new FormMouseDownEvent(hit.x, hit.y, data.buttons, this, hit));
     });
 
     this.surface.mouseup.add(data => {
@@ -171,7 +183,7 @@ export class Form extends Control {
       } else {
         target = this.controlAtPoint(data.x, data.y);
       }
-      target.control.mouseup.fire(new MouseEventData(target.x, target.y, data.buttons));
+      target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, data.buttons));
     });
 
     this.surface.mousewheel.add(data => {
@@ -183,7 +195,7 @@ export class Form extends Control {
       if (this.focus) {
         let control = this.focus.control;
         while (control) {
-          control.keydown.fire(new KeyEventData(data.key));
+          control.keydown.fire(new FormKeyEvent(data.key));
           control = control.parent;
         }
       }

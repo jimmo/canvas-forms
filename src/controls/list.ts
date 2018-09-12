@@ -1,5 +1,5 @@
 import { Control } from '../core/control';
-import { Event } from '../core/events';
+import { EventSource } from '../core/events';
 import { Label } from './label';
 import { CheckBox } from './checkbox';
 import { ScrollBox } from './scrollbox';
@@ -8,12 +8,12 @@ import { ScrollBox } from './scrollbox';
 
 export class ListItem extends Control {
   selected: boolean = false;
-  select: Event;
+  select: EventSource;
 
   constructor() {
     super();
 
-    this.select = new Event();
+    this.select = new EventSource();
   }
 
   paint(ctx: CanvasRenderingContext2D) {
@@ -64,14 +64,14 @@ export class CheckBoxListItem extends ListItem {
 };
 
 export class List<T> extends ScrollBox {
-  change: Event;
+  change: EventSource;
 
   constructor(readonly itemType: (new (item: T) => ListItem)) {
     super();
 
     this.border = true;
 
-    this.change = new Event();
+    this.change = new EventSource();
 
     this.mousedown.add(() => {
       for (const c of this.controls) {

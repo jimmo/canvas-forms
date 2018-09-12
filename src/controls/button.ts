@@ -1,5 +1,5 @@
 import { Control } from '../core/control';
-import { Event } from '../core/events';
+import { EventSource } from '../core/events';
 import { FillConstraint } from '../constraints/fill';
 import { CoordAxis, Coord } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
@@ -8,13 +8,13 @@ export class Button extends Control {
   private text: string;
   private down: boolean = false;
 
-  click: Event;
+  click: EventSource;
 
   constructor(text?: string) {
     super();
 
     this.text = text || '';
-    this.click = new Event();
+    this.click = new EventSource();
 
     this.mousedown.add((data) => {
       this.down = true;

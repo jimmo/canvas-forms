@@ -1,9 +1,9 @@
-import { MouseEventData } from '../core/surface';
+import { FormMouseDownEvent } from '../core/form';
 import { Control } from '../core/control';
-import { Event } from '../core/events';
+import { EventSource } from '../core/events';
 
 export class Slider extends Control {
-  change: Event;
+  change: EventSource;
   value: number = 0;
   min: number = 0;
   max: number = 1;
@@ -17,9 +17,9 @@ export class Slider extends Control {
     this.max = max === undefined ? 1 : max;
     this.snap = snap;
 
-    this.change = new Event();
+    this.change = new EventSource();
 
-    let down: MouseEventData = null;
+    let down: FormMouseDownEvent = null;
     this.mousedown.add((data) => {
       data.capture();
       down = data;
