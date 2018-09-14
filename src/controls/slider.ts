@@ -59,11 +59,12 @@ export class Slider extends Control {
   }
 
   scrollBy(dx: number, dy: number): boolean {
+    const v = this.value;
     if (this.snap) {
       this.setValue(this.value + Math.sign(dy) * this.snap);
     } else {
       this.setValue(this.value + dy * (this.max - this.min) / 2000);
     }
-    return true;
+    return this.value !== v;
   }
 }

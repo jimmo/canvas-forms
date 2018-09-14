@@ -104,19 +104,33 @@ export class Button extends Control {
   }
 }
 
+// A control that contains a row of buttons, where the buttons automatically
+// fill the width evenly.
 export class ButtonGroup extends Control {
+  // The fill constraint that applies to all the buttons.
+  // If a button is added/removed, then the fill constraint is destroyed and replaced.
   private fill: FillConstraint;
+
+  // The constraint that sets x2 on the final control. Replaced if a button is added/removed.
   private end: StaticConstraint;
 
   constructor() {
     super();
   }
 
+  // Override `Control::add`.
   add<T extends Control>(control: T, x?: number | any, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
+    if (!(control instanceof Button)) {
+      throw new Error('Only Buttons can be added to ButtonGroups');
+    }
+
     super.add(control);
+
+    // All buttons are sized to the height of the ButtonGroup.
     control.coords.y.set(0);
     control.coords.y2.set(0);
 
+    // If we already had some buttons, then replace the existing constraints.
     if (this.fill) {
       this.fill.remove();
       this.fill = null;
@@ -126,11 +140,15 @@ export class ButtonGroup extends Control {
       this.end = null;
     }
 
+    // The first button is always aligned to the left edge.
     if (this.controls.length === 1) {
       control.coords.x.set(0);
     }
+    // The last button is always aligned to the right edge.
     this.end = control.coords.x2.set(0);
 
+    // Evenly distribute the parent's width to the buttons.
+    // Note: A single button doesn't need a fill constraint.
     if (this.controls.length >= 2) {
       control.coords.x.align(this.controls[this.controls.length - 2].coords.xw);
       this.fill = new FillConstraint(this.controls, Coord.W);

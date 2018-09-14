@@ -113,6 +113,8 @@ class _TextBox extends Control {
     // Probably because the modal backdrop is mixing with the opaque dialog contents
     // (but not with the HTML textbox).
     this.elem.style.opacity = this.context().globalAlpha.toString();
+
+    this.elem.value = this.text;
   }
 
   removed() {

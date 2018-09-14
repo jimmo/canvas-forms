@@ -63,12 +63,13 @@ export class ScrollBox extends Control {
 
 
   scrollBy(dx: number, dy: number): boolean {
-    // TODO: this should bubble up to parent scroll containers when bounds are hit.
+    const sx = this.scrollX;
+    const sy = this.scrollY;
     this.scrollX -= dx;
     this.scrollY -= dy;
     this.clipScroll();
     this.repaint();
-    return true;
+    return sx !== this.scrollX || sy !== this.scrollY;
   }
 
   clipScroll() {
@@ -94,8 +95,8 @@ export class ScrollBox extends Control {
     this.clipScroll();
   }
 
-  controlAtPoint(x: number, y: number, formX?: number, formY?: number) {
-    return super.controlAtPoint(x + this.scrollX, y + this.scrollY, formX, formY);
+  controlAtPoint(x: number, y: number, all?: boolean, formX?: number, formY?: number) {
+    return super.controlAtPoint(x + this.scrollX, y + this.scrollY, all, formX, formY);
   }
 
 

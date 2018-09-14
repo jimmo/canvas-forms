@@ -12,6 +12,9 @@ import { Coord, CoordAxis } from '../core/enums';
 // on all of them to solve for their widths.
 // Fills can work recursively -- i.e. you can fill controls that are aligned to another
 // filled control, and you can mix with width-based alignments.
+// TODO: It might be worth considering a simple version of this that requires the fill to be
+// exactly to the parent's width. i.e. it doesn't require solving - always just the parent's
+// width divided by number of controls.
 export class FillConstraint extends Constraint {
   // Cache the parent's width/height so that we can recompute faster.
   // The most likely reason for a relayout later is the parent resizing,
@@ -63,6 +66,8 @@ export class FillConstraint extends Constraint {
     this.total = 100 * this.controls.length;
   }
 
+  // We can remove all but two controls (this constraint needs at least two controls
+  // to function).
   removeControl(control: Control) {
     const i = this.controls.indexOf(control);
     if (i < 0) {
@@ -176,6 +181,8 @@ export class FillConstraint extends Constraint {
     }
   }
 
+  // Helper to generate a row of edge-aligned controls, that together fill the
+  // available width (or height).
   static fillParent(controls: Control[], axis: CoordAxis, spacing?: number) {
     spacing = spacing || 0;
 

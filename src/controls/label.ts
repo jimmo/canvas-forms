@@ -1,8 +1,13 @@
 import { Control, LabelText } from '../core/control';
 
-// Simple single-line text control that sizes to content.
+// Simple text control that can size to content.
 export class Label extends Control {
+  // The text is either a string or a callback that returns a string.
+  // This allows for extremely simple "data binding".
   text: LabelText;
+
+  // If true, then this control will "self-constrain" its width and height to fit
+  // the text exactly.
   fit: boolean = true;
 
   constructor(text?: LabelText) {
@@ -23,6 +28,7 @@ export class Label extends Control {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
 
+    // Split the text by newline and draw each line individually.
     const lines = this.evalText().split('\n');
     const lineHeight = (this.getFontSize() + 3);
     const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
@@ -31,6 +37,7 @@ export class Label extends Control {
     }
   }
 
+  // Returns the text as a string (i.e. handles when `this.text` is a function).
   private evalText(): string {
     if (this.text instanceof Function) {
       return this.text();
@@ -39,23 +46,34 @@ export class Label extends Control {
     }
   }
 
+  // Replace the Label's text.
   setText(text: string) {
     this.text = text;
-    if (this.parent) {
+
+    if (this.parent && this.fit) {
+      // If we're sized to content, then we'll need a relayout.
       this.parent.relayout();
+    } else {
+      // Otherwise just a paint.
+      this.repaint();
     }
   }
 
+  // Overriden from Control -- apply fit-to-text.
   selfConstrain() {
     if (!this.fit) {
       return false;
     }
+
+    // Width is the measured width of the widest line.
     this.context().font = this.getFont();
     const lines = this.evalText().split('\n');
     this.w = 0;
     for (const line of lines) {
       this.w = Math.max(this.w, Math.ceil(this.context().measureText(this.evalText()).width) + 10);
     }
+
+    // Height is based on number-of-lines times line-height.
     this.h = Math.max(this.form().defaultHeight(), lines.length * (this.getFontSize() + 3));
     return true;
   }

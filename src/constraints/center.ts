@@ -3,19 +3,23 @@ import { Control } from '../core/control';
 import { Coord, CoordAxis, CoordType } from '../core/enums';
 import { CoordAnimator, EasingFunction } from '../animation';
 
+// A constraint that centers a control in its parent.
+//
 // TODO: optionally take one or two control/coord pairs to center between.
-
-// Represents a constraint that centers a control in its parent.
 export class CenterConstraint extends Constraint {
   parentCoord: Coord;
   controlCoord: Coord;
 
   constructor(control: Control, axis: CoordAxis) {
+    // We set the A coord (i.e. X or Y).
     super([control], [Coord.create(axis, CoordType.A)]);
+
+    // But use the B coords (i.e. W or H) from the control and the control's parent to calculate.
     this.parentCoord = Coord.create(axis, CoordType.B);
     this.controlCoord = Coord.create(axis, CoordType.B);
   }
 
+  // If the control is removed, then immediately remove the constraint.
   removeControl(control: Control) {
     if (control !== this.controls[0]) {
       throw new Error('CenterConstraint removed from incorrect control.');
@@ -28,6 +32,8 @@ export class CenterConstraint extends Constraint {
   }
 
   apply() {
+    // Get the control's width and parent's width, then set the x coordinate corespondingly.
+    // Fail if either of the widths aren't (yet) available.
     const control = this.controls[0];
     const p = Constraint.getCoord(control.parent, this.parentCoord);
     if (p === null) {

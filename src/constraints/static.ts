@@ -3,7 +3,7 @@ import { Control } from '../core/control';
 import { Coord, CoordAxis, CoordType } from '../core/enums';
 import { CoordAnimator, EasingFunction } from '../animation';
 
-// Represents a simple constraint that sets one coordinate to a static value.
+// A simple constraint that sets one coordinate to a static value.
 export class StaticConstraint extends Constraint {
   private v: number;
 
@@ -18,6 +18,7 @@ export class StaticConstraint extends Constraint {
     this.v = v;
   }
 
+  // Self-destruct if the control is removed.
   removeControl(control: Control) {
     if (control !== this.controls[0]) {
       throw new Error('StaticConstraint removed from incorrect control.');
@@ -44,6 +45,8 @@ export class StaticConstraint extends Constraint {
     return super.apply();
   }
 
+  // Allows the constraint to be updated (e.g. for animation) or some sort of
+  // maximize/minimise effect.
   set(v: number) {
     if (v - Math.floor(v) > 0.001) {
       console.log('Non-integer value for updating static constraint.');
@@ -56,6 +59,7 @@ export class StaticConstraint extends Constraint {
     }
   }
 
+  // Relative version of `set()`.
   add(dv: number) {
     if (dv - Math.floor(dv) > 0.001) {
       console.log('Non-integer value added to static constraint.');
@@ -66,6 +70,8 @@ export class StaticConstraint extends Constraint {
     this.controls[0].relayout();
   }
 
+  // Helper to generate an animator for this constraint.
+  // (Equivalent to, but easier than, creating the animator directly).
   animate(min: number, max: number, duration?: number, easing?: EasingFunction) {
     return new CoordAnimator(this, min, max, duration, easing);
   }

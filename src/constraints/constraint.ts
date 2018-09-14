@@ -10,11 +10,13 @@ export abstract class Constraint {
     if (controls.length !== coords.length) {
       throw new Error('Mismatched controls and coords.');
     }
+
     // Don't take ownership of the controls array that we were passed in.
     // We modify it, which might be surprising.
     this.controls = this.controls.slice();
     this.coords = this.coords.slice();
 
+    // Let all the controls referenced by this constraint know about this constraint.
     for (let i = 0; i < this.controls.length; ++i) {
       this.controls[i].refConstraint(this, this.coords[i].axis);
     }
@@ -32,12 +34,18 @@ export abstract class Constraint {
       }
     }
 
+    // TODO: Consider having the form own all constraints.
     this.parent.childConstraints.push(this);
+
+    // Any constraint is going to require a relayout.
+    // TODO: consider optimising this to just re-layout the parent. (But with content
+    // constraints, this can actually affect all the way up the hierarchy).
     this.parent.relayout();
   }
 
   // Called by a referenced control to remove itself from this constraint.
-  // In most cases, this will result in the entire constraint being destroyed.
+  // In many cases, this will result in the entire constraint being destroyed
+  // (for example, an AlignConstraint needs both its controls to be valid).
   // Must be overriden by derived classes.
   abstract removeControl(control: Control): void;
 
@@ -45,10 +53,12 @@ export abstract class Constraint {
   // from any controls that it constrains).
   // When overriden by derived classes, must call super.
   remove() {
+    // Notify all controls that are referenced by this constraint.
     for (let i = 0; i < this.controls.length; ++i) {
       this.controls[i].unrefConstraint(this, this.coords[i].axis);
     }
 
+    // Remove this constraint from the parent.
     if (this.parent) {
       for (let i = 0; i < this.parent.childConstraints.length; ++i) {
         if (this.parent.childConstraints[i] === this) {
@@ -63,23 +73,6 @@ export abstract class Constraint {
   // In layout mode, show this constraint on the form.
   // TODO: rename to not confuse with Control::paint.
   abstract paint(ctx: CanvasRenderingContext2D): void;
-
-  // // Helper for constraints to tell a control that it is referenced
-  // // by this contraints.
-  // static refControl(constraint: Constraint, control: Control, axis: CoordAxis) {
-  //     control.refConstraints.push(constraint);
-  // }
-
-  // // Helper for constraints to tell a control that it is no longer
-  // // being referenced by this constraint (usually because the control
-  // // has requested it via `removeControl`).
-  // static unrefControl(constraint: Constraint, control: Control) {
-  //   const i = control.refConstraints.indexOf(constraint);
-  //   if (i >= 0) {
-  //     control.refConstraints.splice(i, 1);
-  //   }
-  //   throw new Error('Cannot unref control.');
-  // }
 
   // Helper to map the Coord enum to the various properties on controls.
   // e.g. Coord.X --> control.x
@@ -193,6 +186,7 @@ export abstract class Constraint {
     return true;
   }
 
+  // Helper for edit mode. Figures out what sort of arrowline to draw.
   static drawCoord(ctx: CanvasRenderingContext2D, color: string, control: Control, coord: Coord, offset: number) {
     let xmid = control.x + Math.round(control.w / 3);
     let ymid = control.y + Math.round(control.h / 3);
@@ -228,10 +222,12 @@ export abstract class Constraint {
     }
   }
 
+  // Draws a single arrow line.
   static drawConstraint(ctx: CanvasRenderingContext2D, color: string, x1: number, y1: number, x2: number, y2: number) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
 
+    // Experiment with drawing vertical/horizontal alignment lines.
     // ctx.beginPath();
     // if (y1 === y2) {
     //   //ctx.moveTo(x2, 0);

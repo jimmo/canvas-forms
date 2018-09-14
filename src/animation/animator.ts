@@ -1,7 +1,9 @@
 import { Control, Form } from "../core";
 
+// Function that maps (0,1) -> (0,1).
 export type EasingFunction = (t: number) => number;
 
+// Different easing functions (i.e. acceleration profiles for the animation).
 export const Easing = {
   // No easing, no acceleration.
   linear: function(t: number) { return t },
@@ -32,41 +34,61 @@ export const Easing = {
 }
 
 export abstract class Animator {
+  // If true, this animator will restart from zero automatically.
   loop: boolean = false;
+
+  // Tracks the frame time of the first frame.
   private startTime: number = 0;
+
+  // Resovle method for the promise returned from `start()`.
   private _resolve: (data?: any) => void;
 
   // TODO: manage lifetime w.r.t. controls.
+  // i.e. if a control is removed while animating, the animator needs to stop.
 
-  constructor(protected readonly controls: Control[], protected readonly duration?: number, protected readonly easing?: EasingFunction) {
-    this.duration = this.duration || 500;
+  constructor(protected readonly controls: Control[], protected readonly durationMs?: number, protected readonly easing?: EasingFunction) {
+    this.durationMs = this.durationMs || 500;
     this.easing = this.easing || Easing.linear;
   }
 
   start() {
     this.startTime = 0;
+
+    // Register ourselves with the form so that we receive frame callbacks (via `apply()`).
     this.controls[0].form().addAnimator(this);
-    this.controls[0].relayout();
+
+    // Allow `await anim.start()` so that animations can be sequenced.
     return new Promise<void>((resolve) => {
       this._resolve = resolve;
     });
   }
 
   stop() {
+    // Stop receiving frame callbacks.
     this.controls[0].form().removeAnimator(this);
+
+    // Complete the promise returned from `start()`.
     if (this._resolve) {
       this._resolve();
       this._resolve = null;
     }
   }
 
+  // Called by Form on every frame.
   apply(frameTimeMs: number) {
     if (this.startTime === 0) {
+      // This is the first frame since start.
       this.startTime = frameTimeMs;
     }
-    const t = Math.min(1, (frameTimeMs - this.startTime) / this.duration);
+
+    // Calculate how far through `this.durationMs` we are.
+    const t = Math.min(1, (frameTimeMs - this.startTime) / this.durationMs);
+
+    // Call the animator-specific behavior function.
     this.update(this.easing(Math.min(1, t)));
-    if (frameTimeMs >= this.startTime + this.duration) {
+
+    if (frameTimeMs >= this.startTime + this.durationMs) {
+      // If we go past this.durationMs, then either loop or stop.
       if (this.loop) {
         this.startTime = 0;
       } else {
@@ -75,5 +97,6 @@ export abstract class Animator {
     }
   }
 
+  // Must be overriden to provide animator-specific behavior.
   abstract update(t: number): void;
 };

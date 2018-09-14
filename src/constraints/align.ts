@@ -11,23 +11,19 @@ import { Coord } from '../core/enums';
 //
 // Note that this constraint cannot "solve" for a value. i.e. it requires that some other
 // constraint sets one of the two controls. See `FillConstraint` for that.
+//
+// TODO: consider making this take an array of control,coord pairs rather than just two.
 export class AlignConstraint extends Constraint {
   offset: number;
 
-  static uniqueControls(control1: Control, control2: Control) {
-    if (control1 === control2) {
-      return [control1];
-    } else {
-      return [control1, control2];
-    }
-  }
-
+  // Align coord1 of control1 to coord2 of control2, with an optional offset.
   constructor(readonly control1: Control, readonly coord1: Coord, readonly control2: Control, readonly coord2: Coord, offset?: number) {
     super([control1, control2], [coord1, coord2]);
 
     this.offset = offset || 0;
   }
 
+  // AlignConstraints self-destruct if either control is removed.
   removeControl(control: Control) {
     if (control !== this.control1 && control !== this.control2) {
       throw new Error('AlignConstraint removed from incorrect control.');
@@ -47,17 +43,6 @@ export class AlignConstraint extends Constraint {
       // would still mean that the form is overconstrained and likely a mistake.
       throw new Error('Aligning two coordinates that are already specified.');
     }
-
-    // TODO: this might be a useful thing to move to getCoord.
-    // if (v1 === null && v2 === null && this.control1.outstandingConstraints(this.coord1.axis) <= 1 && this.control2.outstandingConstraints(this.coord2.axis) <= 1) {
-    //   this.control2.applyDefaultLayout(this.coord2.axis);
-    //   v2 = Constraint.getCoord(this.control2, this.coord2);
-
-    //   if (v2 === null) {
-    //     this.control1.applyDefaultLayout(this.coord1.axis);
-    //     v1 = Constraint.getCoord(this.control1, this.coord1);
-    //   }
-    // }
 
     if (v1 !== null) {
       // We have c1, so set c2.

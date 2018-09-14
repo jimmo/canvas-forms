@@ -198,7 +198,7 @@ export class Control {
   protected clip: boolean = true;
 
   // Is the mouse currently over this control.
-  focused: boolean = false;
+  protected focused: boolean = false;
 
   // Default font and color used by many controls (e.g. Label, Button, Checkbox, etc).
   fontSize: number = null;
@@ -215,7 +215,7 @@ export class Control {
   // currently a drag in process, this control is under the mouse cursor, and
   // has returned true to `allowDrop`.
   // Controls may choose to render differently if so.
-  dragTarget: boolean = false;
+  protected dragTarget: boolean = false;
 
   // Events used to implement behavior for the controls.
   // These will be fired by the form.
@@ -417,20 +417,20 @@ export class Control {
 
   // Recursively finds the most nested control at the specified coordinates.
   // x/y coordinates are relative to the control.
-  controlAtPoint(x: number, y: number, formX?: number, formY?: number): ControlAtPointData {
+  controlAtPoint(x: number, y: number, all?: boolean, formX?: number, formY?: number): ControlAtPointData {
+    all = all || this.editing();
     formX = (formX === undefined) ? x : formX;
     formY = (formY === undefined) ? y : formY;
 
     // TODO: sort by z-order.
-    const editing = this.editing();
 
     // Search controls backwards (i.e. newer controls will be hit tested first).
     for (let i = this.controls.length - 1; i >= 0; --i) {
       const c = this.controls[i];
       const cx = x - c.x;
       const cy = y - c.y;
-      if ((editing || c._enableHitDetection) && c.inside(cx, cy)) {
-        return c.controlAtPoint(cx, cy, formX, formY);
+      if ((all || c._enableHitDetection) && c.inside(cx, cy)) {
+        return c.controlAtPoint(cx, cy, all, formX, formY);
       }
     }
 

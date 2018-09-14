@@ -309,3 +309,11 @@ makeDemo('Opacity', '', () => {
     b.opacity = (i + 1) / 10;
   }
 });
+
+makeDemo('Scrolling', '', () => {
+  const s1 = c.add(new ScrollBox(), 10, 10, 200, 300);
+  const s2 = s1.add(new ScrollBox(), 10, 200, 180, 300);
+  const sl = s2.add(new Slider(), 10, 300, 140);
+  const l1 = s1.add(new Label('hello'), 10, 600);
+  const l2 = s2.add(new Label('hello'), 10, 600);
+});

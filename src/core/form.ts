@@ -7,14 +7,14 @@ export class FormMouseDownEvent extends SurfaceMouseEvent {
     super(x, y, buttons);
   }
 
+  // Direct all future mouse events to this control until the mouse is released.
   capture() {
-    this.form.capture = this.hit;
+    this.form.setCapture(this.hit);
   }
 
+  // Tell the form that if the mouse moves while still down, then begin a drag.
   allowDrag(data: any) {
-    this.capture();
-    this.form.dragAllowed = true;
-    this.form.dragData = data;
+    this.form.setAllowDrag(this.hit, data);
   }
 }
 
@@ -39,8 +39,8 @@ export class FormKeyEvent extends SurfaceKeyEvent {
 // Control that sits at the top of the hierarchy and manages the underlying
 // surface to draw on.
 export class Form extends Control {
-  pendingLayout = false;
-  pendingPaint = false;
+  private _pendingLayout = false;
+  private _pendingPaint = false;
 
   fontSize = 18;
   fontName = 'sans';
@@ -48,12 +48,24 @@ export class Form extends Control {
 
   private _editing = false;
 
-  focus: ControlAtPointData;
-  capture: ControlAtPointData;
-  dragAllowed: boolean;
-  dragData: any;
-  dragCoordinates: MouseEvent;
-  dragTargetControl: Control;
+  // The control that last received a mouse events.
+  private _focus: ControlAtPointData;
+
+  // A control that called `ev.capture()` on a FormMouseDownEvent.
+  // (i.e. we should send future mouse events to it, rather than doing
+  // hit detection).
+  private _capture: ControlAtPointData;
+
+  // Should the next mousemove be considered to be a drag.
+  private _dragAllowed: boolean;
+  // Data (specified by the control that allowed dragging) to be passed to the drop target.
+  private _dragData: any;
+  // The coordinates that we're current dragging to (needed to so we can paint the overlay at
+  // the correct location).
+  private _dragCoordinates: MouseEvent;
+  // The last control that we thought was the drag target (i.e. we set `.dragTarget = true` on
+  // it so we need to keep a reference to it so we can unset that if we move over a different control.
+  private _dragTargetControl: Control;
 
   // A list of top-level controls that should prevent all other controls from
   // using DOM content (i.e. textboxes).
@@ -63,6 +75,7 @@ export class Form extends Control {
   // should register as layers.
   private _layers: Control[] = [];
 
+  // List of currently active animators (i.e. animators that should be receiving per-frame callbacks).
   private _animators: Animator[] = [];
 
   constructor(readonly surface: Surface) {
@@ -85,9 +98,14 @@ export class Form extends Control {
       this.relayout();
     });
 
+    // When the mouse wheel is activated on the surface, send a scroll event to
+    // the last control that a mouse event was delivered to.
     this.surface.scroll.add(data => {
-      if (this.focus) {
-        let c = this.focus.control;
+      if (this._focus) {
+        // Walk up the tree to find a control that actually accepts the scroll event.
+        // This allows us to have scrollboxes inside scrollboxes, etc.
+        // Scrolling controls should return false at the end of their range.
+        let c = this._focus.control;
         while (c) {
           if (c.scrollBy(data.dx, data.dy)) {
             break;
@@ -99,58 +117,66 @@ export class Form extends Control {
 
     // Map mouse events on the surface into the control that the mouse is over.
     this.surface.mousemove.add(data => {
-      if (this.capture && !data.primaryButton()) {
-        // We missed the mouseup event (maybe happened outside browser), so
+      if (this._capture && !data.primaryButton()) {
+        // We have capture, but the mouse is moving without the button down.
+        // This means we missed the mouseup event (maybe happened outside browser), so
         // inject a fake one.
-        this.capture.update(data.x, data.y);
-        this.capture.control.mouseup.fire(new FormMouseUpEvent(this.capture.x, this.capture.y, data.buttons));
-        this.capture = null;
-        this.dragAllowed = false;
-        this.dragData = null;
-        if (this.dragTargetControl) {
-          this.dragTargetControl.dragTarget = false;
-        }
-        this.dragTargetControl = null;
-        this.dragCoordinates = null;
+        this._capture.update(data.x, data.y);
+        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, data.buttons));
+        this.endCapture();
       }
 
-      if (this.capture && this.dragAllowed) {
-        this.dragCoordinates = data;
+      if (this._capture && this._dragAllowed) {
+        // Capture is enabled and the control has indicated that it's a drag source.
+        this._dragCoordinates = data;
 
-        if (this.dragTargetControl) {
-          this.dragTargetControl.dragTarget = false;
+        // Remove the `dragTarget` state from the previous target.
+        if (this._dragTargetControl) {
+          (this._dragTargetControl as Form).dragTarget = false;
         }
-        const dragTarget = this.controlAtPoint(data.x, data.y).control;
-        if (dragTarget !== this.capture.control && dragTarget.allowDrop(this.dragData)) {
-          dragTarget.dragTarget = true;
-          this.dragTargetControl = dragTarget;
+
+        // Hit test and set `dragTarget` on the current target.
+        // Note we set `all=true` to hit test all controls (not just the ones with
+        // mouse event handlers).
+        const dragTarget = this.controlAtPoint(data.x, data.y, true).control;
+        if (dragTarget !== this._capture.control && dragTarget.allowDrop(this._dragData)) {
+          (dragTarget as Form).dragTarget = true;
+          this._dragTargetControl = dragTarget;
         }
       }
 
-      let target = this.capture;
+      // Either deliver the mouse move event to the current capture, or hit test to find
+      // the control under the mouse.
+      let target = this._capture;
       if (target) {
         target.update(data.x, data.y);
       } else {
         target = this.controlAtPoint(data.x, data.y);
+        // Remember the last control that saw a mouse event.
         this.updateFocus(target);
       }
 
+      // Send the mouse move event to the target.
       target.control.mousemove.fire(new FormMouseMoveEvent(target.x, target.y, data.buttons, data.x - target.startX, data.y - target.startY));
 
-      if (!this.capture && this.editing()) {
+      // Editing means that we likely need to redraw the constraints.
+      if (!this._capture && this.editing()) {
         this.repaint();
       }
-      if (this.capture && this.dragCoordinates) {
+
+      // If we're currently mid-drag, then we'll need to paint the drag overlay.
+      if (this._capture && this._dragCoordinates) {
         this.repaint();
       }
     });
 
+    // Forward mouse down events to the control under the cursor.
     this.surface.mousedown.add(data => {
       if (!data.primaryButton()) {
         return;
       }
-      if (this.capture) {
-        console.warn('Mouse down with capture?');
+      if (this._capture) {
+        // Should be impossible.
         return;
       }
       const hit = this.controlAtPoint(data.x, data.y);
@@ -161,39 +187,47 @@ export class Form extends Control {
       if (data.primaryButton()) {
         return;
       }
-      let target = this.capture;
+
+      // If we have a capture rarget, then send the up event to it instead.
+      let target = this._capture;
       if (target) {
+        // Update the control-at-point data with the new mouse coordinates.
+        // (Note that this might indicate that the coordinates are outside the bounds of the control
+        // which is fine because that's how capture works).
         target.update(data.x, data.y);
 
-        if (this.dragCoordinates) {
+        // But if we're mid-drag, then we need to also notify the drop (if allowed).
+        if (this._dragCoordinates) {
           const dropTarget = this.controlAtPoint(data.x, data.y).control;
-          if (dropTarget.allowDrop(this.dragData)) {
-            dropTarget.drop(this.dragData);
+          if (dropTarget.allowDrop(this._dragData)) {
+            dropTarget.drop(this._dragData);
           }
         }
-        this.capture = null;
-        this.dragAllowed = false;
-        this.dragData = null;
-        if (this.dragTargetControl) {
-          this.dragTargetControl.dragTarget = false;
-        }
-        this.dragTarget = null;
-        this.dragCoordinates = null;
+
+        this.endCapture();
+
+        // Repaint to hide the drag overlay.
         this.repaint();
       } else {
+        // Otherwise, send the up event to whatever is undert the cursor.
         target = this.controlAtPoint(data.x, data.y);
       }
+
       target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, data.buttons));
     });
 
+    // TODO: Remove this event and just have the surface send scroll events (which should
+    // include the mouse coordinates, so we can just do a regular hit test).
     this.surface.mousewheel.add(data => {
       const hit = this.controlAtPoint(data.x, data.y);
       this.updateFocus(hit);
     });
 
+    // Send the key event to all the controls in the hierarchy above the current focus.
+    // TODO: provide a way to stop walking up the hierarchy, e.g. `ev.cancelBubble()`.
     this.surface.keydown.add(data => {
-      if (this.focus) {
-        let control = this.focus.control;
+      if (this._focus) {
+        let control = this._focus.control;
         while (control) {
           control.keydown.fire(new FormKeyEvent(data.key));
           control = control.parent;
@@ -202,18 +236,27 @@ export class Form extends Control {
     });
   }
 
-  private updateFocus(hit: ControlAtPointData) {
-    if (this.focus) {
-      this.focus.control.focused = false;
+  // Somehow the mouse was released, so end capture.
+  private endCapture() {
+    this._capture = null;
+    this._dragAllowed = false;
+    this._dragData = null;
+    if (this._dragTargetControl) {
+      (this._dragTargetControl as Form).dragTarget = false;
     }
-    this.focus = hit;
-    this.focus.control.focused = true;
+    this._dragTargetControl = null;
+    this._dragCoordinates = null;
   }
 
-  layout() {
-    // const t = new Date().getTime();
-    super.layout();
-    // console.log('layout: ', new Date().getTime() - t);
+  // Any time we use the mouse coordinates to do a hit test, remember which control
+  // we found so that we can send scroll/key events to it.
+  private updateFocus(hit: ControlAtPointData) {
+    if (this._focus) {
+      // Unfocus the previous target.
+      (this._focus.control as Form).focused = false;
+    }
+    this._focus = hit;
+    (this._focus.control as Form).focused = true;
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
@@ -221,66 +264,98 @@ export class Form extends Control {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);
 
-    // const t = new Date().getTime();
+    // Recursively paint the control hierarchy.
     super.paint(ctx);
-    // console.log('paint: ', new Date().getTime() - t);
 
-    if (this.capture && this.dragCoordinates) {
+    // If we have a drag active, then ask the current drag source to paint itself
+    // a second time, at the mouse coordinates (this is the drag overlay).
+    if (this._capture && this._dragCoordinates) {
       ctx.save();
 
       // Not we offset the context so that all drawing operations are relative to the control.
-      ctx.translate(this.dragCoordinates.x + 10, this.dragCoordinates.y + 10);
+      ctx.translate(this._dragCoordinates.x + 10, this._dragCoordinates.y + 10);
 
-      // Clip always.
+      // Always clip the drag overlay (ignoring Control::clip).
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.lineTo(this.capture.control.w, 0);
-      ctx.lineTo(this.capture.control.w, this.capture.control.h);
-      ctx.lineTo(0, this.capture.control.h);
+      ctx.lineTo(this._capture.control.w, 0);
+      ctx.lineTo(this._capture.control.w, this._capture.control.h);
+      ctx.lineTo(0, this._capture.control.h);
       ctx.closePath();
       ctx.clip();
 
+      // Make the overlay translucent, and paint it.
       ctx.globalAlpha *= 0.5;
-      // Cast to workaround the way protected works in typescript.
-      (this.capture.control as Form).paint(ctx);
+      (this._capture.control as Form).paint(ctx);  // Cast to workaround the way protected works in typescript.
       ctx.globalAlpha /= 0.5;
 
       ctx.restore();
     }
   }
 
-  // Default implementation of repaint does a full paint of the entire form.
-  repaint() {
-    this.pendingPaint = true;
-    window.requestAnimationFrame((frameTimeMs) => {
-      this.pendingPaint = false;
+  // Both repaint and relayout schedule this. Do whichever operation that was required (or both)
+  animationFrame(frameTimeMs: number) {
+    if (this._pendingLayout) {
+      this._pendingLayout = false;
 
+      // const t = new Date().getTime();
+      this.layout();
+      // console.log('layout: ', new Date().getTime() - t);
+
+      // Should always be set, but just incase.
+      this._pendingPaint = true;
+    }
+
+    if (this._pendingPaint) {
+      this._pendingPaint = false;
+
+      // Notify any active animators that a frame is starting.
       for (const a of this._animators) {
         a.apply(frameTimeMs);
       }
+
+      // Recursively paint the form.
+      // const t = new Date().getTime();
       this.paint(this.context());
-    });
+      // console.log('paint: ', new Date().getTime() - t);
+    }
   }
 
-  // Default implementation of relayout does a full paint of the entire form.
-  relayout() {
-    if (this.pendingLayout) {
+  // Default implementation of repaint does a full paint of the entire form.
+  repaint() {
+    // Don't queue more than one paint at a time.
+    if (this._pendingPaint) {
+      return;
+    }
+    this._pendingPaint = true;
+
+    // If a layout is already pending, then piggyback our paint onto that.
+    if (this._pendingLayout) {
       return;
     }
 
-    if (this.w && this.h) {
-      this.pendingLayout = true;
-      window.requestAnimationFrame((frameTimeMs) => {
-        this.pendingLayout = false;
-        for (const a of this._animators) {
-          a.apply(frameTimeMs);
-        }
-        this.layout();
-        if (!this.pendingPaint) {
-          this.paint(this.context());
-        }
-      });
+    // Schedule a paint callback.
+    window.requestAnimationFrame(this.animationFrame.bind(this));
+  }
+
+  // Default implementation of relayout does a full layout and paint of the entire form.
+  relayout() {
+    // Don't queue more than one layout at a time.
+    if (this._pendingLayout) {
+      return;
     }
+    this._pendingLayout = true;
+
+    // If a paint is already pending, then piggyback the layout onto that.
+    if (this._pendingPaint) {
+      return;
+    }
+
+    // Layout always requires a paint.
+    this._pendingPaint = true;
+
+    // Schedule a paint callback.
+    window.requestAnimationFrame(this.animationFrame.bind(this));
   }
 
   // We're the top of the hierarchy. The default implementation of this expects
@@ -289,6 +364,8 @@ export class Form extends Control {
     return this.surface.ctx;
   }
 
+  // Returns true if this form is in edit mode.
+  // TODO: Make only sub-hierarchies editable.
   editing(enable?: boolean) {
     if (enable !== undefined) {
       this._editing = enable;
@@ -296,24 +373,23 @@ export class Form extends Control {
     return this._editing;
   }
 
+  // Override the default implementation in Control (that returns `parent.form()`).
   form(): Form {
     return this;
   }
 
+  // Default width & height for controls that do not get these through constraints.
   defaultWidth(): number {
     return 160;
   }
-
   defaultHeight(): number {
     return 32;
   }
 
-  // Gets the x coordinate of this control relative to the form.
+  // Override the default implementaiton in Control (we're the root control, so at 0,0).
   formX(): number {
     return 0;
   }
-
-  // Gets the y coordinate of this control relative to the form.
   formY(): number {
     return 0;
   }
@@ -360,10 +436,13 @@ export class Form extends Control {
     this._layers.pop();
   }
 
+  // Register the animator with this form (so it receives callback every frame).
   addAnimator(animator: Animator) {
     this._animators.push(animator);
   }
 
+  // Stop this animator from receiving frame callbacks.
+  // Many animators are single-use, so this will remove the last reference to these temporary animators.
   removeAnimator(animator: Animator) {
     for (let i = 0; i < this._animators.length; ++i) {
       if (this._animators[i] === animator) {
@@ -372,4 +451,17 @@ export class Form extends Control {
       }
     }
   }
+
+  // For FormMouseDownEvent only.
+  setCapture(control: ControlAtPointData) {
+    this._capture = control;
+  }
+
+  // For FormMouseDownEvent only.
+  setAllowDrag(control: ControlAtPointData, data: any) {
+    this.setCapture(control);
+    this._dragAllowed = true;
+    this._dragData = data;
+  }
+
 }

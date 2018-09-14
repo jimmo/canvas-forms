@@ -2,7 +2,11 @@ import { Constraint } from './constraint';
 import { Control } from '../core/control';
 import { Coord, CoordAxis, CoordType } from '../core/enums';
 
-// Represents a simple constraint that sets one coordinate to a static value.
+// A constraint that makes a control's width or height equal to the maximum extent of
+// all of its child controls. Optionally adds extra padding to the right (or bottom), and
+// optionally sets a minimum size.
+// Note that if any of the child controls are positioned using X2/Y2, then this constraint
+// cannot solve.
 export class ContentConstraint extends Constraint {
   constructor(control: Control, axis: CoordAxis, private padding?: number, private min?: number) {
     super([control], [Coord.create(axis, CoordType.B)]);
@@ -16,6 +20,7 @@ export class ContentConstraint extends Constraint {
     }
   }
 
+  // Self destruct if the control is removed.
   removeControl(control: Control) {
     if (control !== this.controls[0]) {
       throw new Error('ContentConstraint removed from incorrect control.');
@@ -30,6 +35,7 @@ export class ContentConstraint extends Constraint {
   apply(): boolean {
     let v = 0;
 
+    // Get the max right edge (or bottom edge) of all child controls.
     for (const c of this.controls[0].controls) {
       let cv = 0;
       if (this.coords[0].axis === CoordAxis.X) {
@@ -38,16 +44,25 @@ export class ContentConstraint extends Constraint {
         cv = Constraint.getCoord(c, Coord.YH);
       }
       if (cv === null) {
+        // If unavailable, then ask to be re-tried later.
+        // Note that if any controls are positioned using X2/Y2, then
+        // this will always fail and layout will fail.
         return false;
       }
       v = Math.max(v, cv);
     }
 
+    // Apply padding and minimum.
     Constraint.setCoord(this.controls[0], this.coords[0], Math.max(this.min, v + this.padding));
+
     return true;
   }
 
+  // Helpers to override padding and minimum.
   setPadding(padding?: number) {
     this.padding = padding || 0;
+  }
+  setMinimum(min?: number) {
+    this.min = min || 0;
   }
 }
