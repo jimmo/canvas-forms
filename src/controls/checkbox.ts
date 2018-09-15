@@ -1,5 +1,6 @@
 import { Control, ControlEvent } from '../core/control';
 import { EventSource } from '../core/events';
+import { TextControl } from './textcontrol';
 
 
 // Fired when a checkbox state changes by user input.
@@ -9,54 +10,65 @@ export class CheckBoxToggleEvent extends ControlEvent {
   }
 }
 
-export class CheckBox extends Control {
-  text: string;
-  checked: boolean;
+export class CheckBox extends TextControl {
+  // Current state of the checkbox.
+  checked: boolean = false;
 
-  private down: boolean;
+  // Tracks whether we're currently in the middle of a mouse capture.
+  private down: boolean = false;
+
+  // If we're inside a radio group, we need to coordinate with other checkboxes.
   radio: RadioGroup;
 
+  // CheckBox events.
   on: EventSource;
   off: EventSource;
   toggle: EventSource;
 
   constructor(text?: string, checked?: boolean) {
-    super();
+    super(text);
 
-    this.text = text || '';
-    this.down = false;
-    this.checked = checked || false;
+    this.checked = this.checked || false;
 
     this.on = new EventSource();
     this.off = new EventSource();
     this.toggle = new EventSource();
 
+    // On mouse down, change down state and enable capture so we get the mouse up event
+    // no matter where it happens.
     this.mousedown.add((data) => {
       this.down = true;
       data.capture();
       this.repaint();
     });
+
+    // On mouse up, if it happened inside the bounds of this control, then change checked state.
     this.mouseup.add((data) => {
       if (!this.down) {
         return;
       }
 
-      this.down = false;
-
       if (this.inside(data.x, data.y)) {
         this.setChecked(!this.checked);
       }
+
+      this.down = false;
       this.repaint();
     });
   }
 
   setChecked(checked: boolean) {
+    // No-op if we're already in the desired state.
     if (this.checked === checked) {
       return;
     }
+
+    // Update other checkboxes in the radio group if necessary.
     if (this.radio) {
       this.radio.clear(this);
     }
+
+    // Change state and fire events.
     this.checked = checked;
     const ev = new CheckBoxToggleEvent(this, this.checked);
     this.toggle.fire(ev);
@@ -70,26 +82,33 @@ export class CheckBox extends Control {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
+    // Solid white background for the actual box part.
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, this.h, this.h);
 
+    // Make the box have a highlighted border if the mouse is currently down.
     if (this.down) {
       ctx.strokeStyle = 'orange';
     } else {
       ctx.strokeStyle = 'black';
     }
+
     ctx.lineJoin = 'round';
 
     if (this.radio) {
+      // Radio boxes are round.
       ctx.beginPath();
       ctx.lineWidth = 1.2;
       ctx.arc(this.h / 2, this.h / 2, this.h / 2, 0, 2 * Math.PI);
+      ctx.fill();
       ctx.stroke();
     } else {
+      // Checkboxes are square.
+      ctx.fillRect(0, 0, this.h, this.h);
       ctx.lineWidth = 1;
       ctx.strokeRect(0, 0, this.h, this.h);
     }
 
+    // Add the orange check mark inside the box.
     if (this.checked) {
       ctx.fillStyle = 'orange';
       if (this.radio) {
@@ -101,14 +120,17 @@ export class CheckBox extends Control {
       }
     }
 
+    // Draw the label part.
     ctx.font = this.getFont();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
-    ctx.fillText(this.text, this.h + 7, this.h / 2, this.w - this.h - 4);
+    ctx.fillText(this.evalText(), this.h + 7, this.h / 2, this.w - this.h - 4);
   }
 }
 
+// Manages a set of checkboxes in a radio group.
+// The checkboxes must be individually already added to the form, then added to the radio group.
 export class RadioGroup {
   private checkboxes: CheckBox[] = [];
 
@@ -126,6 +148,7 @@ export class RadioGroup {
   }
 
   clear(selected: CheckBox) {
+    // Uncheck all but the currently selected checkbox.
     for (const checkbox of this.checkboxes) {
       if (checkbox === selected) {
         continue;

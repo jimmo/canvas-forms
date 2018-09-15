@@ -2,18 +2,16 @@ import { Control } from '../core/control';
 import { Form } from '../core/form';
 import { Modal } from './modal';
 
+// Floating modal (TODO: or modeless) dialog.
 export class Dialog extends Control {
   private _modal: Modal = null;
-  private _w: number = 500;
-  private _h: number = 300;
 
-  constructor(w?: number, h?: number) {
+  constructor() {
     super();
-    this._w = w || this._w;
-    this._h = h || this._h;
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
+    // Modals have a solid background inside a rounded-rect border.
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 1;
@@ -37,22 +35,19 @@ export class Dialog extends Control {
     super.paint(ctx);
   }
 
+  // Call this to show this dialog as a modal.
+  // e.g. `const result = await new FooDialog().modal(myForm);`
+  // Note: Dialog instances are single-use.
   async modal(f: Form) {
-    this._modal = new Modal(this);
-    return await this._modal.show(f);
+    return await Modal.show(this, f);
   }
 
+  // Close this dialog, passing the specified data to the promise returned from `modal`.
   close(data?: any) {
     if (this._modal) {
       this._modal.close(data);
     } else {
       this.remove();
     }
-  }
-
-  selfConstrain() {
-    this.w = this._w;
-    this.h = this._h;
-    return true;
   }
 }

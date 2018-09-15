@@ -1,19 +1,14 @@
 import { Control, LabelText } from '../core/control';
+import { TextControl } from './textcontrol';
 
 // Simple text control that can size to content.
-export class Label extends Control {
-  // The text is either a string or a callback that returns a string.
-  // This allows for extremely simple "data binding".
-  text: LabelText;
-
+export class Label extends TextControl {
   // If true, then this control will "self-constrain" its width and height to fit
   // the text exactly.
   fit: boolean = true;
 
   constructor(text?: LabelText) {
-    super();
-
-    this.text = text || '';
+    super(text);
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
@@ -37,25 +32,13 @@ export class Label extends Control {
     }
   }
 
-  // Returns the text as a string (i.e. handles when `this.text` is a function).
-  private evalText(): string {
-    if (this.text instanceof Function) {
-      return this.text();
-    } else {
-      return this.text;
-    }
-  }
-
-  // Replace the Label's text.
+  // Override from `TextControl` to also do a relayout.
   setText(text: string) {
-    this.text = text;
+    super.setText(text);
 
-    if (this.parent && this.fit) {
+    if (this.fit) {
       // If we're sized to content, then we'll need a relayout.
-      this.parent.relayout();
-    } else {
-      // Otherwise just a paint.
-      this.repaint();
+      this.relayout();
     }
   }
 

@@ -5,10 +5,10 @@ const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10
 const c = form.add(new ScrollBox(), { y: 10, x2: 10, y2: 10 });
 c.border = true;
 
-const grabber = form.add(new Grabber(200, 10, [CoordAxis.X]), { w: 20, y2: 10 });
+const grabber = form.add(new Grabber(200), { y: 10, w: 20, y2: 10 });
 demoList.coords.xw.align(grabber.coords.x);
 c.coords.x.align(grabber.coords.xw);
-grabber.bound(CoordAxis.X, 100, 400);
+grabber.setBound(CoordAxis.X, 100, 400);
 
 demoList.change.add(() => {
   if (!demoList.selected()) {
@@ -29,7 +29,7 @@ class PromptDialog extends Dialog {
   name: TextBox;
 
   constructor() {
-    super(420, 180);
+    super();
 
     this.add(new Label('What is your name?'), 20, 20);
     this.name = this.add(new TextBox(), 20, 54);
@@ -41,6 +41,10 @@ class PromptDialog extends Dialog {
     this.add(new Button('OK'), { x2: 190, y2: 20 }).click.add(() => {
       this.close(this.name.text);
     });
+  }
+
+  added() {
+    this.coords.size(420, 180);
   }
 
   submit() {
@@ -55,7 +59,6 @@ makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
   tx.coords.center(CoordAxis.X, 200);
   tx.coords.center(CoordAxis.Y, form.defaultHeight());
   b.click.add(async () => {
-    const d = new Dialog(300, 160);
     const result = await new PromptDialog().modal(form);
     l.setText('You clicked: ' + result);
   });
@@ -162,10 +165,10 @@ makeDemo('TextBox', '', () => {
 });
 
 makeDemo('Grabber', '', () => {
-  const g = c.add(new Grabber(100, 100, [CoordAxis.X, CoordAxis.Y]));
+  const g = c.add(new Grabber(100, 100));
   g.coords.size(20, 20);
-  g.bound(CoordAxis.X, 50);
-  g.bound(CoordAxis.Y, 50);
+  g.setBound(CoordAxis.X, 50);
+  g.setBound(CoordAxis.Y, 50);
   const l = c.add(new Label('Follow'));
   l.coords.x.align(g.coords.xw, 10);
   l.coords.y.align(g.coords.yh, 10);

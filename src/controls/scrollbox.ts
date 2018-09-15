@@ -2,15 +2,22 @@ import { Control, ControlEvent } from '../core/control';
 
 export class ScrollBox extends Control {
   // Scroll coordinates.
+  // TODO: Investigate making it possible to make AlignConstraints based on these.
+  // i.e. add a Coord.SX / Coord.SY.
+  // This might be tricky because we don't want to have to relayout() on scroll.
   private scrollX: number = 0;
   private scrollY: number = 0;
+
+  // The maximum XW coordinate of any control.
   private xmax: number = 0;
+  // The maximum YH coordinate of any control.
   private ymax: number = 0;
 
   constructor() {
     super();
-    this.clip = true;
 
+    // Even thoguh we don't trap mousedown/up/move directly, we need to be able to be
+    // the focused control.
     this.enableHitDetection();
   }
 
@@ -56,12 +63,17 @@ export class ScrollBox extends Control {
   }
 
   paintDecorations(ctx: CanvasRenderingContext2D) {
+    // Because we shift paint by the scroll coordinates, we need to undo that
+    // so the border draws in the correct place.
     ctx.translate(this.scrollX, this.scrollY);
     super.paintDecorations(ctx);
     ctx.translate(-this.scrollX, -this.scrollY);
   }
 
 
+  // Attempt to scroll by the specified deltas.
+  // Returns true if at least some scroll movement happened (i.e. we should prevent the scroll
+  // event bubbling to ancestor containers).
   scrollBy(dx: number, dy: number): boolean {
     const sx = this.scrollX;
     const sy = this.scrollY;
@@ -72,11 +84,13 @@ export class ScrollBox extends Control {
     return sx !== this.scrollX || sy !== this.scrollY;
   }
 
+  // Don't allow scrolling past the origin or the maximum control bounds
   clipScroll() {
     this.scrollX = Math.round(Math.min(Math.max(0, this.xmax - this.w), Math.max(0, this.scrollX)));
     this.scrollY = Math.round(Math.min(Math.max(0, this.ymax - this.h), Math.max(0, this.scrollY)));
   }
 
+  // Callback from Control, called on each control when layout is complete.
   layoutComplete() {
     // TODO: investigate skipping layout for controls that are outside the visible
     // area. This means we'd need to re-layout on scrolll potentially? Maybe there
@@ -95,25 +109,24 @@ export class ScrollBox extends Control {
     this.clipScroll();
   }
 
+  // Override base implementation to provide details about current scroll position.
   controlAtPoint(x: number, y: number, all?: boolean, formX?: number, formY?: number) {
     return super.controlAtPoint(x + this.scrollX, y + this.scrollY, all, formX, formY);
   }
 
 
-  // Gets the x coordinate of this control relative to the surface.
+  // Override base version to take into account scroll coordinates.
   formX(): number {
     return super.formX() - this.scrollX;
   }
-
-  // Gets the y coordinate of this control relative to the surface.
   formY(): number {
     return super.formY() - this.scrollY;
   }
 
+  // The amount of total scrollable width / height.
   scrollWidth(): number {
     return Math.max(this.w, this.xmax);
   }
-
   scrollHeight(): number {
     return Math.max(this.h, this.ymax);
   }

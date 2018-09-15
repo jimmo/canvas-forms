@@ -3,19 +3,20 @@ import { EventSource } from '../core/events';
 import { FillConstraint } from '../constraints/fill';
 import { CoordAxis, Coord } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
+import { TextControl } from './textcontrol';
 
-export class Button extends Control {
-  private text: string;
+export class Button extends TextControl {
+  // Remember down state so paint can draw the button appropriately.
   private down: boolean = false;
 
   click: EventSource;
 
   constructor(text?: string) {
-    super();
+    super(text);
 
-    this.text = text || '';
     this.click = new EventSource();
 
+    // Simple button down, capture, and up-still-inside click handler.
     this.mousedown.add((data) => {
       this.down = true;
       data.capture();
@@ -39,12 +40,14 @@ export class Button extends Control {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
+    // Background colour.
     if (this.down) {
       ctx.fillStyle = '#ff9800';
     } else {
       ctx.fillStyle = '#ffeecc';
     }
 
+    // Border colour & style.
     if (this.down) {
       ctx.strokeStyle = 'black';
     } else {
@@ -53,12 +56,11 @@ export class Button extends Control {
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
 
+    // Radius for the border edge. When in a ButtonGroup, the button needs
+    // to disable rounded corners on one (or both) of it's left or right side.
     const r = 6;
-    ctx.beginPath();
-
-
-    let rl = 6;
-    let rr = 6;
+    let rl = r;
+    let rr = r;
     if (this.parent instanceof ButtonGroup) {
       if (this !== this.parent.controls[0]) {
         rl = 0;
@@ -68,6 +70,8 @@ export class Button extends Control {
       }
     }
 
+    // Define rounded rect.
+    ctx.beginPath();
     ctx.moveTo(rl, 0);
     ctx.lineTo(this.w - rr, 0);
     ctx.arcTo(this.w, 0, this.w, rr, rr);
@@ -78,29 +82,27 @@ export class Button extends Control {
     ctx.lineTo(0, rl);
     ctx.arcTo(0, 0, rl, 0, rl);
 
+    // Draw a very faint dropshadow when the mouse is down.
     if (this.down) {
       ctx.shadowColor = '#c0c0c0';
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 3;
       ctx.shadowOffsetY = 3;
     }
+
+    // Fill rounded rect, with shadow.
     ctx.fill();
 
+    // Stroke border, no shadow.
     ctx.shadowColor = 'transparent';
     ctx.stroke();
 
+    // Draw text.
     ctx.font = this.getFont();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
-    ctx.fillText(this.text, this.w / 2, this.h / 2, this.w);
-  }
-
-  setText(text: string) {
-    this.text = text;
-    if (this.parent) {
-      this.parent.relayout();
-    }
+    ctx.fillText(this.evalText(), this.w / 2, this.h / 2, this.w);
   }
 }
 
