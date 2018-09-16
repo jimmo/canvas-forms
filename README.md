@@ -41,10 +41,6 @@ A forms API involves a lot of interactions between different classes, and benefi
   * Validation for textbox
 * Mouse enter/leave
   * Mouse cursor
-* Drag & Drop
 * Focus
-* Scroll hierarchy
-* Animation
-* Layout
-  * Flow
-* Use hit-region APIs (available in Chrome/Firefox behind a flag)
+* Flow Layout
+* Use hit-region APIs (available in Chrome/Firefox but currently behind a flag)
