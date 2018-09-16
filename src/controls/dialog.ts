@@ -44,8 +44,8 @@ export class Dialog extends Control {
 
   // Close this dialog, passing the specified data to the promise returned from `modal`.
   close(data?: any) {
-    if (this._modal) {
-      this._modal.close(data);
+    if (this.parent instanceof Modal) {
+      this.parent.close(data);
     } else {
       this.remove();
     }
