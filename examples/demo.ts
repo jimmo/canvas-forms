@@ -241,7 +241,7 @@ function delay(ms: number): Promise<void> {
 class DemoTreeNode implements TreeNode {
   extra: TreeNode[] = [];
 
-  constructor(private readonly name: string) {
+  constructor(private readonly name: string, readonly parent?: DemoTreeNode) {
   }
 
   treeText(): string {
@@ -252,7 +252,7 @@ class DemoTreeNode implements TreeNode {
     await delay(300);
     let children = [];
     for (let i = 0; i < 5; ++i) {
-      children.push(new DemoTreeNode(this.name + '.' + i));
+      children.push(new DemoTreeNode(this.name + '.' + i, this));
     }
     for (const e of this.extra) {
       children.push(e);
@@ -265,7 +265,7 @@ class DemoTreeNode implements TreeNode {
   }
 
   treeDropAllowed(data: any): boolean {
-    if (data === this) {
+    if (data === this || data.parent === this) {
       return false;
     }
     return true;
