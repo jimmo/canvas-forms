@@ -78,6 +78,8 @@ export class Grabber extends Control {
   }
 
   protected added() {
+    super.added();
+
     // Now that we've been added to a parent, create the static constraints that position the grabber.
     if (this._startX) {
       this._xConstraint = this.coords.x.set(this._startX);

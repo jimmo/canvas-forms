@@ -43,8 +43,9 @@ class PromptDialog extends Dialog {
     });
   }
 
-  added() {
+  defaultConstraints() {
     this.coords.size(420, 180);
+    super.defaultConstraints();
   }
 
   submit() {
@@ -52,8 +53,25 @@ class PromptDialog extends Dialog {
   }
 }
 
+class FillDialog extends Dialog {
+  constructor() {
+    super();
+
+    this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
+      this.close('Cancel');
+    });
+  }
+
+  defaultConstraints() {
+    this.coords.x.set(20);
+    this.coords.y.set(20);
+    this.coords.x2.set(20);
+    this.coords.y2.set(20);
+  }
+}
+
 makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
-  const b = c.add(new Button('Click me'), 10, 10);
+  const b = c.add(new Button('Prompt'), 10, 10);
   const l = c.add(new Label(), 20, 50);
   const tx = c.add(new TextBox('html textbox'));
   tx.coords.center(CoordAxis.X, 200);
@@ -61,6 +79,11 @@ makeDemo('Modal', 'Simple modal dialog with async/await result', () => {
   b.click.add(async () => {
     const result = await new PromptDialog().modal(form);
     l.setText('You clicked: ' + result);
+  });
+
+  const b2 = c.add(new Button('Fill'), 10, 100);
+  b2.click.add(() => {
+    new FillDialog().modal(form);
   });
 });
 

@@ -238,6 +238,8 @@ class SubTree extends Control {
   }
 
   added() {
+    super.added();
+
     // Once the subtree is added (i.e. the parent TreeItem has been opened), then
     // immediately load children and add them when available.
     if (this.parentNode) {
@@ -294,6 +296,8 @@ export class Tree extends ScrollBox {
   }
 
   added() {
+    super.added();
+
     // When we're added to a parent, we can start using constraints.
     this.add(this.sub, 0, 0);
 

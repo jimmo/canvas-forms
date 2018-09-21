@@ -881,6 +881,11 @@ export class Control {
 
   // Override this in a subclass to get notified when added to a parent.
   protected added() {
+    this.defaultConstraints();
+  }
+
+  // Override this to add automatic constraints.
+  protected defaultConstraints() {
   }
 
   // Remove this control from its parent.

@@ -1,6 +1,5 @@
 import { Dialog } from './dialog';
 import { Control } from '../core/control';
-import { CoordAxis } from '../core/enums';
 import { Form } from '../core/form';
 import { OpacityAnimator } from '../animation/opacity';
 
@@ -14,8 +13,6 @@ export class Modal extends Control {
 
     // Add the dialog and center it.
     this.add(dialog);
-    dialog.coords.center(CoordAxis.X);
-    dialog.coords.center(CoordAxis.Y);
 
     // As we're self-constrained to take up the entire form, by
     // enabling hit-detection and cancelling the event, we will prevent anything

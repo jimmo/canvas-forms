@@ -1,6 +1,7 @@
 import { Control } from '../core/control';
 import { Form } from '../core/form';
 import { Modal } from './modal';
+import { CoordAxis } from '../core';
 
 // Floating modal (TODO: or modeless) dialog.
 export class Dialog extends Control {
@@ -8,6 +9,11 @@ export class Dialog extends Control {
 
   constructor() {
     super();
+  }
+
+  defaultConstraints() {
+    this.coords.center(CoordAxis.X);
+    this.coords.center(CoordAxis.Y);
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
