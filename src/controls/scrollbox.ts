@@ -28,6 +28,15 @@ export class ScrollBox extends Control {
     this.mousemove.add((ev) => {
       if (ev.capture) {
         if (!this.scrollBy(ev.dx, ev.dy)) {
+          let p = this.parent;
+          while (p) {
+            if (this.parent instanceof ScrollBox) {
+              if (this.parent.scrollBy(ev.dx, ev.dy)) {
+                return;
+              }
+            }
+            p = p.parent;
+          }
           ev.cancelDragCapture();
         }
       }
