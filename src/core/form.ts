@@ -276,14 +276,14 @@ export class Form extends Control {
           }
         }
 
-        this.endCapture();
-
         // Repaint to hide the drag overlay.
         this.repaint();
       } else {
         // Otherwise, send the up event to whatever is undert the cursor.
         target = this.controlAtPoint(data.x, data.y);
       }
+
+      this.endCapture();
 
       if (target) {
         target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, data.buttons, wasCapture));

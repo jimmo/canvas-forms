@@ -19,16 +19,12 @@ export class Slider extends Control {
 
     this.change = new EventSource();
 
-    let down: FormMouseDownEvent = null;
     this.mousedown.add((data) => {
       data.capture();
-      down = data;
-    });
-    this.mouseup.add((data) => {
-      down = null;
+      data.cancelBubble();
     });
     this.mousemove.add((data) => {
-      if (!down) {
+      if (!data.capture) {
         return;
       }
       this.setValue(Math.min(1, Math.max(0, ((data.x - 8) / (this.w - 16)))) * (this.max - this.min) + this.min);

@@ -29,8 +29,6 @@ export class Button extends TextControl {
 
       this.down = false;
 
-      console.log(ev.capture);
-
       if (ev.capture && this.inside(ev.x, ev.y)) {
         this.click.fire();
       }

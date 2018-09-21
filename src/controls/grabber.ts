@@ -38,6 +38,7 @@ export class Grabber extends Control {
     let down: FormMouseDownEvent = null;
     this.mousedown.add((data) => {
       data.capture();
+      data.cancelBubble();
       down = data;
       this._startX = this.x;
       this._startY = this.y;
