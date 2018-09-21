@@ -1,6 +1,6 @@
 import { CoordAxis, Coord } from './enums';
 import { EventSource } from './events';
-import { Form } from './form';
+import { Form, FormMouseDownEvent, FormKeyEvent, FormMouseMoveEvent, FormMouseUpEvent } from './form';
 import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint, CenterConstraint } from '../constraints';
 
 // Base class for events raised from controls.
@@ -12,6 +12,14 @@ export class ControlEvent {
 // For simple text controls (label, button, checkbox), their text can
 // be set directly or bound via a function.
 export type LabelText = string | (() => string);
+
+// Options to pass to Control::controlAtPoint.
+export interface ControlAtPointOpts {
+  all?: boolean;
+  formX?: number;
+  formY?: number;
+  exclude?: Control[];
+}
 
 // Structure to represent a successful hit test.
 export class ControlAtPointData {
@@ -41,11 +49,14 @@ export class ControlAtPointData {
   // hit test result to reflect the new coordinates.
   // This is a requirement for capture, because the new formX/formY coordinates may actually
   // no longer inside the control.
-  update(formX: number, formY: number) {
+  update(formX: number, formY: number): [number, number] {
+    const dx = formX - this.formX;
+    const dy = formY - this.formY;
     this.x += formX - this.formX;
     this.y += formY - this.formY;
     this.formX = formX;
     this.formY = formY;
+    return [dx, dy];
   }
 }
 
@@ -169,6 +180,7 @@ export class Control {
   // Disabled by default so that hit detection is as cheap as possible and only
   // has to search controls that might care.
   private _enableHitDetection: boolean = false;
+  private _enableHitDetectionForChild: boolean = false;
 
   // Read-only coordinates for this control.
   // Set by the `layout` process from the various constraints.
@@ -223,10 +235,10 @@ export class Control {
   // should expose high-level events reflecting their behavior. e.g. Buttons
   // have a `click` event, CheckBoxes have a `toggle`.
   // TODO: these members should be protected to enforce that.
-  mousedown: EventSource;
-  mouseup: EventSource;
-  mousemove: EventSource;
-  keydown: EventSource;
+  mousedown: EventSource<FormMouseDownEvent>;
+  mouseup: EventSource<FormMouseUpEvent>;
+  mousemove: EventSource<FormMouseMoveEvent>;
+  keydown: EventSource<FormKeyEvent>;
 
   protected constructor() {
     // When the surface detects a mouse event on this control, it will fire
@@ -405,36 +417,55 @@ export class Control {
     }
   }
 
-  // Enables hit detection on this and all ancestors.
+  // Enables hit detection on this and ensure that ancestors can find it.
   // Either called when a control starts listening to mouse events
   // or if a control wants to "steal" mouse events (e.g. a modal dialog background).
   enableHitDetection() {
     this._enableHitDetection = true;
-    if (this.parent) {
-      this.parent.enableHitDetection();
+
+    this.enableChildHitDetectionOnParent();
+  }
+
+  // Let the parent know that it needs to be searched for (but not necessarily
+  // participate in) hit detection.
+  private enableChildHitDetectionOnParent() {
+    let p = this.parent;
+    while (p) {
+      p._enableHitDetectionForChild = true;
+      p = p.parent;
     }
   }
 
   // Recursively finds the most nested control at the specified coordinates.
   // x/y coordinates are relative to the control.
-  controlAtPoint(x: number, y: number, all?: boolean, formX?: number, formY?: number): ControlAtPointData {
-    all = all || this.editing();
-    formX = (formX === undefined) ? x : formX;
-    formY = (formY === undefined) ? y : formY;
+  controlAtPoint(x: number, y: number, opts?: ControlAtPointOpts): ControlAtPointData {
+    opts = opts || {};
+    opts.all = opts.all || this.editing();
+    opts.formX = (opts.formX === undefined) ? x : opts.formX;
+    opts.formY = (opts.formY === undefined) ? y : opts.formY;
+    opts.exclude = opts.exclude || [];
 
     // TODO: sort by z-order.
 
     // Search controls backwards (i.e. newer controls will be hit tested first).
     for (let i = this.controls.length - 1; i >= 0; --i) {
       const c = this.controls[i];
+      if (opts.exclude.indexOf(c) >= 0) {
+        continue;
+      }
       const cx = x - c.x;
       const cy = y - c.y;
-      if ((all || c._enableHitDetection) && c.inside(cx, cy)) {
-        return c.controlAtPoint(cx, cy, all, formX, formY);
+      if ((opts.all || c._enableHitDetection || c._enableHitDetectionForChild) && c.inside(cx, cy)) {
+        const hit = c.controlAtPoint(cx, cy, opts);
+        if (hit) {
+          return hit;
+        }
       }
     }
 
-    return new ControlAtPointData(this, x, y, formX, formY);
+    if (this._enableHitDetection) {
+      return new ControlAtPointData(this, x, y, opts.formX, opts.formY);
+    }
   }
 
   // Helper to see if the specified coordinates (relative to the control) are
@@ -835,7 +866,7 @@ export class Control {
 
     // If a control needs hit detection, then every ancestor does too.
     if (control._enableHitDetection) {
-      this.enableHitDetection();
+      control.enableChildHitDetectionOnParent();
     }
 
     // Tell the control it now has a parent.

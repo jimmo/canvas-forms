@@ -1,4 +1,4 @@
-import { Control, ControlEvent } from '../core/control';
+import { Control, ControlEvent, ControlAtPointOpts } from '../core/control';
 
 export class ScrollBox extends Control {
   // Scroll coordinates.
@@ -19,6 +19,19 @@ export class ScrollBox extends Control {
     // Even thoguh we don't trap mousedown/up/move directly, we need to be able to be
     // the focused control.
     this.enableHitDetection();
+
+    // Enable drag scrolling (mobile-style, but works on desktop too).
+    this.mousedown.add((ev) => {
+      ev.captureDrag();
+      ev.cancelBubble();
+    });
+    this.mousemove.add((ev) => {
+      if (ev.capture) {
+        if (!this.scrollBy(ev.dx, ev.dy)) {
+          ev.cancelDragCapture();
+        }
+      }
+    });
   }
 
   shouldPaint(control: Control) {
@@ -81,7 +94,7 @@ export class ScrollBox extends Control {
     this.scrollY -= dy;
     this.clipScroll();
     this.repaint();
-    return sx !== this.scrollX || sy !== this.scrollY;
+    return (dx === 0 && dy === 0) || (Math.abs(dx) > 0 && sx !== this.scrollX) || (Math.abs(dy) > 0 && sy !== this.scrollY);
   }
 
   // Don't allow scrolling past the origin or the maximum control bounds
@@ -110,8 +123,8 @@ export class ScrollBox extends Control {
   }
 
   // Override base implementation to provide details about current scroll position.
-  controlAtPoint(x: number, y: number, all?: boolean, formX?: number, formY?: number) {
-    return super.controlAtPoint(x + this.scrollX, y + this.scrollY, all, formX, formY);
+  controlAtPoint(x: number, y: number, opts?: ControlAtPointOpts) {
+    return super.controlAtPoint(x + this.scrollX, y + this.scrollY, opts);
   }
 
 

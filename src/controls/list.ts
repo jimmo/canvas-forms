@@ -44,6 +44,8 @@ export class ListItem extends Control {
 }
 
 export class TextListItem extends ListItem {
+  draggable: boolean = false;
+
   constructor(text: string) {
     super();
     const l = this.add(new Label(text), 5, 1, null, null, 3, 1);
@@ -51,7 +53,10 @@ export class TextListItem extends ListItem {
 
     this.mousedown.add((ev) => {
       this.setSelected(true);
-      ev.allowDrag('hello');
+
+      if (this.draggable) {
+        ev.allowDrag('hello');
+      }
     });
   }
 };
@@ -73,7 +78,12 @@ export class List<T> extends ScrollBox {
 
     this.change = new EventSource();
 
-    this.mousedown.add(() => {
+    // Clear selection when clicking on the list.
+    this.mousedown.add((ev) => {
+      if (ev.control !== this) {
+        // Skip if the event was actually on a list item control.
+        return;
+      }
       for (const c of this.controls) {
         (c as ListItem).selected = false;
       }

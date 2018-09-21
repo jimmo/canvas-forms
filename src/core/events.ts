@@ -1,9 +1,10 @@
-type Listener = (data?: any) => void;
+type Listener<T> = (data?: T) => void;
 type AddCallback = () => void;
 
 // Represents a single event that can be fired or listened to.
-export class EventSource {
-  listeners: Listener[];
+// Event sources should specify the data type that their event passes to the listener.
+export class EventSource<T = any> {
+  listeners: Listener<T>[];
   addCallback: AddCallback;
 
   constructor(addCallback?: AddCallback) {
@@ -18,7 +19,7 @@ export class EventSource {
   }
 
   // Invoke all the listeners with the specified data payload.
-  fire(data?: any) {
+  fire(data?: T) {
     for (const h of this.listeners) {
       try {
         h(data);
@@ -30,7 +31,7 @@ export class EventSource {
   }
 
   // Adds the listener to the set of callbacks for when this event is fired.
-  add(h: Listener) {
+  add(h: Listener<T>) {
     this.listeners.push(h);
 
     if (this.addCallback) {

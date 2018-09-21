@@ -17,19 +17,21 @@ export class Button extends TextControl {
     this.click = new EventSource();
 
     // Simple button down, capture, and up-still-inside click handler.
-    this.mousedown.add((data) => {
+    this.mousedown.add((ev) => {
       this.down = true;
-      data.capture();
+      ev.capture();
       this.repaint();
     });
-    this.mouseup.add((data) => {
+    this.mouseup.add((ev) => {
       if (!this.down) {
         return;
       }
 
       this.down = false;
 
-      if (this.inside(data.x, data.y)) {
+      console.log(ev.capture);
+
+      if (ev.capture && this.inside(ev.x, ev.y)) {
         this.click.fire();
       }
 

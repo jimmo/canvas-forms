@@ -21,9 +21,9 @@ export class CheckBox extends TextControl {
   radio: RadioGroup;
 
   // CheckBox events.
-  on: EventSource;
-  off: EventSource;
-  toggle: EventSource;
+  on: EventSource<CheckBoxToggleEvent>;
+  off: EventSource<CheckBoxToggleEvent>;
+  toggle: EventSource<CheckBoxToggleEvent>;
 
   constructor(text?: string, checked?: boolean) {
     super(text);
@@ -36,19 +36,19 @@ export class CheckBox extends TextControl {
 
     // On mouse down, change down state and enable capture so we get the mouse up event
     // no matter where it happens.
-    this.mousedown.add((data) => {
+    this.mousedown.add((ev) => {
       this.down = true;
-      data.capture();
+      ev.capture();
       this.repaint();
     });
 
     // On mouse up, if it happened inside the bounds of this control, then change checked state.
-    this.mouseup.add((data) => {
+    this.mouseup.add((ev) => {
       if (!this.down) {
         return;
       }
 
-      if (this.inside(data.x, data.y)) {
+      if (ev.capture && this.inside(ev.x, ev.y)) {
         this.setChecked(!this.checked);
       }
 

@@ -10,7 +10,7 @@ export class TextBoxChangeEvent extends ControlEvent {
 
 class _TextBox extends Control {
   text: string;
-  change: EventSource;
+  change: EventSource<TextBoxChangeEvent>;
   multiline: boolean = false;
   protected elem: (HTMLTextAreaElement | HTMLInputElement) = null;
 

@@ -18,10 +18,12 @@ export class Modal extends Control {
     dialog.coords.center(CoordAxis.Y);
 
     // As we're self-constrained to take up the entire form, by
-    // enabling hit-detection, we will prevent anything else receiving
-    // mouse events as we'll always be the first match (other than the dialog
+    // enabling hit-detection and cancelling the event, we will prevent anything
+    // else receiving mouse events as we'll always be the first match (other than the dialog
     // itself).
-    this.enableHitDetection();
+    this.mousedown.add((ev) => {
+      ev.cancelBubble();
+    });
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {

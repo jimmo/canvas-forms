@@ -4,6 +4,7 @@ import { EventSource } from '../core/events';
 import { CoordAxis } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
 import { CoordAnimator, EasingFunction } from '../animation';
+import { FormMouseDownEvent } from '../core';
 
 // Draggable control that can adjust the value of a static constraint.
 // A common use case would be to make a control resizable -- place the grabber
@@ -34,7 +35,7 @@ export class Grabber extends Control {
     this._bounds.set(CoordAxis.Y, [null, null]);
 
     // Simple mouse down/move/up drag handler.
-    let down: MouseEvent = null;
+    let down: FormMouseDownEvent = null;
     this.mousedown.add((data) => {
       data.capture();
       down = data;
@@ -50,10 +51,10 @@ export class Grabber extends Control {
       }
 
       if (this._xConstraint) {
-        this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + data.dx));
+        this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + data.dragX));
       }
       if (this._yConstraint) {
-        this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + data.dy));
+        this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + data.dragY));
       }
     });
   }

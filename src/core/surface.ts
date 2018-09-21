@@ -41,13 +41,13 @@ export class Surface {
 
   ctx: CanvasRenderingContext2D;
 
-  resize: EventSource;
-  scroll: EventSource;
-  mousedown: EventSource;
-  mouseup: EventSource;
-  mousemove: EventSource;
-  mousewheel: EventSource;
-  keydown: EventSource;
+  resize: EventSource<SurfaceResizeEvent>;
+  scroll: EventSource<SurfaceScrollEvent>;
+  mousedown: EventSource<SurfaceMouseEvent>;
+  mouseup: EventSource<SurfaceMouseEvent>;
+  mousemove: EventSource<SurfaceMouseEvent>;
+  mousewheel: EventSource<SurfaceMouseEvent>;
+  keydown: EventSource<SurfaceKeyEvent>;
 
   constructor(selector: string) {
     // The <canvas> DOM element.
@@ -60,13 +60,13 @@ export class Surface {
     this.ctx = this.elem.getContext('2d');
 
     // Events (mostly used by Form).
-    this.resize = new EventSource();
-    this.scroll = new EventSource();
-    this.mousedown = new EventSource();
-    this.mouseup = new EventSource();
-    this.mousemove = new EventSource();
-    this.mousewheel = new EventSource();
-    this.keydown = new EventSource();
+    this.resize = new EventSource<SurfaceResizeEvent>();
+    this.scroll = new EventSource<SurfaceScrollEvent>();
+    this.mousedown = new EventSource<SurfaceMouseEvent>();
+    this.mouseup = new EventSource<SurfaceMouseEvent>();
+    this.mousemove = new EventSource<SurfaceMouseEvent>();
+    this.mousewheel = new EventSource<SurfaceMouseEvent>();
+    this.keydown = new EventSource<SurfaceKeyEvent>();
 
     // To allow the canvas to take focus (e.g. away from any input text elements).
     this.container.tabIndex = 1;
