@@ -50,7 +50,7 @@ export abstract class SimpleTreeNode implements TreeNode {
   }
 }
 
-export class SimpleLeafTreeNode extends SimpleTreeNode {
+export class SimpleTreeLeafNode extends SimpleTreeNode {
   constructor(text: string) {
     super(text);
   }
