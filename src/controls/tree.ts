@@ -9,14 +9,21 @@ import { ScrollBox } from './scrollbox';
 // If you want to build a static hierarchy programatically, use the StaticTree class.
 export interface TreeNode {
   treeChildren(): Promise<TreeNode[]>;
+  treeHasChildren(): boolean;
   treeText(): string;
   treeDrag(): boolean;
   treeDropAllowed(data: any): boolean;
   treeDrop(data: any): void;
+  treeSelect(): void;
+  treeDblClick(): void;
 }
 
 export abstract class SimpleTreeNode implements TreeNode {
   constructor(readonly text: string) {
+  }
+
+  treeHasChildren(): boolean {
+    return true;
   }
 
   abstract async treeChildren(): Promise<TreeNode[]>;
@@ -34,6 +41,26 @@ export abstract class SimpleTreeNode implements TreeNode {
   }
 
   treeDrop(data: any): void {
+  }
+
+  treeSelect(): void {
+  }
+
+  treeDblClick(): void {
+  }
+}
+
+export class SimpleLeafTreeNode extends SimpleTreeNode {
+  constructor(text: string) {
+    super(text);
+  }
+
+  treeHasChildren() {
+    return false;
+  }
+
+  async treeChildren(): Promise<TreeNode[]> {
+    return [];
   }
 }
 
@@ -53,6 +80,10 @@ export class StaticTree implements TreeNode {
     return tree;
   }
 
+  treeHasChildren(): boolean {
+    return this.children.length > 0;
+  }
+
   async treeChildren(): Promise<TreeNode[]> {
     return this.children;
   }
@@ -70,6 +101,12 @@ export class StaticTree implements TreeNode {
   }
 
   treeDrop(data: any): void {
+  }
+
+  treeSelect(): void {
+  }
+
+  treeDblClick(): void {
   }
 }
 
@@ -158,9 +195,15 @@ class TreeItem extends Control {
       this.select.fire();
       this.tree.setSelected(this);
     }
+    if (this.selected) {
+      this.node.treeSelect();
+    }
   }
 
   toggle() {
+    if (!this.node.treeHasChildren()) {
+      return;
+    }
     if (this._open) {
       this.close();
     } else {
@@ -169,6 +212,9 @@ class TreeItem extends Control {
   }
 
   open() {
+    if (!this.node.treeHasChildren()) {
+      return;
+    }
     // So we draw the arrow differently.
     this._open = true;
 
@@ -214,26 +260,28 @@ class TreeItem extends Control {
       ctx.fillRect(0, 0, this.tree.scrollWidth(), this.label.h);
     }
 
-    // Draw the arrow either facing down or right, centered on these coordinates.
-    const arrowX = 22 / 2;
-    const arrowY = this.label.h / 2;
+    if (this.node.treeHasChildren()) {
+      // Draw the arrow either facing down or right, centered on these coordinates.
+      const arrowX = 22 / 2;
+      const arrowY = this.label.h / 2;
 
-    ctx.beginPath();
-    if (this._open) {
-      // Down
-      ctx.moveTo(arrowX - 5, arrowY - 4);
-      ctx.lineTo(arrowX + 5, arrowY - 4);
-      ctx.lineTo(arrowX, arrowY + 4);
-    } else {
-      // Right
-      ctx.moveTo(arrowX - 4, arrowY - 5);
-      ctx.lineTo(arrowX + 4, arrowY);
-      ctx.lineTo(arrowX - 4, arrowY + 5);
+      ctx.beginPath();
+      if (this._open) {
+        // Down
+        ctx.moveTo(arrowX - 5, arrowY - 4);
+        ctx.lineTo(arrowX + 5, arrowY - 4);
+        ctx.lineTo(arrowX, arrowY + 4);
+      } else {
+        // Right
+        ctx.moveTo(arrowX - 4, arrowY - 5);
+        ctx.lineTo(arrowX + 4, arrowY);
+        ctx.lineTo(arrowX - 4, arrowY + 5);
+      }
+      ctx.closePath();
+
+      ctx.fillStyle = 'black';
+      ctx.fill();
     }
-    ctx.closePath();
-
-    ctx.fillStyle = 'black';
-    ctx.fill();
 
     super.paint(ctx);
   }
