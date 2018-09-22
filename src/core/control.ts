@@ -21,6 +21,20 @@ export interface ControlAtPointOpts {
   exclude?: Control[];
 }
 
+// Control::add can take an object of coord values instead.
+export interface AddCoords {
+  x?: number;
+  y?: number;
+  w?: number;
+  h?: number;
+  x2?: number;
+  y2?: number;
+  xw?: number;
+  yh?: number;
+  x2w?: number;
+  y2h?: number;
+}
+
 // Structure to represent a successful hit test.
 export class ControlAtPointData {
   // These coordinates are relative to the control.
@@ -848,9 +862,9 @@ export class Control {
   // An object of { coord name: value } can be passed instead of `x` as a simpler way when not
   // just passing x/y/w/h.
   // e.g. `parent.add(child, { x: 20, x2: 20 });` instead of `parent.add(child, 20, null, null, null, 20, null);`.
-  add<T extends Control>(control: T, x?: number | any, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
+  add<T extends Control>(control: T, x?: number | AddCoords, y?: number, w?: number, h?: number, x2?: number, y2?: number, xw?: number, yh?: number, x2w?: number, y2h?: number): T {
     if (x && typeof x === 'object') {
-      return this.add(control, x['x'], x['y'], x['w'], x['h'], x['x2'], x['y2'], x['xw'], x['yh'], x['x2w'], x['y2w']);
+      return this.add(control, x.x, x.y, x.w, x.h, x.x2, x.y2, x.xw, x.yh, x.x2w, x.y2h);
     }
 
     control.parent = this;
