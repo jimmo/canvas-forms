@@ -15,6 +15,28 @@ export interface TreeNode {
   treeDrop(data: any): void;
 }
 
+export abstract class SimpleTreeNode implements TreeNode {
+  constructor(readonly text: string) {
+  }
+
+  abstract async treeChildren(): Promise<TreeNode[]>;
+
+  treeText(): string {
+    return this.text;
+  }
+
+  treeDrag(): boolean {
+    return null;
+  }
+
+  treeDropAllowed(data: any): boolean {
+    return false;
+  }
+
+  treeDrop(data: any): void {
+  }
+}
+
 // Helper class for definiing a static tree hierarchy.
 // const root = new StaticTree('My Tree');
 // const child = root.add(new StaticTree('Child'));
