@@ -5,7 +5,7 @@ import { TextControl } from './textcontrol';
 export class Label extends TextControl {
   // If true, then this control will "self-constrain" its width and height to fit
   // the text exactly.
-  fit: boolean = true;
+  fit: boolean = false;
 
   constructor(text?: LabelText) {
     super(text);

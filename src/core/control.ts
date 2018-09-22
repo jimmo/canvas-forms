@@ -238,6 +238,7 @@ export class Control {
   mousedown: EventSource<FormMouseDownEvent>;
   mouseup: EventSource<FormMouseUpEvent>;
   mousemove: EventSource<FormMouseMoveEvent>;
+  mousedbl: EventSource<FormMouseUpEvent>;
   keydown: EventSource<FormKeyEvent>;
 
   protected constructor() {
@@ -251,6 +252,9 @@ export class Control {
       this.enableHitDetection();
     });
     this.mousemove = new EventSource(() => {
+      this.enableHitDetection();
+    });
+    this.mousedbl = new EventSource(() => {
       this.enableHitDetection();
     });
     this.keydown = new EventSource(() => {

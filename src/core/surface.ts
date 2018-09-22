@@ -47,6 +47,7 @@ export class Surface {
   mouseup: EventSource<SurfaceMouseEvent>;
   mousemove: EventSource<SurfaceMouseEvent>;
   mousewheel: EventSource<SurfaceMouseEvent>;
+  mousedbl: EventSource<SurfaceMouseEvent>;
   keydown: EventSource<SurfaceKeyEvent>;
 
   constructor(selector: string) {
@@ -60,13 +61,14 @@ export class Surface {
     this.ctx = this.elem.getContext('2d');
 
     // Events (mostly used by Form).
-    this.resize = new EventSource<SurfaceResizeEvent>();
-    this.scroll = new EventSource<SurfaceScrollEvent>();
-    this.mousedown = new EventSource<SurfaceMouseEvent>();
-    this.mouseup = new EventSource<SurfaceMouseEvent>();
-    this.mousemove = new EventSource<SurfaceMouseEvent>();
-    this.mousewheel = new EventSource<SurfaceMouseEvent>();
-    this.keydown = new EventSource<SurfaceKeyEvent>();
+    this.resize = new EventSource();
+    this.scroll = new EventSource();
+    this.mousedown = new EventSource();
+    this.mouseup = new EventSource();
+    this.mousemove = new EventSource();
+    this.mousewheel = new EventSource();
+    this.mousedbl = new EventSource();
+    this.keydown = new EventSource();
 
     // To allow the canvas to take focus (e.g. away from any input text elements).
     this.container.tabIndex = 1;
@@ -114,6 +116,9 @@ export class Surface {
       this.container.addEventListener('mousemove', (ev) => {
         this.mousemove.fire(createMouseEvent(ev));
       });
+      this.container.addEventListener('dblclick', (ev) => {
+        this.mousedbl.fire(createMouseEvent(ev));
+      });
     } else {
       this.container.addEventListener('mousedown', (ev) => {
         this.mousedown.fire(createMouseEvent(ev));
@@ -123,6 +128,9 @@ export class Surface {
       });
       this.container.addEventListener('mousemove', (ev) => {
         this.mousemove.fire(createMouseEvent(ev));
+      });
+      this.container.addEventListener('dblclick', (ev) => {
+        this.mousedbl.fire(createMouseEvent(ev));
       });
     }
 

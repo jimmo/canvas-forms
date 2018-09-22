@@ -43,7 +43,7 @@ export class CenterConstraint extends Constraint {
     if (c === null) {
       return false;
     }
-    Constraint.setCoord(control, this.coords[0], (p - c) / 2);
+    Constraint.setCoord(control, this.coords[0], Math.floor((p - c) / 2));
     return super.apply();
   }
 }

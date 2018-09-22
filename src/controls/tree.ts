@@ -90,6 +90,7 @@ class TreeItem extends Control {
     this.select = new EventSource();
 
     this.label = this.add(new Label(() => this.node.treeText()), 22, 1);
+    this.label.fit = true;
 
     this.mousedown.add((ev) => {
       if (ev.y > this.label.h) {
@@ -108,6 +109,18 @@ class TreeItem extends Control {
       // Set up for allowing a drag if there's a subsequent mousemove.
       if (this.node.treeDrag()) {
         ev.allowDrag(this.node);
+      }
+    });
+
+    this.mousedbl.add((ev) => {
+      if (ev.y > this.label.h) {
+        // Only care about events on the actual text.
+        return;
+      }
+
+      // Double click on the text toggles the node.
+      if (ev.x > 22) {
+        this.toggle();
       }
     });
   }

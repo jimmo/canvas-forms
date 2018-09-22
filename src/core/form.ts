@@ -299,6 +299,13 @@ export class Form extends Control {
       }
     });
 
+    this.surface.mousedbl.add(ev => {
+      const hit = this.controlAtPoint(ev.x, ev.y);
+      if (hit) {
+        hit.control.mousedbl.fire(new FormMouseUpEvent(hit.x, hit.y, ev.buttons, false));
+      }
+    });
+
     // Send the key event to all the controls in the hierarchy above the current focus.
     // TODO: provide a way to stop walking up the hierarchy, e.g. `ev.cancelBubble()`.
     this.surface.keydown.add(data => {
@@ -516,6 +523,7 @@ export class Form extends Control {
   // Register the animator with this form (so it receives callback every frame).
   addAnimator(animator: Animator) {
     this._animators.push(animator);
+    this.repaint();
   }
 
   // Stop this animator from receiving frame callbacks.

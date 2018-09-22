@@ -2,6 +2,9 @@ import { Control } from '../core/control';
 import { Form } from '../core/form';
 import { Modal } from './modal';
 import { CoordAxis } from '../core';
+import { TextBox } from './textbox';
+import { Label } from './label';
+import { Button } from './button';
 
 // Floating modal (TODO: or modeless) dialog.
 export class Dialog extends Control {
@@ -55,5 +58,57 @@ export class Dialog extends Control {
     } else {
       this.remove();
     }
+  }
+}
+
+
+// Simple dialog that asks for user input with OK/Cancel.
+export class AlertDialog extends Dialog {
+  constructor(text: string) {
+    super();
+
+    const l = this.add(new Label(text), 20, 20);
+    l.fit = true;
+
+    this.add(new Button('OK'), { x2: 20, y2: 20 }).click.add(() => {
+      this.close();
+    });
+  }
+
+  defaultConstraints() {
+    this.coords.size(420, 180);
+    super.defaultConstraints();
+  }
+}
+
+
+// Simple dialog that asks for user input with OK/Cancel.
+export class PromptDialog extends Dialog {
+  name: TextBox;
+
+  constructor(prompt: string) {
+    super();
+
+    const l = this.add(new Label(prompt), 20, 20);
+    l.fit = true;
+
+    this.name = this.add(new TextBox(), 20, 54);
+    this.name.coords.x2.set(20);
+
+    this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
+      this.close('Cancel');
+    });
+    this.add(new Button('OK'), { x2: 190, y2: 20 }).click.add(() => {
+      this.close(this.name.text);
+    });
+  }
+
+  defaultConstraints() {
+    this.coords.size(420, 180);
+    super.defaultConstraints();
+  }
+
+  submit() {
+    this.close(this.name.text);
   }
 }
