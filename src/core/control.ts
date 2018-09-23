@@ -226,11 +226,6 @@ export class Control {
   // Is the mouse currently over this control.
   protected focused: boolean = false;
 
-  // Default font and color used by many controls (e.g. Label, Button, Checkbox, etc).
-  fontSize: number = null;
-  fontName: string = null;
-  color: string = null;
-
   // Enable a simple border on this control.
   border: boolean = false;
 
@@ -767,6 +762,8 @@ export class Control {
 
   // Override this (and always call `super.paint()`) to customise appearance of child controls.
   protected paint(ctx: CanvasRenderingContext2D) {
+    this.paintBackground(ctx);
+
     // This base implementation just makes sure all children are painted too.
     for (const c of this.controls) {
       // Controls can decide not to paint their children (i.e. scrollbox won't paint
@@ -830,30 +827,38 @@ export class Control {
     this.paintDecorations(ctx);
   }
 
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
+    // Controls are transparent by default.
+  }
+
   // Override this separately to customise the basic decorations (border, focus, etc).
-  paintDecorations(ctx: CanvasRenderingContext2D) {
+  protected paintDecorations(ctx: CanvasRenderingContext2D) {
     if (this.border) {
-      ctx.lineWidth = 1;
-      ctx.lineJoin = 'round';
-
-      // Left/Top
-      ctx.beginPath();
-      ctx.moveTo(0, this.h);
-      ctx.lineTo(0, 0);
-      ctx.lineTo(this.w, 0);
-      ctx.strokeStyle = '#202020';
-      ctx.stroke();
-
-      // Right/Bottom
-      ctx.beginPath();
-      ctx.moveTo(this.w, 0);
-      ctx.lineTo(this.w, this.h);
-      ctx.lineTo(0, this.h);
-      ctx.strokeStyle = '#707070';
-      ctx.stroke();
+      this.paintBorder(ctx);
     }
 
-    // TODO: focus.
+    // TODO: focus
+  }
+
+  protected paintBorder(ctx: CanvasRenderingContext2D) {
+    ctx.lineWidth = 1;
+    ctx.lineJoin = 'round';
+
+    // Left/Top
+    ctx.beginPath();
+    ctx.moveTo(0, this.h);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(this.w, 0);
+    ctx.strokeStyle = '#202020';
+    ctx.stroke();
+
+    // Right/Bottom
+    ctx.beginPath();
+    ctx.moveTo(this.w, 0);
+    ctx.lineTo(this.w, this.h);
+    ctx.lineTo(0, this.h);
+    ctx.strokeStyle = '#707070';
+    ctx.stroke();
   }
 
   // Adds a child control, optionally with the specified static coordinates (which will be
@@ -883,7 +888,7 @@ export class Control {
     control.coords.y2h.set(y2h);
 
     // If a control needs hit detection, then every ancestor does too.
-    if (control._enableHitDetection) {
+    if (control._enableHitDetection || control._enableHitDetectionForChild) {
       control.enableChildHitDetectionOnParent();
     }
 
@@ -952,26 +957,6 @@ export class Control {
     if (this.childConstraints.length > 0) {
       throw new Error('There were still constraints left after removing all controls.');
     }
-  }
-
-  // Returns a font that can be used by the context.
-  getFont() {
-    return this.getFontSize() + 'px ' + this.getFontName();
-  }
-
-  // Returns the font size in pixels.
-  getFontSize(): number {
-    return this.fontSize || this.parent.getFontSize();
-  }
-
-  // Returns the font name only.
-  getFontName(): string {
-    return this.fontName || this.parent.getFontName();
-  }
-
-  // Returns the default foreground color for this control.
-  getColor(): string {
-    return this.color || this.parent.getColor();
   }
 
   // Call this to cause at least this and all controls inside it to repaint.

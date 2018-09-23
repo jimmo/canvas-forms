@@ -37,8 +37,12 @@ export class FormMouseMoveEvent extends SurfaceMouseEvent {
 }
 
 export class FormMouseUpEvent extends SurfaceMouseEvent {
-  constructor(x: number, y: number, buttons: number, readonly capture: boolean) {
+  constructor(x: number, y: number, buttons: number, readonly control: Control, readonly capture: boolean) {
     super(x, y, buttons);
+  }
+
+  inside() {
+    return this.control.inside(this.x, this.y);
   }
 }
 
@@ -53,10 +57,6 @@ export class FormKeyEvent extends SurfaceKeyEvent {
 export class Form extends Control {
   private _pendingLayout = false;
   private _pendingPaint = false;
-
-  fontSize = 18;
-  fontName = 'sans';
-  color = '#202020';
 
   private _editing = false;
 
@@ -141,7 +141,7 @@ export class Form extends Control {
         // This means we missed the mouseup event (maybe happened outside browser), so
         // inject a fake one.
         this._capture.update(data.x, data.y);
-        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, data.buttons, true));
+        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, data.buttons, this._capture.control, true));
         this.endCapture();
       }
 
@@ -198,7 +198,7 @@ export class Form extends Control {
 
       if (restoreCapture && this._capture !== restoreCapture) {
         restoreCapture.update(data.x, data.y);
-        restoreCapture.control.mouseup.fire(new FormMouseUpEvent(restoreCapture.x, restoreCapture.y, data.buttons, false));
+        restoreCapture.control.mouseup.fire(new FormMouseUpEvent(restoreCapture.x, restoreCapture.y, data.buttons, restoreCapture.control, false));
       }
       this._restoreCapture = null;
 
@@ -286,7 +286,7 @@ export class Form extends Control {
       this.endCapture();
 
       if (target) {
-        target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, data.buttons, wasCapture));
+        target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, data.buttons, target.control, wasCapture));
       }
     });
 
@@ -302,7 +302,7 @@ export class Form extends Control {
     this.surface.mousedbl.add(ev => {
       const hit = this.controlAtPoint(ev.x, ev.y);
       if (hit) {
-        hit.control.mousedbl.fire(new FormMouseUpEvent(hit.x, hit.y, ev.buttons, false));
+        hit.control.mousedbl.fire(new FormMouseUpEvent(hit.x, hit.y, ev.buttons, hit.control, false));
       }
     });
 
@@ -343,11 +343,13 @@ export class Form extends Control {
     (this._focus.control as Form).focused = true;
   }
 
-  protected paint(ctx: CanvasRenderingContext2D) {
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
     // Forms have a default (opaque) background color.
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, this.w, this.h);
+  }
 
+  protected paint(ctx: CanvasRenderingContext2D) {
     // Recursively paint the control hierarchy.
     super.paint(ctx);
 

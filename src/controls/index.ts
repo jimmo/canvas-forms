@@ -10,5 +10,5 @@ export * from './scrollbox';
 export * from './slider';
 export * from './spacer';
 export * from './textbox';
-export * from './tree';
 export * from './textcontrol';
+export * from './tree';

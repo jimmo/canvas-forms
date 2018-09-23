@@ -227,9 +227,9 @@ makeDemo('Grabber', () => {
 
 
 // Custom list item that uses a button to select itself and has a set height.
-class CustomListItem extends ListItem {
+class CustomListItem extends ListItem<string> {
   constructor(text: string) {
-    super();
+    super(text);
 
     const b = this.add(new Button(''), { x: 3, y: 3, w: 20, y2: 3 });
     b.click.add(() => {
@@ -276,6 +276,16 @@ class DemoTreeNode implements TreeNode {
 
   treeText(): string {
     return this.name;
+  }
+
+  treeHasChildren(): boolean {
+    return true;
+  }
+
+  treeSelect() {
+  }
+
+  treeActivate() {
   }
 
   async treeChildren(): Promise<TreeNode[]> {

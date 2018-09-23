@@ -3,16 +3,20 @@ import { EventSource } from '../core/events';
 import { FillConstraint } from '../constraints/fill';
 import { CoordAxis, Coord } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
-import { TextControl } from './textcontrol';
+import { TextControl, FontStyle } from './textcontrol';
 
 export class Button extends TextControl {
   // Remember down state so paint can draw the button appropriately.
-  private down: boolean = false;
+  protected down: boolean = false;
+  protected active: boolean = false;
 
   click: EventSource;
 
   constructor(text?: string) {
     super(text);
+
+    // Buttons have a border by default.
+    this.border = true;
 
     this.click = new EventSource();
 
@@ -40,47 +44,45 @@ export class Button extends TextControl {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
+    this.paintText(ctx);
+  }
+
+  protected paintText(ctx: CanvasRenderingContext2D) {
+    // Draw text.
+    ctx.font = this.getFont();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = this.getColor();
+
+    let x = this.w / 2;
+    if (this.icon) {
+      x += (this.getFontSize() + 5) / 2;
+    }
+    ctx.fillText(this.text, x, this.h / 2, this.w);
+
+    if (this.icon) {
+      ctx.font = this.getFontSize() + 'px ' + this.iconFontName;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+
+      let w = Math.ceil(ctx.measureText(this.text).width);
+      x = this.w / 2 - w / 2 - 5;
+      ctx.fillText(this.icon, x, this.h / 2);
+    }
+
+  }
+
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
     // Background colour.
     if (this.down) {
       ctx.fillStyle = '#ff9800';
+    } else if (this.active) {
+      ctx.fillStyle = '#ffaa44';
     } else {
       ctx.fillStyle = '#ffeecc';
     }
 
-    // Border colour & style.
-    if (this.down) {
-      ctx.strokeStyle = 'black';
-    } else {
-      ctx.strokeStyle = '#cc8020';
-    }
-    ctx.lineWidth = 1;
-    ctx.lineJoin = 'round';
-
-    // Radius for the border edge. When in a ButtonGroup, the button needs
-    // to disable rounded corners on one (or both) of it's left or right side.
-    const r = 6;
-    let rl = r;
-    let rr = r;
-    if (this.parent instanceof ButtonGroup) {
-      if (this !== this.parent.controls[0]) {
-        rl = 0;
-      }
-      if (this !== this.parent.controls[this.parent.controls.length - 1]) {
-        rr = 0;
-      }
-    }
-
-    // Define rounded rect.
-    ctx.beginPath();
-    ctx.moveTo(rl, 0);
-    ctx.lineTo(this.w - rr, 0);
-    ctx.arcTo(this.w, 0, this.w, rr, rr);
-    ctx.lineTo(this.w, this.h - rr);
-    ctx.arcTo(this.w, this.h, this.w - rr, this.h, rr);
-    ctx.lineTo(rl, this.h);
-    ctx.arcTo(0, this.h, 0, this.h - rl, rl);
-    ctx.lineTo(0, rl);
-    ctx.arcTo(0, 0, rl, 0, rl);
+    this.paintBorderPath(ctx);
 
     // Draw a very faint dropshadow when the mouse is down.
     if (this.down) {
@@ -93,16 +95,77 @@ export class Button extends TextControl {
     // Fill rounded rect, with shadow.
     ctx.fill();
 
-    // Stroke border, no shadow.
     ctx.shadowColor = 'transparent';
-    ctx.stroke();
 
-    // Draw text.
-    ctx.font = this.getFont();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = this.getColor();
-    ctx.fillText(this.evalText(), this.w / 2, this.h / 2, this.w);
+    if (this.parent instanceof ButtonGroup) {
+      if (this !== this.parent.controls[0]) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, this.h);
+        ctx.strokeStyle = '#cc8020';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Override this separately to customise the basic decorations (border, focus, etc).
+  protected paintBorder(ctx: CanvasRenderingContext2D) {
+    // Border colour & style.
+    if (this.down) {
+      ctx.strokeStyle = 'black';
+    } else {
+      ctx.strokeStyle = '#cc8020';
+    }
+    ctx.lineWidth = 1;
+    ctx.lineJoin = 'round';
+
+    this.paintBorderPath(ctx);
+
+    // Stroke border, no shadow.
+    ctx.stroke();
+  }
+
+  protected paintBorderPath(ctx: CanvasRenderingContext2D) {
+    if (this.border) {
+      // Radius for the border edge. When in a ButtonGroup, the button needs
+      // to disable rounded corners on one (or both) of it's left or right side.
+      const r = 6;
+      let rl = r;
+      let rr = r;
+      if (this.parent instanceof ButtonGroup) {
+        if (this !== this.parent.controls[0]) {
+          rl = 0;
+        }
+        if (this !== this.parent.controls[this.parent.controls.length - 1]) {
+          rr = 0;
+        }
+      }
+
+      // Define rounded rect.
+      ctx.beginPath();
+      ctx.moveTo(rl, 0);
+      ctx.lineTo(this.w - rr, 0);
+      ctx.arcTo(this.w, 0, this.w, rr, rr);
+      ctx.lineTo(this.w, this.h - rr);
+      ctx.arcTo(this.w, this.h, this.w - rr, this.h, rr);
+      ctx.lineTo(rl, this.h);
+      ctx.arcTo(0, this.h, 0, this.h - rl, rl);
+      ctx.lineTo(0, rl);
+      ctx.arcTo(0, 0, rl, 0, rl);
+    } else {
+      ctx.moveTo(0, 0);
+      ctx.lineTo(this.w, 0);
+      ctx.lineTo(this.w, this.h);
+      ctx.lineTo(0, this.h);
+      ctx.closePath();
+    }
+  }
+
+  setActive(value: boolean) {
+    this.active = value;
+    this.setStyle(FontStyle.BOLD, value);
+    this.repaint();
   }
 }
 

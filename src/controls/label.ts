@@ -7,6 +7,9 @@ export class Label extends TextControl {
   // the text exactly.
   fit: boolean = false;
 
+  // TODO: make Enum.
+  center: boolean = false;
+
   constructor(text?: LabelText) {
     super(text);
   }
@@ -23,12 +26,44 @@ export class Label extends TextControl {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.getColor();
 
+    if (this.center) {
+      ctx.textAlign = 'center';
+    } else {
+      ctx.textAlign = 'left';
+    }
+
     // Split the text by newline and draw each line individually.
-    const lines = this.evalText().split('\n');
+    const lines = this.text.split('\n');
     const lineHeight = (this.getFontSize() + 3);
     const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
+    let x = 0;
+    if (this.center) {
+      x = this.w / 2;
+      if (this.icon) {
+        x += (this.getFontSize() + 10) / 2;
+      }
+    } else {
+      if (this.icon) {
+        x += this.getFontSize() + 10;
+      }
+    }
+    let w = 0;
     for (let i = 0; i < lines.length; ++i) {
-      ctx.fillText(lines[i], 0, y + i * lineHeight);
+      ctx.fillText(lines[i], x, y + i * lineHeight);
+      w = Math.max(w, Math.ceil(ctx.measureText(lines[i]).width));
+    }
+
+    if (this.icon) {
+      ctx.font = this.getFontSize() + 'px ' + this.iconFontName;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+
+      if (this.center) {
+        x = this.w / 2 - (this.getFontSize() + 10) / 2 - w;
+      } else {
+        x = this.getFontSize() / 2;
+      }
+      ctx.fillText(this.icon, x, this.h / 2);
     }
   }
 
@@ -48,12 +83,21 @@ export class Label extends TextControl {
       return false;
     }
 
+    const text = this.text;
+
     // Width is the measured width of the widest line.
     this.context().font = this.getFont();
-    const lines = this.evalText().split('\n');
+    const lines = text.split('\n');
     this.w = 0;
     for (const line of lines) {
-      this.w = Math.max(this.w, Math.ceil(this.context().measureText(this.evalText()).width) + 10);
+      this.w = Math.max(this.w, Math.ceil(this.context().measureText(line).width) + 10);
+    }
+
+    if (this.icon) {
+      this.w += this.getFontSize();
+      if (this.text) {
+        this.w += 10;
+      }
     }
 
     // Height is based on number-of-lines times line-height.

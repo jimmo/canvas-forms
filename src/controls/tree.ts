@@ -15,7 +15,7 @@ export interface TreeNode {
   treeDropAllowed(data: any): boolean;
   treeDrop(data: any): void;
   treeSelect(): void;
-  treeDblClick(): void;
+  treeActivate(): void;
 }
 
 export abstract class SimpleTreeNode implements TreeNode {
@@ -46,7 +46,7 @@ export abstract class SimpleTreeNode implements TreeNode {
   treeSelect(): void {
   }
 
-  treeDblClick(): void {
+  treeActivate(): void {
   }
 }
 
@@ -106,7 +106,7 @@ export class StaticTree implements TreeNode {
   treeSelect(): void {
   }
 
-  treeDblClick(): void {
+  treeActivate(): void {
   }
 }
 
@@ -180,6 +180,10 @@ class TreeItem extends Control {
       // Double click on the text toggles the node.
       if (ev.x > 22) {
         this.toggle();
+
+        if (!this.node.treeHasChildren()) {
+          this.node.treeActivate();
+        }
       }
     });
   }
@@ -401,5 +405,10 @@ export class Tree extends ScrollBox {
     }
     this.selected = node;
     node.setSelected(true);
+  }
+
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, this.w, this.h);
   }
 }

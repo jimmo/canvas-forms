@@ -1,5 +1,6 @@
 import { Control, ControlEvent } from '../core/control';
 import { EventSource } from '../core/events';
+import { TextControl } from './textcontrol';
 
 // Fired when a textbox's text changes by user input.
 export class TextBoxChangeEvent extends ControlEvent {
@@ -8,16 +9,14 @@ export class TextBoxChangeEvent extends ControlEvent {
   }
 }
 
-class _TextBox extends Control {
-  text: string;
+class _TextBox extends TextControl {
   change: EventSource<TextBoxChangeEvent>;
   multiline: boolean = false;
   protected elem: (HTMLTextAreaElement | HTMLInputElement) = null;
 
   constructor(text?: string) {
-    super();
+    super(text);
 
-    this.text = text || '';
     this.change = new EventSource();
   }
 
@@ -87,7 +86,7 @@ class _TextBox extends Control {
     this.elem.style.fontSize = this.form().surface.htmlunits(this.getFontSize()) + 'px';
     this.elem.style.fontFamily = this.getFontName();
     this.elem.addEventListener('input', (ev) => {
-      this.text = this.elem.value;
+      this.setText(this.elem.value);
       this.change.fire(new TextBoxChangeEvent(this, this.text));
     });
     (this.elem as HTMLElement).addEventListener('keypress', (ev) => {
@@ -128,11 +127,6 @@ class _TextBox extends Control {
   drop(data: any) {
     this.setText(data);
   }
-
-  setText(text: string) {
-    this.text = text;
-    this.repaint();
-  }
 }
 
 export class TextBox extends _TextBox {
@@ -165,13 +159,15 @@ export class FocusTextBox extends _TextBox {
       setTimeout(() => {
         this.elem.focus();
 
+        const text = this.text;
+
         // TODO: Make 2d version of this for multiline.
         if (!this.multiline) {
           // Figure out which letter they clicked on and set the cursor appropriately.
           this.context().font = this.getFont();
-          for (let i = 0; i < this.text.length; ++i) {
+          for (let i = 0; i < text.length; ++i) {
             // TODO: This should round, rathern than trunc.
-            if (data.x < this.context().measureText(this.text.substr(0, i)).width) {
+            if (data.x < this.context().measureText(text.substr(0, i)).width) {
               this.elem.setSelectionRange(i - 1, i - 1);
               break;
             }
