@@ -16,18 +16,23 @@ export class ListItem<T> extends Control {
     this.select = new EventSource();
   }
 
-  protected paint(ctx: CanvasRenderingContext2D) {
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
     if (this.selected) {
       ctx.fillStyle = 'orange';
       ctx.fillRect(0, 0, this.w, this.h);
     }
-
-    super.paint(ctx);
   }
 
-  selfConstrain() {
-    this.h = this.form().defaultHeight();
-    return true;
+  protected paintBorder(ctx: CanvasRenderingContext2D) {
+    ctx.strokeStyle = '#c0c0c0';
+    ctx.beginPath();
+    ctx.moveTo(0, this.h);
+    ctx.lineTo(this.w, this.h);
+    ctx.stroke();
+  }
+
+  protected defaultConstraints() {
+    this.coords.h.set(this.form().defaultHeight());
   }
 
   setSelected(value: boolean) {
@@ -119,8 +124,9 @@ export class List<T> extends ScrollBox {
     ctx.fillRect(0, 0, this.w, this.h);
   }
 
-  addItem(item: T): ListItem<T> {
-    const itemControl = new this.itemType(item);
+  addItem(item: T, itemType?: (new (item: T) => ListItem<T>)): ListItem<T> {
+    itemType = itemType || this.itemType;
+    const itemControl = new itemType(item);
     itemControl.select.add(() => {
       for (const c of this.controls) {
         if (c === itemControl) {

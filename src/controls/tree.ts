@@ -11,6 +11,7 @@ export interface TreeNode {
   treeChildren(): Promise<TreeNode[]>;
   treeHasChildren(): boolean;
   treeText(): string;
+  treeIcon(): string;
   treeDrag(): boolean;
   treeDropAllowed(data: any): boolean;
   treeDrop(data: any): void;
@@ -19,7 +20,7 @@ export interface TreeNode {
 }
 
 export abstract class SimpleTreeNode implements TreeNode {
-  constructor(readonly text: string) {
+  constructor(readonly text: string, readonly icon?: string) {
   }
 
   treeHasChildren(): boolean {
@@ -30,6 +31,10 @@ export abstract class SimpleTreeNode implements TreeNode {
 
   treeText(): string {
     return this.text;
+  }
+
+  treeIcon(): string {
+    return this.icon;
   }
 
   treeDrag(): boolean {
@@ -51,8 +56,8 @@ export abstract class SimpleTreeNode implements TreeNode {
 }
 
 export class SimpleTreeLeafNode extends SimpleTreeNode {
-  constructor(text: string) {
-    super(text);
+  constructor(text: string, icon?: string) {
+    super(text, icon);
   }
 
   treeHasChildren() {
@@ -72,7 +77,7 @@ export class SimpleTreeLeafNode extends SimpleTreeNode {
 export class StaticTree implements TreeNode {
   private children: StaticTree[] = [];
 
-  constructor(readonly text: string) {
+  constructor(readonly text: string, readonly icon?: string) {
   }
 
   add(tree: StaticTree) {
@@ -90,6 +95,10 @@ export class StaticTree implements TreeNode {
 
   treeText(): string {
     return this.text;
+  }
+
+  treeIcon(): string {
+    return this.icon;
   }
 
   treeDrag(): boolean {
@@ -149,6 +158,7 @@ class TreeItem extends Control {
     this.select = new EventSource();
 
     this.label = this.add(new Label(() => this.node.treeText()), 22, 1);
+    this.label.setIcon(() => this.node.treeIcon());
     this.label.fit = true;
 
     this.mousedown.add((ev) => {

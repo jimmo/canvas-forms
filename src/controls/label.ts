@@ -10,8 +10,8 @@ export class Label extends TextControl {
   // TODO: make Enum.
   center: boolean = false;
 
-  constructor(text?: LabelText) {
-    super(text);
+  constructor(text?: LabelText, icon?: LabelText) {
+    super(text, icon);
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
@@ -39,11 +39,11 @@ export class Label extends TextControl {
     let x = 0;
     if (this.center) {
       x = this.w / 2;
-      if (this.icon) {
+      if (this.iconCode) {
         x += (this.getFontSize() + 10) / 2;
       }
     } else {
-      if (this.icon) {
+      if (this.iconCode) {
         x += this.getFontSize() + 10;
       }
     }
@@ -53,7 +53,7 @@ export class Label extends TextControl {
       w = Math.max(w, Math.ceil(ctx.measureText(lines[i]).width));
     }
 
-    if (this.icon) {
+    if (this.iconCode) {
       ctx.font = this.getFontSize() + 'px ' + this.iconFontName;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
@@ -63,7 +63,7 @@ export class Label extends TextControl {
       } else {
         x = this.getFontSize() / 2;
       }
-      ctx.fillText(this.icon, x, this.h / 2);
+      ctx.fillText(this.iconCode, x, this.h / 2);
     }
   }
 
@@ -93,7 +93,7 @@ export class Label extends TextControl {
       this.w = Math.max(this.w, Math.ceil(this.context().measureText(line).width) + 10);
     }
 
-    if (this.icon) {
+    if (this.iconCode) {
       this.w += this.getFontSize();
       if (this.text) {
         this.w += 10;

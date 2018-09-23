@@ -278,6 +278,10 @@ class DemoTreeNode implements TreeNode {
     return this.name;
   }
 
+  treeIcon(): string {
+    return null;
+  }
+
   treeHasChildren(): boolean {
     return true;
   }

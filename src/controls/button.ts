@@ -1,4 +1,4 @@
-import { Control } from '../core/control';
+import { Control, LabelText } from '../core/control';
 import { EventSource } from '../core/events';
 import { FillConstraint } from '../constraints/fill';
 import { CoordAxis, Coord } from '../core/enums';
@@ -12,8 +12,8 @@ export class Button extends TextControl {
 
   click: EventSource;
 
-  constructor(text?: string) {
-    super(text);
+  constructor(text?: LabelText, icon?: LabelText) {
+    super(text, icon);
 
     // Buttons have a border by default.
     this.border = true;
@@ -55,19 +55,22 @@ export class Button extends TextControl {
     ctx.fillStyle = this.getColor();
 
     let x = this.w / 2;
-    if (this.icon) {
+    if (this.iconCode) {
       x += (this.getFontSize() + 5) / 2;
     }
     ctx.fillText(this.text, x, this.h / 2, this.w);
 
-    if (this.icon) {
+    if (this.iconCode) {
       ctx.font = this.getFontSize() + 'px ' + this.iconFontName;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
 
       let w = Math.ceil(ctx.measureText(this.text).width);
-      x = this.w / 2 - w / 2 - 5;
-      ctx.fillText(this.icon, x, this.h / 2);
+      x = this.w / 2;
+      if (this.text) {
+        x -= w / 2 + 5;
+      }
+      ctx.fillText(this.iconCode, x, this.h / 2);
     }
 
   }

@@ -12,19 +12,19 @@ export abstract class TextControl extends Control {
   // The text is either a string or a callback that returns a string.
   // This allows for extremely simple "data binding".
   private _text: LabelText;
-  private style: FontStyle;
-  private _icon: string;
-  private _iconFontName: string;
+  private _style: FontStyle;
+  private _icon: LabelText;
 
   // Default font and color used by many controls (e.g. Label, Button, Checkbox, etc).
-  private fontName: string = null;
-  private fontSize: number = null;
-  private color: string = null;
+  private _fontName: string = null;
+  private _fontSize: number = null;
+  private _color: string = null;
 
-  constructor(text?: LabelText) {
+  constructor(text?: LabelText, icon?: LabelText) {
     super();
 
     this._text = text || '';
+    this._icon = icon || null;
   }
 
   // Returns the text as a string (i.e. handles when `this._text` is a function).
@@ -37,11 +37,29 @@ export abstract class TextControl extends Control {
   }
 
   get icon(): string {
-    return this._icon;
+    if (this._icon instanceof Function) {
+      return this._icon();
+    } else {
+      return this._icon;
+    }
+  }
+
+  get iconCode(): string {
+    const icon = this.icon;
+    if (icon) {
+      return icon.split(',')[1];
+    } else {
+      return null;
+    }
   }
 
   get iconFontName(): string {
-    return this._iconFontName;
+    const icon = this.icon;
+    if (icon) {
+      return icon.split(',')[0];
+    } else {
+      return null;
+    }
   }
 
   // Replace the control's text and repaint.
@@ -51,10 +69,15 @@ export abstract class TextControl extends Control {
     this.repaint();
   }
 
+  setIcon(icon: LabelText) {
+    this._icon = icon;
+    this.repaint();
+  }
+
   setFont(name?: string, size?: number, color?: string) {
-    this.fontName = name || this.fontName;
-    this.fontSize = size || this.fontSize;
-    this.color = color || this.color;
+    this._fontName = name || this._fontName;
+    this._fontSize = size || this._fontSize;
+    this._color = color || this._color;
   }
 
   setStyle(style: FontStyle, enable?: boolean) {
@@ -63,25 +86,25 @@ export abstract class TextControl extends Control {
     } else if (enable === false) {
       this.removeStyle(style);
     } else {
-      this.style = style;
+      this._style = style;
     }
   }
 
   addStyle(style: FontStyle) {
-    this.style |= style;
+    this._style |= style;
   }
 
   removeStyle(style: FontStyle) {
-    this.style &= ~style;
+    this._style &= ~style;
   }
 
   // Returns a font that can be used by the context.
   protected getFont() {
     let prefix = '';
-    if (this.style & FontStyle.BOLD) {
+    if (this._style & FontStyle.BOLD) {
       prefix += 'bold ';
     }
-    if (this.style & FontStyle.ITALIC) {
+    if (this._style & FontStyle.ITALIC) {
       prefix += 'italic ';
     }
     return prefix + this.getFontSize() + 'px ' + this.getFontName();
@@ -89,23 +112,21 @@ export abstract class TextControl extends Control {
 
   // Returns the font name only.
   protected getFontName(): string {
-    return this.fontName || 'sans';
+    return this._fontName || 'sans';
   }
 
   // Returns the font size in pixels.
   protected getFontSize(): number {
-    return this.fontSize || 18;
+    return this._fontSize || 18;
   }
 
   // Returns the default foreground color for this control.
   protected getColor(): string {
-    return this.color || '#202020';
+    return this._color || '#202020';
   }
 
-  setIcon(icon: string) {
-    const v = icon.split(',');
-    this._iconFontName = v[0];
-    this._icon = v[1];
+  setColor(color: string) {
+    this._color = color;
     this.repaint();
   }
 }

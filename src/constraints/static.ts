@@ -56,6 +56,9 @@ export class StaticConstraint extends Constraint {
     if (this.v !== v) {
       this.v = v;
       this.controls[0].relayout();
+      return true;
+    } else {
+      return false;
     }
   }
 

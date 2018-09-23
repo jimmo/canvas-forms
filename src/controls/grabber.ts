@@ -22,6 +22,11 @@ export class Grabber extends Control {
   // Optional (min,max) bounds for each of the axes.
   private _bounds: Map<CoordAxis, [number, number]> = new Map();
 
+  // Optional snap-to-grid
+  private _snap: Map<CoordAxis, number> = new Map();
+
+  moved: EventSource;
+
   // Place the grabber at the specified x and/or y location.
   // Whichever of x and/or y is specified will define the axes that the grabber can slide along.
   constructor(x?: number, y?: number) {
@@ -33,6 +38,8 @@ export class Grabber extends Control {
     // No bounds by default.
     this._bounds.set(CoordAxis.X, [null, null]);
     this._bounds.set(CoordAxis.Y, [null, null]);
+
+    this.moved = new EventSource();
 
     // Simple mouse down/move/up drag handler.
     let down: FormMouseDownEvent = null;
@@ -51,11 +58,16 @@ export class Grabber extends Control {
         return;
       }
 
+      let moved = false;
       if (this._xConstraint) {
-        this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + data.dragX));
+        moved = moved || this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + this.snap(CoordAxis.X, data.dragX)));
       }
       if (this._yConstraint) {
-        this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + data.dragY));
+        moved = moved || this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + this.snap(CoordAxis.Y, data.dragY)));
+      }
+
+      if (moved) {
+        this.moved.fire();
       }
     });
   }
@@ -72,19 +84,28 @@ export class Grabber extends Control {
     return v;
   }
 
+  private snap(axis: CoordAxis, v: number) {
+    const snap = this._snap.get(axis);
+    return Math.round(v / snap) * snap;
+  }
+
   // Set the min and/or max bounds for a specified axis.
   setBound(axis: CoordAxis, min?: number, max?: number) {
     this._bounds.set(axis, [min, max]);
+  }
+
+  setSnap(axis: CoordAxis, snap: number) {
+    this._snap.set(axis, snap);
   }
 
   protected added() {
     super.added();
 
     // Now that we've been added to a parent, create the static constraints that position the grabber.
-    if (this._startX) {
+    if (this._startX !== null) {
       this._xConstraint = this.coords.x.set(this._startX);
     }
-    if (this._startY) {
+    if (this._startY !== null) {
       this._yConstraint = this.coords.y.set(this._startY);
     }
   }
