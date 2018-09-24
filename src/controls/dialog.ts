@@ -86,17 +86,17 @@ export class AlertDialog extends Dialog {
 export class PromptDialog extends Dialog {
   name: TextBox;
 
-  constructor(prompt: string) {
+  constructor(prompt: string, text?: string) {
     super();
 
     const l = this.add(new Label(prompt), 20, 20);
     l.fit = true;
 
-    this.name = this.add(new TextBox(), 20, 54);
+    this.name = this.add(new TextBox(text), 20, 54);
     this.name.coords.x2.set(20);
 
     this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
-      this.close('Cancel');
+      this.close(null);
     });
     this.add(new Button('OK'), { x2: 190, y2: 20 }).click.add(() => {
       this.close(this.name.text);
