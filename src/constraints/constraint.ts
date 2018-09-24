@@ -35,7 +35,7 @@ export abstract class Constraint {
     }
 
     // TODO: Consider having the form own all constraints.
-    this.parent.childConstraints.push(this);
+    this.parent.addConstraint(this);
 
     // Any constraint is going to require a relayout.
     // TODO: consider optimising this to just re-layout the parent. (But with content
@@ -60,13 +60,7 @@ export abstract class Constraint {
 
     // Remove this constraint from the parent.
     if (this.parent) {
-      for (let i = 0; i < this.parent.childConstraints.length; ++i) {
-        if (this.parent.childConstraints[i] === this) {
-          this.parent.childConstraints.splice(i, 1);
-          this.parent.relayout();
-          return;
-        }
-      }
+      this.parent.removeConstraint(this);
     }
   }
 

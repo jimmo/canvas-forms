@@ -1,6 +1,6 @@
 import { Control, ControlEvent } from '../core/control';
 import { EventSource } from '../core/events';
-import { TextControl } from './textcontrol';
+import { TextControl, TextAlign, FontStyle } from './textcontrol';
 
 // Fired when a textbox's text changes by user input.
 export class TextBoxChangeEvent extends ControlEvent {
@@ -14,10 +14,23 @@ class _TextBox extends TextControl {
   multiline: boolean = false;
   protected elem: (HTMLTextAreaElement | HTMLInputElement) = null;
 
+  private _align: TextAlign = TextAlign.LEFT;
+
   constructor(text?: string) {
     super(text);
 
+    this.border = true;
+
     this.change = new EventSource();
+  }
+
+  get align() {
+    return this._align;
+  }
+
+  set align(value: TextAlign) {
+    this._align = value;
+    this.repaint();
   }
 
   unpaint() {
@@ -30,8 +43,6 @@ class _TextBox extends TextControl {
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
-    super.paint(ctx);
-
     if (this.elem && !this.form().allowDom(this)) {
       this.unpaint();
     }
@@ -41,14 +52,7 @@ class _TextBox extends TextControl {
 
     ctx.clearRect(0, 0, this.w, this.h);
 
-    if (this.dragTarget) {
-      ctx.strokeStyle = 'cornflowerblue';
-    } else {
-      ctx.strokeStyle = 'black';
-    }
-    ctx.lineWidth = 1;
-    ctx.lineJoin = 'round';
-    ctx.strokeRect(0, 0, this.w, this.h);
+    super.paint(ctx);
 
     if (!this.elem) {
       // TODO: This positioning is sometimes off by one pixel.
@@ -61,16 +65,27 @@ class _TextBox extends TextControl {
         ctx.textBaseline = 'middle';
         y = Math.round(this.h / 2);
       }
-      ctx.fillStyle = this.getColor();
+      if (this._align === TextAlign.CENTER) {
+        ctx.textAlign = 'center';
+      } else {
+        ctx.textAlign = 'left';
+      }
+
+      let x = 3;
+      if (this._align === TextAlign.CENTER) {
+        x = this.w / 2 + 1;
+      }
+
+      ctx.fillStyle = this.color;
 
       const lines = this.text.split('\n');
       for (let i = 0; i < lines.length; ++i) {
-        ctx.fillText(lines[i], 3, y + i * (this.getFontSize() + 3));
+        ctx.fillText(lines[i], x, y + i * (this.getFontSize() + 3));
       }
     }
   }
 
-  createElem() {
+  protected createElem() {
     if (this.multiline) {
       this.elem = document.createElement('textarea');
     } else {
@@ -85,8 +100,11 @@ class _TextBox extends TextControl {
     this.elem.style.paddingLeft = '3px';
     this.elem.style.fontSize = this.form().surface.htmlunits(this.getFontSize()) + 'px';
     this.elem.style.fontFamily = this.getFontName();
+    this.elem.style.fontWeight = this.hasStyle(FontStyle.BOLD) ? ' bold' : 'normal';
+    this.elem.style.fontStyle = this.hasStyle(FontStyle.ITALIC) ? ' italic' : 'normal';
+    this.elem.style.textAlign = this._align === TextAlign.CENTER ? 'center' : 'left';
     this.elem.addEventListener('input', (ev) => {
-      this.setText(this.elem.value);
+      this.text = this.elem.value;
       this.change.fire(new TextBoxChangeEvent(this, this.text));
     });
     (this.elem as HTMLElement).addEventListener('keypress', (ev) => {
@@ -94,14 +112,10 @@ class _TextBox extends TextControl {
         this.parent.submit();
       }
     });
-    this.elem.addEventListener('blur', (ev) => {
-      this.unpaint();
-      this.repaint();
-    });
     this.context().canvas.parentElement.insertBefore(this.elem, this.context().canvas);
   }
 
-  positionElem() {
+  protected positionElem() {
     this.elem.style.left = this.form().surface.htmlunits(this.formX()) + 'px';
     this.elem.style.top = this.form().surface.htmlunits(this.formY()) + 'px';
     this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
@@ -116,7 +130,7 @@ class _TextBox extends TextControl {
     this.elem.value = this.text;
   }
 
-  removed() {
+  protected removed() {
     this.unpaint();
   }
 
@@ -125,7 +139,7 @@ class _TextBox extends TextControl {
   }
 
   drop(data: any) {
-    this.setText(data);
+    this.text = data;
   }
 }
 
@@ -175,6 +189,14 @@ export class FocusTextBox extends _TextBox {
         }
       }, 0);
 
+      this.repaint();
+    });
+  }
+
+  protected createElem() {
+    super.createElem();
+    this.elem.addEventListener('blur', (ev) => {
+      this.unpaint();
       this.repaint();
     });
   }

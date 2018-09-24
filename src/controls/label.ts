@@ -1,17 +1,35 @@
-import { Control, LabelText } from '../core/control';
-import { TextControl } from './textcontrol';
+import { Control } from '../core/control';
+import { LabelText, TextControl, TextAlign } from './textcontrol';
+import { MenuItem } from '../core';
 
 // Simple text control that can size to content.
 export class Label extends TextControl {
   // If true, then this control will "self-constrain" its width and height to fit
   // the text exactly.
-  fit: boolean = false;
+  private _fit: boolean = false;
 
-  // TODO: make Enum.
-  center: boolean = false;
+  private _align: TextAlign = TextAlign.LEFT;
 
   constructor(text?: LabelText, icon?: LabelText) {
     super(text, icon);
+  }
+
+  get align() {
+    return this._align;
+  }
+
+  set align(value: TextAlign) {
+    this._align = value;
+    this.repaint();
+  }
+
+  get fit() {
+    return this._fit;
+  }
+
+  set fit(value: boolean) {
+    this._fit = value;
+    this.relayout();
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
@@ -24,9 +42,9 @@ export class Label extends TextControl {
     // Draw the text, centered vertically and left aligned.
     ctx.font = this.getFont();
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = this.getColor();
+    ctx.fillStyle = this.color;
 
-    if (this.center) {
+    if (this._align === TextAlign.CENTER) {
       ctx.textAlign = 'center';
     } else {
       ctx.textAlign = 'left';
@@ -37,7 +55,7 @@ export class Label extends TextControl {
     const lineHeight = (this.getFontSize() + 3);
     const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
     let x = 0;
-    if (this.center) {
+    if (this._align === TextAlign.CENTER) {
       x = this.w / 2;
       if (this.iconCode) {
         x += (this.getFontSize() + 10) / 2;
@@ -58,7 +76,7 @@ export class Label extends TextControl {
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
 
-      if (this.center) {
+      if (this._align === TextAlign.CENTER) {
         x = this.w / 2 - (this.getFontSize() + 10) / 2 - w;
       } else {
         x = this.getFontSize() / 2;
@@ -68,10 +86,14 @@ export class Label extends TextControl {
   }
 
   // Override from `TextControl` to also do a relayout.
-  setText(text: string) {
-    super.setText(text);
+  get text() {
+    return super.text;
+  }
 
-    if (this.fit) {
+  set text(text: string) {
+    super.text = text;
+
+    if (this._fit) {
       // If we're sized to content, then we'll need a relayout.
       this.relayout();
     }
@@ -79,7 +101,7 @@ export class Label extends TextControl {
 
   // Overriden from Control -- apply fit-to-text.
   selfConstrain() {
-    if (!this.fit) {
+    if (!this._fit) {
       return false;
     }
 

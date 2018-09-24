@@ -1,4 +1,4 @@
-import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode } from 'canvas-forms';
+import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, FontStyle, MenuSeparatorItem } from 'canvas-forms';
 
 const form = new Form(new Surface('canvas'));
 
@@ -72,7 +72,7 @@ makeDemo('Modal', () => {
   const l = c.add(new Label(), 20, 150);
   b2.click.add(async () => {
     const result = await new PromptDialog('Enter some text:').modal(form);
-    l.setText('You clicked: ' + result);
+    l.text = 'You clicked: ' + result;
   });
 
   const b3 = c.add(new Button('Fill'), 10, 190);
@@ -91,7 +91,7 @@ makeDemo('Center', () => {
   b.coords.center(CoordAxis.Y);
 
   b.click.add(() => {
-    b.setText('Thanks');
+    b.text = 'Thanks';
   });
 });
 
@@ -148,9 +148,9 @@ makeDemo('CheckBox', () => {
   // The button only works if the checkbox is enabled.
   b.click.add(() => {
     if (cb.checked) {
-      b.setText('Thanks');
+      b.text = 'Thanks';
       setTimeout(() => {
-        b.setText('Click me');
+        b.text = 'Click me';
       }, 1000);
     }
   });
@@ -169,14 +169,14 @@ makeDemo('Slider', () => {
   const s1 = c.add(new Slider(4, 0, 20, 1), 10, 10, 400);
   const l1 = c.add(new Label('4'), 420, 10);
   s1.change.add(() => {
-    l1.setText(s1.value.toString());
+    l1.text = s1.value.toString();
   });
 
   // Continuous slider.
   const s2 = c.add(new Slider(20, 0, 100), 10, 50, 400);
   const l2 = c.add(new Label('20'), 420, 50);
   s2.change.add(() => {
-    l2.setText((Math.round(s2.value * 10) / 10).toString());
+    l2.text = (Math.round(s2.value * 10) / 10).toString();
   });
 });
 
@@ -188,7 +188,7 @@ makeDemo('TextBox', () => {
   const l1 = c.add(new Label(t1.text), 10, 50);
   l1.fit = true;
   t1.change.add(() => {
-    l1.setText(t1.text);
+    l1.text = t1.text;
   });
 
   // Textbox that only loads the DOM control when focused.
@@ -197,7 +197,7 @@ makeDemo('TextBox', () => {
   const l2 = c.add(new Label(t2.text), 10, 210);
   l2.fit = true;
   t2.change.add(() => {
-    l2.setText(t2.text);
+    l2.text = t2.text;
   });
 
   // Multi-line textbox (uses DOM textarea).
@@ -206,7 +206,7 @@ makeDemo('TextBox', () => {
   const l3 = c.add(new Label(t3.text), 400, 220);
   l3.fit = true;
   t3.change.add(() => {
-    l3.setText(t3.text);
+    l3.text = t3.text;
   });
 });
 
@@ -239,9 +239,8 @@ class CustomListItem extends ListItem<string> {
     this.add(new Label(text), { x: 30, y: 3, x2: 3, y2: 3 });
   }
 
-  selfConstrain() {
-    this.h = 40;
-    return true;
+  protected defaultConstraints() {
+    this.coords.h.set(40);
   }
 }
 
@@ -336,9 +335,9 @@ makeDemo('Tree', () => {
 makeDemo('Button', () => {
   const b1 = c.add(new Button('Hello'), 10, 10);
   b1.click.add(async () => {
-    b1.setText('Goodbye');
+    b1.text = 'Goodbye';
     await delay(1000);
-    b1.setText('Hello');
+    b1.text = 'Hello';
   });
 
   const g1 = c.add(new ButtonGroup(), 10, 100, 400, 32);
@@ -361,7 +360,7 @@ makeDemo('Animation', () => {
   b1.click.add(async () => {
     // Doesn't set the button text until after the animation is finished.
     await a1.start();
-    b1.setText('There');
+    b1.text = 'There';
   });
 
   // Buttons that fade out then remove themselves.
@@ -403,4 +402,45 @@ makeDemo('Scrolling', () => {
   const sl = s2.add(new Slider(), 10, 300, 140);
   const l1 = s1.add(new Label('hello'), 10, 600);
   const l2 = s2.add(new Label('hello'), 10, 600);
+});
+
+
+class MenuButton extends Button {
+  protected contextMenu() {
+    const remove = new MenuItem('Remove');
+    remove.click.add(async () => {
+      await new OpacityAnimator(this, 1, 0.1, 200).start();
+      this.remove();
+    });
+
+    const text = new MenuItem('Change Text');
+    text.click.add(() => {
+      this.text = 'Menu';
+    });
+
+    const bold = new MenuItem('Bold');
+    bold.click.add(() => {
+      this.toggleStyle(FontStyle.BOLD);
+    });
+
+    const italic = new MenuItem('Italic');
+    italic.click.add(() => {
+      this.toggleStyle(FontStyle.ITALIC);
+    });
+
+    return [
+      remove,
+      text,
+      new MenuSeparatorItem(),
+      bold,
+      italic,
+    ]
+  }
+
+}
+
+makeDemo('Context Menu', () => {
+  for (let i = 0; i < 6; ++i) {
+    const b = c.add(new MenuButton(`${i}`), 10 + i * 170, 50);
+  }
 });

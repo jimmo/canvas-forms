@@ -1,10 +1,12 @@
 import { Surface, SurfaceMouseEvent, SurfaceScrollEvent, SurfaceKeyEvent } from './surface';
-import { Control, ControlAtPointData } from './control';
+import { Control, ControlAtPointData, ControlAtPointOpts } from './control';
 import { Animator } from '../animation';
+import { Menu } from './menu';
+import { Timer } from './utils';
 
 export class FormMouseDownEvent extends SurfaceMouseEvent {
-  constructor(x: number, y: number, buttons: number, private readonly form: Form, private readonly hit: ControlAtPointData, readonly control: Control) {
-    super(x, y, buttons);
+  constructor(x: number, y: number, button: number, buttons: number, private readonly form: Form, private readonly hit: ControlAtPointData, readonly control: Control) {
+    super(x, y, button, buttons);
   }
 
   // Direct all future mouse events to this control until the mouse is released.
@@ -27,8 +29,8 @@ export class FormMouseDownEvent extends SurfaceMouseEvent {
 }
 
 export class FormMouseMoveEvent extends SurfaceMouseEvent {
-  constructor(x: number, y: number, buttons: number, private readonly form: Form, readonly dragX: number, readonly dragY: number, readonly dx: number, readonly dy: number, readonly capture: boolean) {
-    super(x, y, buttons);
+  constructor(x: number, y: number, button: number, buttons: number, private readonly form: Form, readonly dragX: number, readonly dragY: number, readonly dx: number, readonly dy: number, readonly capture: boolean) {
+    super(x, y, button, buttons);
   }
 
   cancelDragCapture() {
@@ -37,8 +39,8 @@ export class FormMouseMoveEvent extends SurfaceMouseEvent {
 }
 
 export class FormMouseUpEvent extends SurfaceMouseEvent {
-  constructor(x: number, y: number, buttons: number, readonly control: Control, readonly capture: boolean) {
-    super(x, y, buttons);
+  constructor(x: number, y: number, button: number, buttons: number, readonly control: Control, readonly capture: boolean) {
+    super(x, y, button, buttons);
   }
 
   inside() {
@@ -99,11 +101,11 @@ export class Form extends Control {
     super();
 
     // When the canvas resizes, relayout and repaint the entire form.
-    this.surface.resize.add(data => {
+    this.surface.resize.add(ev => {
       this.x = 0;
       this.y = 0;
-      this.w = data.w;
-      this.h = data.h;
+      this.w = ev.w;
+      this.h = ev.h;
       this.x2 = 0;
       this.y2 = 0;
       this.x2w = this.w;
@@ -117,14 +119,14 @@ export class Form extends Control {
 
     // When the mouse wheel is activated on the surface, send a scroll event to
     // the last control that a mouse event was delivered to.
-    this.surface.scroll.add(data => {
+    this.surface.scroll.add(ev => {
       if (this._focus) {
         // Walk up the tree to find a control that actually accepts the scroll event.
         // This allows us to have scrollboxes inside scrollboxes, etc.
         // Scrolling controls should return false at the end of their range.
         let c = this._focus.control;
         while (c) {
-          if (c.scrollBy(data.dx, data.dy)) {
+          if (c.scrollBy(ev.dx, ev.dy)) {
             break;
           }
           c = c.parent;
@@ -134,20 +136,25 @@ export class Form extends Control {
 
     // Map mouse events on the surface into the control that the mouse is over.
     let lastMoveX = -1, lastMoveY = -1;
+    let menuTimer: Timer = null;
 
-    this.surface.mousemove.add(data => {
-      if (this._capture && !data.primaryButton()) {
+    this.surface.mousemove.add(ev => {
+      if (menuTimer) {
+        menuTimer.reset();
+      }
+
+      if (this._capture && !ev.primaryButton()) {
         // We have capture, but the mouse is moving without the button down.
         // This means we missed the mouseup event (maybe happened outside browser), so
         // inject a fake one.
-        this._capture.update(data.x, data.y);
-        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, data.buttons, this._capture.control, true));
+        this._capture.update(ev.x, ev.y);
+        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, true));
         this.endCapture();
       }
 
       const restoreCapture = this._capture;
-      if (this._dragCapture && data.primaryButton()) {
-        if (!this._capture || (data.x !== this._capture.formX || data.y !== this._capture.formY)) {
+      if (this._dragCapture && ev.primaryButton()) {
+        if (!this._capture || (ev.x !== this._capture.formX || ev.y !== this._capture.formY)) {
           const newCapture = this._dragCapture;
           this.endCapture();
           this._restoreCapture = restoreCapture;
@@ -157,7 +164,7 @@ export class Form extends Control {
 
       if (this._capture && this._dragAllowed) {
         // Capture is enabled and the control has indicated that it's a drag source.
-        this._dragCoordinates = data;
+        this._dragCoordinates = ev;
 
         // Remove the `dragTarget` state from the previous target.
         if (this._dragTargetControl) {
@@ -167,7 +174,7 @@ export class Form extends Control {
         // Hit test and set `dragTarget` on the current target.
         // Note we set `all=true` to hit test all controls (not just the ones with
         // mouse event handlers).
-        const dragHit = this.controlAtPoint(data.x, data.y, { all: true });
+        const dragHit = this.controlAtPoint(ev.x, ev.y, { all: true });
         if (dragHit) {
           const dragTarget = dragHit.control;
           if (dragTarget !== this._capture.control && dragTarget.allowDrop(this._dragData)) {
@@ -182,9 +189,9 @@ export class Form extends Control {
       let delta = [0, 0];
       let target = this._capture;
       if (target) {
-        delta = target.update(data.x, data.y);
+        delta = target.update(ev.x, ev.y);
       } else {
-        target = this.controlAtPoint(data.x, data.y);
+        target = this.controlAtPoint(ev.x, ev.y);
         if (!target) {
           // TODO: restore capture?
           return;
@@ -194,11 +201,11 @@ export class Form extends Control {
       }
 
       // Send the mouse move event to the target.
-      target.control.mousemove.fire(new FormMouseMoveEvent(target.x, target.y, data.buttons, this, data.x - target.startX, data.y - target.startY, delta[0], delta[1], target === this._capture));
+      target.control.mousemove.fire(new FormMouseMoveEvent(target.x, target.y, ev.button, ev.buttons, this, ev.x - target.startX, ev.y - target.startY, delta[0], delta[1], target === this._capture));
 
       if (restoreCapture && this._capture !== restoreCapture) {
-        restoreCapture.update(data.x, data.y);
-        restoreCapture.control.mouseup.fire(new FormMouseUpEvent(restoreCapture.x, restoreCapture.y, data.buttons, restoreCapture.control, false));
+        restoreCapture.update(ev.x, ev.y);
+        restoreCapture.control.mouseup.fire(new FormMouseUpEvent(restoreCapture.x, restoreCapture.y, ev.button, ev.buttons, restoreCapture.control, false));
       }
       this._restoreCapture = null;
 
@@ -214,14 +221,22 @@ export class Form extends Control {
     });
 
     // Forward mouse down events to the control under the cursor.
-    this.surface.mousedown.add(data => {
-      if (!data.primaryButton()) {
+    this.surface.mousedown.add(ev => {
+      if (!ev.primaryButton()) {
         return;
       }
       if (this._capture) {
         // Should be impossible.
         return;
       }
+
+      if (menuTimer) {
+        menuTimer.cancel();
+        menuTimer = null;
+      }
+      menuTimer = new Timer(() => {
+        this.surface.contextmenu.fire(ev);
+      }, 400);
 
       // Keep bubbling until a listener calls `cancelBubble`.
       this._bubbleMouseDown = true;
@@ -230,10 +245,8 @@ export class Form extends Control {
       // Controls that we've already sent the event to.
       const exclude = [];
 
-      // TODO: We won't bubble to a sibling, always to a parent.
-
       while (this._bubbleMouseDown) {
-        const hit = this.controlAtPoint(data.x, data.y, { exclude: exclude });
+        const hit = this.controlAtPoint(ev.x, ev.y, { exclude: exclude });
         if (!hit) {
           break;
         }
@@ -244,15 +257,22 @@ export class Form extends Control {
         }
 
         // Activate the listeners for the control.
-        hit.control.mousedown.fire(new FormMouseDownEvent(hit.x, hit.y, data.buttons, this, hit, control));
+        hit.control.mousedown.fire(new FormMouseDownEvent(hit.x, hit.y, ev.button, ev.buttons, this, hit, control));
         // If we're bubbling, don't search this control again.
         exclude.push(hit.control);
       }
     });
 
-    this.surface.mouseup.add(data => {
-      if (data.primaryButton()) {
+    this.surface.mouseup.add(ev => {
+      if (ev.primaryButton()) {
         return;
+      }
+      if (!ev.wasPrimary()) {
+        return;
+      }
+      if (menuTimer) {
+        menuTimer.cancel();
+        menuTimer = null;
       }
 
       const wasCapture = this._capture !== null;
@@ -263,11 +283,11 @@ export class Form extends Control {
         // Update the control-at-point data with the new mouse coordinates.
         // (Note that this might indicate that the coordinates are outside the bounds of the control
         // which is fine because that's how capture works).
-        target.update(data.x, data.y);
+        target.update(ev.x, ev.y);
 
         // But if we're mid-drag, then we need to also notify the drop (if allowed).
         if (this._dragCoordinates) {
-          const dropHit = this.controlAtPoint(data.x, data.y);
+          const dropHit = this.controlAtPoint(ev.x, ev.y);
           if (dropHit) {
             const dropTarget = dropHit.control;
             if (dropTarget.allowDrop(this._dragData)) {
@@ -280,20 +300,20 @@ export class Form extends Control {
         this.repaint();
       } else {
         // Otherwise, send the up event to whatever is undert the cursor.
-        target = this.controlAtPoint(data.x, data.y);
+        target = this.controlAtPoint(ev.x, ev.y);
       }
 
       this.endCapture();
 
       if (target) {
-        target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, data.buttons, target.control, wasCapture));
+        target.control.mouseup.fire(new FormMouseUpEvent(target.x, target.y, ev.button, ev.buttons, target.control, wasCapture));
       }
     });
 
     // TODO: Remove this event and just have the surface send scroll events (which should
     // include the mouse coordinates, so we can just do a regular hit test).
-    this.surface.mousewheel.add(data => {
-      const hit = this.controlAtPoint(data.x, data.y);
+    this.surface.mousewheel.add(ev => {
+      const hit = this.controlAtPoint(ev.x, ev.y);
       if (hit) {
         this.updateFocus(hit);
       }
@@ -302,17 +322,36 @@ export class Form extends Control {
     this.surface.mousedbl.add(ev => {
       const hit = this.controlAtPoint(ev.x, ev.y);
       if (hit) {
-        hit.control.mousedbl.fire(new FormMouseUpEvent(hit.x, hit.y, ev.buttons, hit.control, false));
+        hit.control.mousedbl.fire(new FormMouseUpEvent(hit.x, hit.y, ev.button, ev.buttons, hit.control, false));
+      }
+    });
+
+    this.surface.contextmenu.add(ev => {
+      const exclude = [];
+
+      while (true) {
+        const hit = this.controlAtPoint(ev.x, ev.y, { exclude: exclude, all: true });
+        if (!hit) {
+          break;
+        }
+
+        const items = (hit.control as Form).contextMenu();
+        if (items) {
+          this.add(new Menu(items), ev.x, ev.y);
+          break;
+        }
+
+        exclude.push(hit.control);
       }
     });
 
     // Send the key event to all the controls in the hierarchy above the current focus.
     // TODO: provide a way to stop walking up the hierarchy, e.g. `ev.cancelBubble()`.
-    this.surface.keydown.add(data => {
+    this.surface.keydown.add(ev => {
       if (this._focus) {
         let control = this._focus.control;
         while (control) {
-          control.keydown.fire(new FormKeyEvent(data.key));
+          control.keydown.fire(new FormKeyEvent(ev.key));
           control = control.parent;
         }
       }
@@ -500,6 +539,19 @@ export class Form extends Control {
     } else {
       return this.allowDom(control.parent);
     }
+  }
+
+  controlAtPoint(x: number, y: number, opts?: ControlAtPointOpts): ControlAtPointData {
+    if (this._layers.length === 0) {
+      return super.controlAtPoint(x, y, opts);
+    }
+    const layer = this._layers[this._layers.length - 1];
+    opts = opts || {};
+    opts.formX = x;
+    opts.formY = y;
+    const cx = x - layer.x;
+    const cy = y - layer.y;
+    return layer.controlAtPoint(cx, cy, opts);
   }
 
   // Make the top-level control that contains the specified control

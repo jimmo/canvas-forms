@@ -1,9 +1,9 @@
-import { Control, LabelText } from '../core/control';
+import { Control } from '../core/control';
 import { EventSource } from '../core/events';
 import { FillConstraint } from '../constraints/fill';
 import { CoordAxis, Coord } from '../core/enums';
 import { StaticConstraint } from '../constraints/static';
-import { TextControl, FontStyle } from './textcontrol';
+import { LabelText, TextControl, FontStyle } from './textcontrol';
 
 export class Button extends TextControl {
   // Remember down state so paint can draw the button appropriately.
@@ -52,7 +52,7 @@ export class Button extends TextControl {
     ctx.font = this.getFont();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = this.getColor();
+    ctx.fillStyle = this.color;
 
     let x = this.w / 2;
     if (this.iconCode) {
@@ -167,7 +167,7 @@ export class Button extends TextControl {
 
   setActive(value: boolean) {
     this.active = value;
-    this.setStyle(FontStyle.BOLD, value);
+    this.setStyleIf(FontStyle.BOLD, value);
     this.repaint();
   }
 }

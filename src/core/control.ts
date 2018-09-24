@@ -9,10 +9,6 @@ export class ControlEvent {
   }
 }
 
-// For simple text controls (label, button, checkbox), their text can
-// be set directly or bound via a function.
-export type LabelText = string | (() => string);
-
 // Options to pass to Control::controlAtPoint.
 export interface ControlAtPointOpts {
   all?: boolean;
@@ -165,14 +161,14 @@ class ControlCoords {
 // Do not instantiate directly.
 export class Control {
   // Child controls.
-  controls: Control[] = [];
+  private _controls: Control[] = [];
 
   // Constraints applied to children.
   // TODO: There's probably no reason why all constraints
   // can't just live on the form, rather than having to be associated
   // with their direct parent.
   // This would also let us remember the safe ordering of the global list of constraints.
-  childConstraints: Constraint[] = [];
+  private _childConstraints: Constraint[] = [];
 
   // Constraints that use this control (so that we can remove them if the control is removed).
   // We separate them into axes because when all constraints for a given axis are applied,
@@ -187,7 +183,7 @@ export class Control {
 
   // Parent control (set automatically in add()).
   // Will be null for the root (Form) control.
-  parent: Control = null;
+  private _parent: Control = null;
 
   // Whether to include this control in hit detection.
   // Only enabled for controls that need hit detection and their ancestors.
@@ -227,10 +223,10 @@ export class Control {
   protected focused: boolean = false;
 
   // Enable a simple border on this control.
-  border: boolean = false;
+  private _border: boolean = false;
 
   // Sets the opacity that this control will be drawn with.
-  opacity: number = 1;
+  private _opacity: number = 1;
 
   // Is this element currently being considered as a drag target (i.e. there is
   // currently a drag in process, this control is under the mouse cursor, and
@@ -308,53 +304,53 @@ export class Control {
 
       if (nn(this.x) && nn(this.w)) {
         this.xw = this.x + this.w;
-        if (nn(this.parent.w)) {
-          this.x2 = this.parent.w - this.x - this.w;
+        if (nn(this._parent.w)) {
+          this.x2 = this._parent.w - this.x - this.w;
           this.x2w = this.x2 + this.w;
         }
       } else if (nn(this.x) && nn(this.x2)) {
-        if (nn(this.parent.w)) {
-          this.w = this.parent.w - this.x - this.x2;
+        if (nn(this._parent.w)) {
+          this.w = this._parent.w - this.x - this.x2;
           this.xw = this.x + this.w;
           this.x2w = this.x2 + this.w;
         }
       } else if (nn(this.x) && nn(this.xw)) {
         this.w = this.xw - this.x;
-        if (nn(this.parent.w)) {
-          this.x2 = this.parent.w - this.xw;
+        if (nn(this._parent.w)) {
+          this.x2 = this._parent.w - this.xw;
           this.x2w = this.x2 + this.w;
         }
       } else if (nn(this.x) && nn(this.x2w)) {
         // ignore.
       } else if (nn(this.w) && nn(this.x2)) {
-        if (nn(this.parent.w)) {
-          this.x = this.parent.w - this.w - this.x2;
+        if (nn(this._parent.w)) {
+          this.x = this._parent.w - this.w - this.x2;
           this.xw = this.x + this.w;
         }
         this.x2w = this.x2 + this.w;
       } else if (nn(this.w) && nn(this.xw)) {
         this.x = this.xw - this.w;
-        if (nn(this.parent.w)) {
-          this.x2 = this.parent.w - this.xw;
+        if (nn(this._parent.w)) {
+          this.x2 = this._parent.w - this.xw;
           this.x2w = this.x2 + this.w;
         }
       } else if (nn(this.w) && nn(this.x2w)) {
         this.x2 = this.x2w - this.w;
-        if (nn(this.parent.w)) {
-          this.x = this.parent.w - this.x2w;
+        if (nn(this._parent.w)) {
+          this.x = this._parent.w - this.x2w;
           this.xw = this.x + this.w;
         }
       } else if (nn(this.x2) && nn(this.xw)) {
         // ignore.
       } else if (nn(this.x2) && nn(this.x2w)) {
         this.w = this.x2w - this.x2;
-        if (nn(this.parent.w)) {
-          this.x = this.parent.w - this.x2w;
+        if (nn(this._parent.w)) {
+          this.x = this._parent.w - this.x2w;
           this.xw = this.x + this.w;
         }
       } else if (nn(this.xw) && nn(this.x2w)) {
-        if (nn(this.parent.w)) {
-          this.w = -(this.parent.w - this.xw - this.x2w);
+        if (nn(this._parent.w)) {
+          this.w = -(this._parent.w - this.xw - this.x2w);
           this.x = this.xw - this.w;
           this.x2 = this.x2w - this.w;
         }
@@ -366,53 +362,53 @@ export class Control {
 
       if (nn(this.y) && nn(this.h)) {
         this.yh = this.y + this.h;
-        if (nn(this.parent.h)) {
-          this.y2 = this.parent.h - this.y - this.h;
+        if (nn(this._parent.h)) {
+          this.y2 = this._parent.h - this.y - this.h;
           this.y2h = this.y2 + this.h;
         }
       } else if (nn(this.y) && nn(this.y2)) {
-        if (nn(this.parent.h)) {
-          this.h = this.parent.h - this.y - this.y2;
+        if (nn(this._parent.h)) {
+          this.h = this._parent.h - this.y - this.y2;
           this.yh = this.y + this.h;
           this.y2h = this.y2 + this.h;
         }
       } else if (nn(this.y) && nn(this.yh)) {
         this.h = this.yh - this.y;
-        if (nn(this.parent.h)) {
-          this.y2 = this.parent.h - this.yh;
+        if (nn(this._parent.h)) {
+          this.y2 = this._parent.h - this.yh;
           this.y2h = this.y2 + this.h;
         }
       } else if (nn(this.y) && nn(this.y2h)) {
         // ignore.
       } else if (nn(this.h) && nn(this.y2)) {
-        if (nn(this.parent.h)) {
-          this.y = this.parent.h - this.h - this.y2;
+        if (nn(this._parent.h)) {
+          this.y = this._parent.h - this.h - this.y2;
           this.yh = this.y + this.h;
         }
         this.y2h = this.y2 + this.h;
       } else if (nn(this.h) && nn(this.yh)) {
         this.y = this.yh - this.h;
-        if (nn(this.parent.h)) {
-          this.y2 = this.parent.h - this.yh;
+        if (nn(this._parent.h)) {
+          this.y2 = this._parent.h - this.yh;
           this.y2h = this.y2 + this.h;
         }
       } else if (nn(this.h) && nn(this.y2h)) {
         this.y2 = this.y2h - this.h;
-        if (nn(this.parent.h)) {
-          this.y = this.parent.h - this.y2h;
+        if (nn(this._parent.h)) {
+          this.y = this._parent.h - this.y2h;
           this.yh = this.y + this.h;
         }
       } else if (nn(this.y2) && nn(this.yh)) {
         // ignore.
       } else if (nn(this.y2) && nn(this.y2h)) {
         this.h = this.y2h - this.y2;
-        if (nn(this.parent.h)) {
-          this.y = this.parent.h - this.y2h;
+        if (nn(this._parent.h)) {
+          this.y = this._parent.h - this.y2h;
           this.yh = this.y + this.h;
         }
       } else if (nn(this.yh) && nn(this.y2h)) {
-        if (nn(this.parent.h)) {
-          this.h = -(this.parent.h - this.yh - this.y2h);
+        if (nn(this._parent.h)) {
+          this.h = -(this._parent.h - this.yh - this.y2h);
           this.y = this.yh - this.h;
           this.y2 = this.y2h - this.h;
         }
@@ -424,7 +420,7 @@ export class Control {
     // As described above, recalculate all children if we calculated something new about
     // this (parent) control.
     if (prevUnspecified !== nowUnspecified) {
-      for (const c of this.controls) {
+      for (const c of this._controls) {
         c.recalculate(axis);
       }
     }
@@ -442,10 +438,10 @@ export class Control {
   // Let the parent know that it needs to be searched for (but not necessarily
   // participate in) hit detection.
   private enableChildHitDetectionOnParent() {
-    let p = this.parent;
+    let p = this._parent;
     while (p) {
       p._enableHitDetectionForChild = true;
-      p = p.parent;
+      p = p._parent;
     }
   }
 
@@ -458,14 +454,15 @@ export class Control {
     opts.formY = (opts.formY === undefined) ? y : opts.formY;
     opts.exclude = opts.exclude || [];
 
+    if (opts.exclude.indexOf(this) >= 0) {
+      return null;
+    }
+
     // TODO: sort by z-order.
 
     // Search controls backwards (i.e. newer controls will be hit tested first).
-    for (let i = this.controls.length - 1; i >= 0; --i) {
-      const c = this.controls[i];
-      if (opts.exclude.indexOf(c) >= 0) {
-        continue;
-      }
+    for (let i = this._controls.length - 1; i >= 0; --i) {
+      const c = this._controls[i];
       const cx = x - c.x;
       const cy = y - c.y;
       if ((opts.all || c._enableHitDetection || c._enableHitDetectionForChild) && c.inside(cx, cy)) {
@@ -476,8 +473,10 @@ export class Control {
       }
     }
 
-    if (this._enableHitDetection) {
+    if (opts.all || this._enableHitDetection) {
       return new ControlAtPointData(this, x, y, opts.formX, opts.formY);
+    } else {
+      return null;
     }
   }
 
@@ -485,6 +484,24 @@ export class Control {
   // actually inside the control.
   inside(x: number, y: number) {
     return x >= 0 && y >= 0 && x < this.w && y < this.h;
+  }
+
+  get border() {
+    return this._border;
+  }
+
+  set border(value: boolean) {
+    this._border = value;
+    this.repaint();
+  }
+
+  get opacity() {
+    return this._opacity;
+  }
+
+  set opacity(value: number) {
+    this._opacity = Math.max(0, Math.min(1, value));
+    this.repaint();
   }
 
   // Notify this control that it is being used in a constraint.
@@ -510,6 +527,20 @@ export class Control {
         throw new Error('Unable to unref constraint.');
       }
       this.refConstraintsY.splice(i, 1);
+    }
+  }
+
+  addConstraint(constraint: Constraint) {
+    this._childConstraints.push(constraint);
+  }
+
+  removeConstraint(constraint: Constraint) {
+    for (let i = 0; i < this._childConstraints.length; ++i) {
+      if (this._childConstraints[i] === constraint) {
+        this._childConstraints.splice(i, 1);
+        this.relayout();
+        return;
+      }
     }
   }
 
@@ -605,7 +636,7 @@ export class Control {
     this.constraintsAppliedY = 0;
 
     // Recursively reset state for all child controls.
-    for (const control of this.controls) {
+    for (const control of this._controls) {
       control.resetLayout();
     }
 
@@ -629,10 +660,10 @@ export class Control {
   // Recursively find all constraints in the form.
   // TODO: Consider just having the Form manage the global list of constraints.
   protected findConstraints(pending: Constraint[]) {
-    for (const c of this.childConstraints) {
+    for (const c of this._childConstraints) {
       pending.push(c);
     }
-    for (const c of this.controls) {
+    for (const c of this._controls) {
       c.findConstraints(pending);
     }
   }
@@ -647,7 +678,7 @@ export class Control {
         throw new Error('Control was not fully specified after layout.');
       }
     }
-    for (const control of this.controls) {
+    for (const control of this._controls) {
       control.layoutComplete();
     }
   }
@@ -659,7 +690,7 @@ export class Control {
     // Recursively reset all controls in this form.
     // Note we don't want to reset this control, because we rely on it knowing its width/height.
     // (In most cases, this is
-    for (const control of this.controls) {
+    for (const control of this._controls) {
       control.resetLayout();
     }
 
@@ -765,7 +796,7 @@ export class Control {
     this.paintBackground(ctx);
 
     // This base implementation just makes sure all children are painted too.
-    for (const c of this.controls) {
+    for (const c of this._controls) {
       // Controls can decide not to paint their children (i.e. scrollbox won't paint
       // controls that are invisible).
       if (!this.shouldPaint(c)) {
@@ -796,7 +827,7 @@ export class Control {
     }
 
     if (this.editing()) {
-      for (const c of this.controls) {
+      for (const c of this._controls) {
         if (!this.shouldPaint(c)) {
           continue;
         }
@@ -817,7 +848,7 @@ export class Control {
     }
 
     // Draw all constraints.
-    // for (const c of this.childConstraints) {
+    // for (const c of this._childConstraints) {
     //   ctx.save();
     //   c.paint(ctx);
     //   ctx.restore();
@@ -849,7 +880,11 @@ export class Control {
     ctx.moveTo(0, this.h);
     ctx.lineTo(0, 0);
     ctx.lineTo(this.w, 0);
-    ctx.strokeStyle = '#202020';
+    if (this.dragTarget) {
+      ctx.strokeStyle = '#2020a0';
+    } else {
+      ctx.strokeStyle = '#202020';
+    }
     ctx.stroke();
 
     // Right/Bottom
@@ -857,7 +892,11 @@ export class Control {
     ctx.moveTo(this.w, 0);
     ctx.lineTo(this.w, this.h);
     ctx.lineTo(0, this.h);
-    ctx.strokeStyle = '#707070';
+    if (this.dragTarget) {
+      ctx.strokeStyle = '#7070c0';
+    } else {
+      ctx.strokeStyle = '#707070';
+    }
     ctx.stroke();
   }
 
@@ -872,8 +911,8 @@ export class Control {
       return this.add(control, x.x, x.y, x.w, x.h, x.x2, x.y2, x.xw, x.yh, x.x2w, x.y2h);
     }
 
-    control.parent = this;
-    this.controls.push(control);
+    control._parent = this;
+    this._controls.push(control);
 
     // These will be nops if the coordinates are null.
     control.coords.x.set(x as number);
@@ -931,16 +970,18 @@ export class Control {
     }
 
     // Remove it from the parent.
-    if (this.parent) {
-      for (let i = 0; i < this.parent.controls.length; ++i) {
-        if (this.parent.controls[i] === this) {
-          this.parent.controls.splice(i, 1);
+    if (this._parent) {
+      for (let i = 0; i < this._parent.controls.length; ++i) {
+        if (this._parent.controls[i] === this) {
+          this._parent.controls.splice(i, 1);
           break;
         }
       }
 
       // Let the control know it was removed.
       this.removed();
+
+      this._parent = null;
     }
   }
 
@@ -950,11 +991,11 @@ export class Control {
 
   // Remove all children from this control.
   clear() {
-    while (this.controls.length > 0) {
-      this.controls[0].remove();
+    while (this._controls.length > 0) {
+      this._controls[0].remove();
     }
 
-    if (this.childConstraints.length > 0) {
+    if (this._childConstraints.length > 0) {
       throw new Error('There were still constraints left after removing all controls.');
     }
   }
@@ -965,29 +1006,29 @@ export class Control {
   repaint() {
     // But at the moment we have no such optimisations, so keep searching up the
     // hierarchy for something that knows how to repaint.
-    if (this.parent) {
-      this.parent.repaint();
+    if (this._parent) {
+      this._parent.repaint();
     }
   }
 
   // Call this to cause at least this and all controls inside it to relayout.
   relayout() {
-    if (this.parent) {
-      this.parent.relayout();
+    if (this._parent) {
+      this._parent.relayout();
     }
   }
 
   // Recursively finds the drawing context from the `Form` that contains this control.
   context(): CanvasRenderingContext2D {
-    if (this.parent) {
-      return this.parent.context();
+    if (this._parent) {
+      return this._parent.context();
     }
   }
 
   // Returns true if this control is in edit mode (either directly or via a parent).
   editing(): boolean {
-    if (this.parent) {
-      return this.parent.editing();
+    if (this._parent) {
+      return this._parent.editing();
     } else {
       return false;
     }
@@ -995,8 +1036,8 @@ export class Control {
 
   // Returns the form that owns this control.
   form(): Form {
-    if (this.parent) {
-      return this.parent.form();
+    if (this._parent) {
+      return this._parent.form();
     } else {
       return null;
     }
@@ -1005,8 +1046,8 @@ export class Control {
   // Gets the x coordinate of this control relative to the form.
   // TODO: make this a property??
   formX(): number {
-    if (this.parent) {
-      return this.x + this.parent.formX();
+    if (this._parent) {
+      return this.x + this._parent.formX();
     } else {
       return this.x;
     }
@@ -1014,8 +1055,8 @@ export class Control {
 
   // Gets the y coordinate of this control relative to the form.
   formY(): number {
-    if (this.parent) {
-      return this.y + this.parent.formY();
+    if (this._parent) {
+      return this.y + this._parent.formY();
     } else {
       return this.y;
     }
@@ -1034,8 +1075,8 @@ export class Control {
   // Override this to get notifid that a textbox (or other controls)
   // want the form (or dialog) to be submitted (e.g. the return key was pressed),
   submit() {
-    if (this.parent) {
-      this.parent.submit();
+    if (this._parent) {
+      this._parent.submit();
     }
   }
 
@@ -1048,5 +1089,17 @@ export class Control {
   // Override this to be notified when something is dropped on this control.
   // This will only be called if `allowDrop()` returned true.
   drop(data: any) {
+  }
+
+  protected contextMenu(): Control[] {
+    return null;
+  }
+
+  get controls() {
+    return this._controls;
+  }
+
+  get parent() {
+    return this._parent;
   }
 }

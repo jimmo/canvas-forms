@@ -1,4 +1,10 @@
-import { Control, LabelText } from '../core/control';
+import { Control } from '../core/control';
+
+export enum TextAlign {
+  LEFT = 1,
+  CENTER,
+  // TODO: RIGHT,
+}
 
 export enum FontStyle {
   BOLD = 1,
@@ -6,6 +12,10 @@ export enum FontStyle {
   STRIKETHROUGH = 4,
   UNDERLINE = 8,
 }
+
+// For simple text controls (label, button, checkbox), their text can
+// be set directly or bound via a function.
+export type LabelText = string | (() => string);
 
 // Base class for controls such as Label/Button/Checkbox that have some sort of text.
 export abstract class TextControl extends Control {
@@ -64,12 +74,22 @@ export abstract class TextControl extends Control {
 
   // Replace the control's text and repaint.
   // Some controls might choose to override this and additionally `relayout()`.
-  setText(text: string) {
+  set text(text: string) {
     this._text = text;
     this.repaint();
   }
 
-  setIcon(icon: LabelText) {
+  set textCallback(text: () => string) {
+    this._text = text;
+    this.repaint();
+  }
+
+  set icon(icon: string) {
+    this._icon = icon;
+    this.repaint();
+  }
+
+  set iconCallback(icon: () => string) {
     this._icon = icon;
     this.repaint();
   }
@@ -78,9 +98,20 @@ export abstract class TextControl extends Control {
     this._fontName = name || this._fontName;
     this._fontSize = size || this._fontSize;
     this._color = color || this._color;
+    this.repaint();
   }
 
-  setStyle(style: FontStyle, enable?: boolean) {
+  set fontName(name: string) {
+    this._fontName = name;
+    this.repaint();
+  }
+
+  set fontSize(size: number) {
+    this._fontSize = size;
+    this.repaint();
+  }
+
+  setStyleIf(style: FontStyle, enable?: boolean) {
     if (enable === true) {
       this.addStyle(style);
     } else if (enable === false) {
@@ -90,12 +121,28 @@ export abstract class TextControl extends Control {
     }
   }
 
+  get style() {
+    return this._style;
+  }
+
+  set style(style: FontStyle) {
+    this._style = style;
+  }
+
   addStyle(style: FontStyle) {
     this._style |= style;
   }
 
   removeStyle(style: FontStyle) {
     this._style &= ~style;
+  }
+
+  hasStyle(style: FontStyle) {
+    return (this._style & style) !== 0;
+  }
+
+  toggleStyle(style: FontStyle) {
+    this.setStyleIf(style, !this.hasStyle(style));
   }
 
   // Returns a font that can be used by the context.
@@ -121,11 +168,11 @@ export abstract class TextControl extends Control {
   }
 
   // Returns the default foreground color for this control.
-  protected getColor(): string {
+  get color(): string {
     return this._color || '#202020';
   }
 
-  setColor(color: string) {
+  set color(color: string) {
     this._color = color;
     this.repaint();
   }

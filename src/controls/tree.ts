@@ -139,6 +139,8 @@ class TreeItem extends Control {
   // Fired when this node is clicked (or selected).
   select: EventSource;
 
+  static ARROW_WIDTH = 32;
+
   constructor(private readonly tree: Tree, private readonly node: TreeNode) {
     super();
 
@@ -157,8 +159,8 @@ class TreeItem extends Control {
 
     this.select = new EventSource();
 
-    this.label = this.add(new Label(() => this.node.treeText()), 22, 1);
-    this.label.setIcon(() => this.node.treeIcon());
+    this.label = this.add(new Label(() => this.node.treeText()), TreeItem.ARROW_WIDTH, 1);
+    this.label.iconCallback = () => this.node.treeIcon();
     this.label.fit = true;
 
     this.mousedown.add((ev) => {
@@ -171,7 +173,7 @@ class TreeItem extends Control {
       this.setSelected(true);
 
       // But a click on the arrow will additionally toggle open/closed.
-      if (ev.x < 22) {
+      if (ev.x < TreeItem.ARROW_WIDTH) {
         this.toggle();
       }
 
@@ -188,7 +190,7 @@ class TreeItem extends Control {
       }
 
       // Double click on the text toggles the node.
-      if (ev.x > 22) {
+      if (ev.x > TreeItem.ARROW_WIDTH) {
         this.toggle();
 
         if (!this.node.treeHasChildren()) {
@@ -233,7 +235,7 @@ class TreeItem extends Control {
     this._open = true;
 
     // Add the subtree below the label.
-    this.sub = this.add(new SubTree(this.tree, this.node), { x: 22 });
+    this.sub = this.add(new SubTree(this.tree, this.node), { x: TreeItem.ARROW_WIDTH });
     // Position it automatically below the label.
     this.sub.coords.y.align(this.label.coords.yh);
     // Fit the width of the subtree to all the treeitems inside it.
@@ -276,7 +278,7 @@ class TreeItem extends Control {
 
     if (this.node.treeHasChildren()) {
       // Draw the arrow either facing down or right, centered on these coordinates.
-      const arrowX = 22 / 2;
+      const arrowX = TreeItem.ARROW_WIDTH / 2;
       const arrowY = this.label.h / 2;
 
       ctx.beginPath();
@@ -319,7 +321,7 @@ class SubTree extends Control {
   }
 
   // Internal use only.
-  addItem(node: TreeNode) {
+  addItem(node: TreeNode): TreeItem {
     // Creates a new child TreeItem and positions it below the previous one (or at
     // the top if there was none).
     const ti = this.add(new TreeItem(this.tree, node), { x: 0 });
@@ -332,6 +334,8 @@ class SubTree extends Control {
     // Size the treeitem to the size of the text and subtree inside it.
     ti.coords.w.fit();
     ti.coords.h.fit();
+
+    return ti;
   }
 
   added() {
@@ -404,8 +408,8 @@ export class Tree extends ScrollBox {
   }
 
   // Add a top-level node to the tree.
-  addRoot(node: TreeNode) {
-    this.sub.addItem(node);
+  addRoot(node: TreeNode): TreeItem {
+    return this.sub.addItem(node);
   }
 
   // De-selects the current selection and makes a new node selected.

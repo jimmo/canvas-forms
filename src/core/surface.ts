@@ -20,11 +20,23 @@ export class SurfaceScrollEvent {
 
 // Fired by a surface when a mouse event happens on the canvas.
 export class SurfaceMouseEvent {
-  constructor(readonly x: number, readonly y: number, readonly buttons: number) {
+  constructor(readonly x: number, readonly y: number, readonly button: number, readonly buttons: number) {
   }
 
   primaryButton() {
     return this.buttons & 1;
+  }
+
+  secondaryyButton() {
+    return this.buttons & 2;
+  }
+
+  wasPrimary() {
+    return this.button === 0;
+  }
+
+  wasSecondary() {
+    return this.button === 1;
   }
 }
 
@@ -49,6 +61,7 @@ export class Surface {
   mousewheel: EventSource<SurfaceMouseEvent>;
   mousedbl: EventSource<SurfaceMouseEvent>;
   keydown: EventSource<SurfaceKeyEvent>;
+  contextmenu: EventSource<SurfaceMouseEvent>;
 
   constructor(selector: string) {
     // The <canvas> DOM element.
@@ -69,16 +82,21 @@ export class Surface {
     this.mousewheel = new EventSource();
     this.mousedbl = new EventSource();
     this.keydown = new EventSource();
+    this.contextmenu = new EventSource();
 
     // To allow the canvas to take focus (e.g. away from any input text elements).
     this.container.tabIndex = 1;
 
     // Maps browser touch events into our mouse events.
     const createTouchEvent = (ev: TouchEvent) => {
+      console.log(ev);
+      if (ev.touches.length > 1) {
+        return null;
+      }
       const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
       const offsetX = ev.changedTouches[0].clientX - rect.left;
       const offsetY = ev.changedTouches[0].clientY - rect.top;
-      return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), ev.touches.length);
+      return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), 0, ev.touches.length);
     }
 
     // Maps browser mouse events into our mouse events.
@@ -86,13 +104,16 @@ export class Surface {
       const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
       const offsetX = ev.clientX - rect.left;
       const offsetY = ev.clientY - rect.top;
-      return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), ev.buttons);
+      return new SurfaceMouseEvent(this.pixels(offsetX), this.pixels(offsetY), ev.button, ev.buttons);
     }
 
     // Forward DOM events to our own events.
     if (navigator.maxTouchPoints || document.documentElement['ontouchstart']) {
       this.container.addEventListener('touchstart', (ev) => {
-        this.mousedown.fire(createTouchEvent(ev));
+        const tev = createTouchEvent(ev);
+        if (tev) {
+          this.mousedown.fire(tev);
+        }
 
         // Chrome (Android and desktop-with-touchscreen) immediately fires
         // a regular mouse up event immediately after the touchstart.
@@ -102,37 +123,34 @@ export class Surface {
         }
       });
       this.container.addEventListener('touchend', (ev) => {
-        this.mouseup.fire(createTouchEvent(ev));
+        const tev = createTouchEvent(ev);
+        if (tev) {
+          this.mouseup.fire(tev);
+        }
       });
       this.container.addEventListener('touchmove', (ev) => {
-        this.mousemove.fire(createTouchEvent(ev));
-      });
-      this.container.addEventListener('mousedown', (ev) => {
-        this.mousedown.fire(createMouseEvent(ev));
-      });
-      this.container.addEventListener('mouseup', (ev) => {
-        this.mouseup.fire(createMouseEvent(ev));
-      });
-      this.container.addEventListener('mousemove', (ev) => {
-        this.mousemove.fire(createMouseEvent(ev));
-      });
-      this.container.addEventListener('dblclick', (ev) => {
-        this.mousedbl.fire(createMouseEvent(ev));
-      });
-    } else {
-      this.container.addEventListener('mousedown', (ev) => {
-        this.mousedown.fire(createMouseEvent(ev));
-      });
-      this.container.addEventListener('mouseup', (ev) => {
-        this.mouseup.fire(createMouseEvent(ev));
-      });
-      this.container.addEventListener('mousemove', (ev) => {
-        this.mousemove.fire(createMouseEvent(ev));
-      });
-      this.container.addEventListener('dblclick', (ev) => {
-        this.mousedbl.fire(createMouseEvent(ev));
+        const tev = createTouchEvent(ev);
+        if (tev) {
+          this.mousemove.fire(tev);
+        }
       });
     }
+    this.container.addEventListener('mousedown', (ev) => {
+      this.mousedown.fire(createMouseEvent(ev));
+    });
+    this.container.addEventListener('mouseup', (ev) => {
+      this.mouseup.fire(createMouseEvent(ev));
+    });
+    this.container.addEventListener('mousemove', (ev) => {
+      this.mousemove.fire(createMouseEvent(ev));
+    });
+    this.container.addEventListener('dblclick', (ev) => {
+      this.mousedbl.fire(createMouseEvent(ev));
+    });
+    this.container.addEventListener('contextmenu', (ev) => {
+      this.contextmenu.fire(createMouseEvent(ev));
+      ev.preventDefault();
+    });
 
     this.container.addEventListener('keydown', (ev) => {
       this.keydown.fire(new SurfaceKeyEvent(ev.keyCode));
@@ -155,7 +173,7 @@ export class Surface {
       // The form uses this to track which element is actually going to receive the scroll.
       // TODO: This is a bit of a relic from how scroll used to work, we should instead
       // add the mouse coordinates to the SurfaceScrolLEvent.
-      this.mousewheel.fire(new SurfaceMouseEvent(this.pixels(ev.offsetX), this.pixels(ev.offsetY), ev.buttons));
+      this.mousewheel.fire(new SurfaceMouseEvent(this.pixels(ev.offsetX), this.pixels(ev.offsetY), 0, ev.buttons));
       this.scroll.fire(new SurfaceScrollEvent(-dx, -dy));
     });
   }

@@ -124,7 +124,7 @@ export class CheckBox extends TextControl {
     ctx.font = this.getFont();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = this.getColor();
+    ctx.fillStyle = this.color;
     ctx.fillText(this.text, this.h + 7, this.h / 2, this.w - this.h - 4);
   }
 }
