@@ -1,4 +1,4 @@
-import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, FontStyle, MenuSeparatorItem } from 'canvas-forms';
+import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, MenuItems, FontStyle, MenuSeparatorItem } from 'canvas-forms';
 
 const form = new Form(new Surface('canvas'));
 
@@ -322,6 +322,14 @@ class DemoTreeNode implements TreeNode {
     // Add this node as an extra child.
     this.extra.push(data as TreeNode);
   }
+
+  async treeMenu(): Promise<MenuItems> {
+    return [
+      new MenuItem('One'),
+      new MenuItem('Two'),
+      new MenuItem('Three'),
+    ]
+  }
 };
 
 makeDemo('Tree', () => {
@@ -406,7 +414,7 @@ makeDemo('Scrolling', () => {
 
 
 class MenuButton extends Button {
-  protected contextMenu() {
+  protected async contextMenu(): Promise<MenuItems> {
     const remove = new MenuItem('Remove');
     remove.click.add(async () => {
       await new OpacityAnimator(this, 1, 0.1, 200).start();
@@ -436,7 +444,6 @@ class MenuButton extends Button {
       italic,
     ]
   }
-
 }
 
 makeDemo('Context Menu', () => {

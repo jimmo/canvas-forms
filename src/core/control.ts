@@ -2,6 +2,7 @@ import { CoordAxis, Coord } from './enums';
 import { EventSource } from './events';
 import { Form, FormMouseDownEvent, FormKeyEvent, FormMouseMoveEvent, FormMouseUpEvent } from './form';
 import { Constraint, AlignConstraint, StaticConstraint, FillConstraint, ContentConstraint, CenterConstraint } from '../constraints';
+import { MenuItems } from './menu';
 
 // Base class for events raised from controls.
 export class ControlEvent {
@@ -1091,7 +1092,7 @@ export class Control {
   drop(data: any) {
   }
 
-  protected contextMenu(): Control[] {
+  protected async contextMenu(): Promise<MenuItems> {
     return null;
   }
 

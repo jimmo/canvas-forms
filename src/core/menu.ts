@@ -43,7 +43,7 @@ export class MenuItem extends Control {
 
   protected defaultConstraints() {
     this.coords.w.set(180);
-    this.coords.h.set(28);
+    this.coords.h.set(32);
   }
 }
 
@@ -67,8 +67,10 @@ export class MenuSeparatorItem extends Control {
   }
 }
 
+export type MenuItems = (MenuItem | MenuSeparatorItem)[];
+
 export class Menu extends Control {
-  constructor(items: Control[]) {
+  constructor(items: MenuItems) {
     super();
     this.border = true;
     this.clip = false;

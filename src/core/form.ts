@@ -326,7 +326,7 @@ export class Form extends Control {
       }
     });
 
-    this.surface.contextmenu.add(ev => {
+    this.surface.contextmenu.add(async ev => {
       const exclude = [];
 
       while (true) {
@@ -335,7 +335,7 @@ export class Form extends Control {
           break;
         }
 
-        const items = (hit.control as Form).contextMenu();
+        const items = await (hit.control as Form).contextMenu();
         if (items) {
           this.add(new Menu(items), ev.x, ev.y);
           break;

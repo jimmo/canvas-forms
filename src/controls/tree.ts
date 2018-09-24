@@ -2,6 +2,7 @@ import { Control } from '../core/control';
 import { EventSource } from '../core/events';
 import { Label } from './label';
 import { ScrollBox } from './scrollbox';
+import { MenuItems } from '../core';
 
 // To use the Tree control, you need to define your hierarchy using this TreeNode interface.
 // Each root of the tree is a TreeNode that can return child TreeNodes and set other properties
@@ -17,6 +18,7 @@ export interface TreeNode {
   treeDrop(data: any): void;
   treeSelect(): void;
   treeActivate(): void;
+  treeMenu(): Promise<MenuItems>;
 }
 
 export abstract class SimpleTreeNode implements TreeNode {
@@ -52,6 +54,10 @@ export abstract class SimpleTreeNode implements TreeNode {
   }
 
   treeActivate(): void {
+  }
+
+  async treeMenu(): Promise<MenuItems> {
+    return null;
   }
 }
 
@@ -117,6 +123,22 @@ export class StaticTree implements TreeNode {
 
   treeActivate(): void {
   }
+
+  async treeMenu(): Promise<MenuItems> {
+    return null;
+  }
+}
+
+class TreeLabel extends Label {
+  constructor(private readonly node: TreeNode) {
+    super(() => this.node.treeText());
+    this.iconCallback = () => this.node.treeIcon();
+    this.fit = true;
+  }
+
+  protected async contextMenu(): Promise<MenuItems> {
+    return await this.node.treeMenu();
+  }
 }
 
 // A tree item control is the actual node, and all of its (open) children.
@@ -159,9 +181,7 @@ class TreeItem extends Control {
 
     this.select = new EventSource();
 
-    this.label = this.add(new Label(() => this.node.treeText()), TreeItem.ARROW_WIDTH, 1);
-    this.label.iconCallback = () => this.node.treeIcon();
-    this.label.fit = true;
+    this.label = this.add(new TreeLabel(this.node), TreeItem.ARROW_WIDTH, 1);
 
     this.mousedown.add((ev) => {
       if (ev.y > this.label.h) {
