@@ -82,6 +82,29 @@ export class AlertDialog extends Dialog {
 }
 
 
+// Simple dialog that asks for OK/Cancel.
+export class ConfirmDialog extends Dialog {
+  constructor(text: string) {
+    super();
+
+    const l = this.add(new Label(text), 20, 20);
+    l.fit = true;
+
+    this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
+      this.close(false);
+    });
+    this.add(new Button('OK'), { x2: 190, y2: 20 }).click.add(() => {
+      this.close(true);
+    });
+  }
+
+  defaultConstraints() {
+    this.coords.size(420, 180);
+    super.defaultConstraints();
+  }
+}
+
+
 // Simple dialog that asks for user input with OK/Cancel.
 export class PromptDialog extends Dialog {
   name: TextBox;

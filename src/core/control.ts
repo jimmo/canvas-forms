@@ -453,7 +453,7 @@ export class Control {
   // x/y coordinates are relative to the control.
   controlAtPoint(x: number, y: number, opts?: ControlAtPointOpts): ControlAtPointData {
     opts = opts || {};
-    opts.all = opts.all || this.editing();
+    opts.all = opts.all || this.designMode;
     opts.formX = (opts.formX === undefined) ? x : opts.formX;
     opts.formY = (opts.formY === undefined) ? y : opts.formY;
     opts.exclude = opts.exclude || [];
@@ -830,7 +830,7 @@ export class Control {
       ctx.restore();
     }
 
-    if (this.editing()) {
+    if (this.designMode) {
       for (const c of this._controls) {
         if (!this.shouldPaint(c)) {
           continue;
@@ -1030,9 +1030,9 @@ export class Control {
   }
 
   // Returns true if this control is in edit mode (either directly or via a parent).
-  editing(): boolean {
+  get designMode(): boolean {
     if (this._parent) {
-      return this._parent.editing();
+      return this._parent.designMode;
     } else {
       return false;
     }

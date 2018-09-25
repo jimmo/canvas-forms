@@ -16,8 +16,8 @@ export class MenuItem extends Control {
     });
     this.mouseup.add((ev) => {
       this.down = false;
-      this.click.fire();
       this.parent.remove();
+      this.click.fire();
     });
   }
 
@@ -48,6 +48,27 @@ export class MenuItem extends Control {
   }
 }
 
+export class MenuHeadingItem extends Control {
+  constructor(readonly text: string, readonly icon?: string) {
+    super();
+  }
+
+  protected paint(ctx: CanvasRenderingContext2D) {
+    super.paint(ctx);
+
+    ctx.font = '18px sans'
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#606060'
+    ctx.textAlign = 'left';
+    ctx.fillText(this.text, 3, this.h / 2);
+  }
+
+  protected defaultConstraints() {
+    this.coords.w.set(180);
+    this.coords.h.set(32);
+  }
+}
+
 export class MenuSeparatorItem extends Control {
   constructor() {
     super();
@@ -68,7 +89,7 @@ export class MenuSeparatorItem extends Control {
   }
 }
 
-export type MenuItems = (MenuItem | MenuSeparatorItem)[];
+export type MenuItems = (MenuItem | MenuHeadingItem | MenuSeparatorItem)[];
 
 export class Menu extends Control {
   constructor(items: MenuItems) {

@@ -29,7 +29,9 @@ export abstract class SimpleTreeNode implements TreeNode {
     return true;
   }
 
-  abstract async treeChildren(): Promise<TreeNode[]>;
+  async treeChildren(): Promise<TreeNode[]> {
+    return [];
+  }
 
   treeText(): string {
     return this.text;
@@ -81,12 +83,12 @@ export class SimpleTreeLeafNode extends SimpleTreeNode {
 //
 // TODO: Add methods for configuring drag & drop (and probably an EventSource for drop).
 export class StaticTree implements TreeNode {
-  private children: StaticTree[] = [];
+  private children: TreeNode[] = [];
 
   constructor(readonly text: string, readonly icon?: string) {
   }
 
-  add(tree: StaticTree) {
+  add(tree: TreeNode) {
     this.children.push(tree);
     return tree;
   }

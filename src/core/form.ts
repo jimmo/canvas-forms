@@ -231,7 +231,7 @@ export class Form extends Control {
       this._restoreCapture = null;
 
       // Editing means that we likely need to redraw the constraints.
-      repaint = repaint || (!this._capture && this.editing());
+      repaint = repaint || (!this._capture && this.designMode);
       // If we're currently mid-drag, then we'll need to paint the drag overlay.
       repaint = repaint || (this._capture !== null && this._dragCoordinates !== null);
 
@@ -517,10 +517,7 @@ export class Form extends Control {
 
   // Returns true if this form is in edit mode.
   // TODO: Make only sub-hierarchies editable.
-  editing(enable?: boolean) {
-    if (enable !== undefined) {
-      this._editing = enable;
-    }
+  get designMode() {
     return this._editing;
   }
 
