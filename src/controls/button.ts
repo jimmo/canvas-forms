@@ -62,11 +62,11 @@ export class Button extends TextControl {
     ctx.fillText(this.text, x, this.h / 2, this.w);
 
     if (this.iconCode) {
+      let w = Math.ceil(ctx.measureText(this.text).width);
+
       ctx.font = this.getFontSize() + 'px ' + this.iconFontName;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
-
-      let w = Math.ceil(ctx.measureText(this.text).width);
       x = this.w / 2;
       if (this.text) {
         x -= w / 2 + 5;

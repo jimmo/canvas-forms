@@ -149,7 +149,7 @@ export class Form extends Control {
         // This means we missed the mouseup event (maybe happened outside browser), so
         // inject a fake one.
         this._capture.update(ev.x, ev.y);
-        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, true));
+        this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, false));
         this.endCapture();
       }
 
@@ -360,7 +360,7 @@ export class Form extends Control {
         if (items) {
           if (this._capture) {
             this._capture.update(ev.x, ev.y);
-            this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, true));
+            this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, false));
             this.endCapture();
           }
           this.add(new Menu(items), ev.x, ev.y);
