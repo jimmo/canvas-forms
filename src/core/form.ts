@@ -137,6 +137,7 @@ export class Form extends Control {
     // Map mouse events on the surface into the control that the mouse is over.
     let lastMoveX = -1, lastMoveY = -1;
     let menuTimer: Timer = null;
+    let hovered = new Set<Control>();
 
     this.surface.mousemove.add(ev => {
       if (menuTimer) {
@@ -200,6 +201,26 @@ export class Form extends Control {
         this.updateFocus(target);
       }
 
+      let hover = target.control;
+      let repaint = false;
+      let newHovered = new Set<Control>();
+      while (hover) {
+        newHovered.add(hover);
+        if (!(hover as Form).hovered) {
+          (hover as Form).hovered = true;
+          repaint = true;
+        }
+        hover = hover.parent;
+      }
+      for (const oldHover of hovered) {
+        if (newHovered.has(oldHover)) {
+          continue;
+        }
+        (oldHover as Form).hovered = false;
+        repaint = true;
+      }
+      hovered = newHovered;
+
       // Send the mouse move event to the target.
       target.control.mousemove.fire(new FormMouseMoveEvent(target.x, target.y, ev.button, ev.buttons, this, ev.x - target.startX, ev.y - target.startY, delta[0], delta[1], target === this._capture));
 
@@ -210,12 +231,11 @@ export class Form extends Control {
       this._restoreCapture = null;
 
       // Editing means that we likely need to redraw the constraints.
-      if (!this._capture && this.editing()) {
-        this.repaint();
-      }
-
+      repaint = repaint || (!this._capture && this.editing());
       // If we're currently mid-drag, then we'll need to paint the drag overlay.
-      if (this._capture && this._dragCoordinates) {
+      repaint = repaint || (this._capture !== null && this._dragCoordinates !== null);
+
+      if (repaint) {
         this.repaint();
       }
     });
@@ -258,6 +278,7 @@ export class Form extends Control {
 
         // Activate the listeners for the control.
         hit.control.mousedown.fire(new FormMouseDownEvent(hit.x, hit.y, ev.button, ev.buttons, this, hit, control));
+
         // If we're bubbling, don't search this control again.
         exclude.push(hit.control);
       }
@@ -337,6 +358,11 @@ export class Form extends Control {
 
         const items = await (hit.control as Form).contextMenu();
         if (items) {
+          if (this._capture) {
+            this._capture.update(ev.x, ev.y);
+            this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, true));
+            this.endCapture();
+          }
           this.add(new Menu(items), ev.x, ev.y);
           break;
         }
@@ -581,7 +607,8 @@ export class Form extends Control {
   }
 
   // Stop this animator from receiving frame callbacks.
-  // Many animators are single-use, so this will remove the last reference to these temporary animators.
+  // Many animators are single-use, so this will remove the last
+  // reference to these temporary animators.
   removeAnimator(animator: Animator) {
     for (let i = 0; i < this._animators.length; ++i) {
       if (this._animators[i] === animator) {

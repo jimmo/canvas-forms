@@ -24,6 +24,7 @@ export class Button extends TextControl {
     this.mousedown.add((ev) => {
       this.down = true;
       ev.capture();
+      ev.cancelBubble();
       this.repaint();
     });
     this.mouseup.add((ev) => {
@@ -115,7 +116,7 @@ export class Button extends TextControl {
   // Override this separately to customise the basic decorations (border, focus, etc).
   protected paintBorder(ctx: CanvasRenderingContext2D) {
     // Border colour & style.
-    if (this.down) {
+    if (this.down || this.hovered) {
       ctx.strokeStyle = 'black';
     } else {
       ctx.strokeStyle = '#cc8020';

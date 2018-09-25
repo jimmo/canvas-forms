@@ -25,6 +25,8 @@ export class Grabber extends Control {
   // Optional snap-to-grid
   private _snap: Map<CoordAxis, number> = new Map();
 
+  private _down: boolean = false;
+
   moved: EventSource;
 
   // Place the grabber at the specified x and/or y location.
@@ -44,13 +46,16 @@ export class Grabber extends Control {
     // Simple mouse down/move/up drag handler.
     let down: FormMouseDownEvent = null;
     this.mousedown.add((data) => {
+      this._down = true;
       data.capture();
       data.cancelBubble();
       down = data;
       this._startX = this.x;
       this._startY = this.y;
+      this.repaint();
     });
     this.mouseup.add((data) => {
+      this._down = false;
       down = null;
     });
     this.mousemove.add((data) => {
@@ -60,10 +65,10 @@ export class Grabber extends Control {
 
       let moved = false;
       if (this._xConstraint) {
-        moved = moved || this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + this.snap(CoordAxis.X, data.dragX)));
+        moved = this._xConstraint.set(this.clamp(CoordAxis.X, this._startX + this.snap(CoordAxis.X, data.dragX))) || moved;
       }
       if (this._yConstraint) {
-        moved = moved || this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + this.snap(CoordAxis.Y, data.dragY)));
+        moved = this._yConstraint.set(this.clamp(CoordAxis.Y, this._startY + this.snap(CoordAxis.Y, data.dragY))) || moved;
       }
 
       if (moved) {
@@ -86,7 +91,11 @@ export class Grabber extends Control {
 
   private snap(axis: CoordAxis, v: number) {
     const snap = this._snap.get(axis);
-    return Math.round(v / snap) * snap;
+    if (snap) {
+      return Math.round(v / snap) * snap;
+    } else {
+      return v;
+    }
   }
 
   // Set the min and/or max bounds for a specified axis.
@@ -119,11 +128,15 @@ export class Grabber extends Control {
     }
   }
 
-  protected paint(ctx: CanvasRenderingContext2D) {
-    super.paint(ctx);
-
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
     // TODO: Figure out a good visual style for the grabber.
-    ctx.fillStyle = '#f0f0f0';
+    if (this._down) {
+      ctx.fillStyle = '#fff0f8';
+    } else if (this.hovered) {
+      ctx.fillStyle = '#fff8f0';
+    } else {
+      ctx.fillStyle = '#f0f0f0';
+    }
     ctx.fillRect(0, 0, this.w, this.h);
   }
 }

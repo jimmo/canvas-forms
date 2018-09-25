@@ -215,6 +215,8 @@ makeDemo('TextBox', () => {
 makeDemo('Grabber', () => {
   // 30x30 grabber at 100x00 that can move anywhere other than x<50 or y<50.
   const g = c.add(new Grabber(100, 100));
+  g.setSnap(CoordAxis.X, 20);
+  g.setSnap(CoordAxis.Y, 20);
   g.coords.size(30, 30);
   g.setBound(CoordAxis.X, 50);
   g.setBound(CoordAxis.Y, 50);

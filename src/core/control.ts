@@ -223,6 +223,9 @@ export class Control {
   // Is the mouse currently over this control.
   protected focused: boolean = false;
 
+  // Is this control currently hovered.
+  protected hovered: boolean = false;
+
   // Enable a simple border on this control.
   private _border: boolean = false;
 

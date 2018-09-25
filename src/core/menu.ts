@@ -11,16 +11,13 @@ export class MenuItem extends Control {
     this.click = new EventSource();
 
     this.mousedown.add((ev) => {
-      ev.capture();
       this.down = true;
       this.repaint();
     });
     this.mouseup.add((ev) => {
       this.down = false;
-      if (ev.capture && ev.inside()) {
-        this.click.fire();
-        this.parent.remove();
-      }
+      this.click.fire();
+      this.parent.remove();
     });
   }
 
@@ -35,6 +32,10 @@ export class MenuItem extends Control {
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
+    if (this.hovered) {
+      ctx.fillStyle = '#ff0098';
+      ctx.fillRect(0, 0, this.w, this.h);
+    }
     if (this.down) {
       ctx.fillStyle = '#ff9800';
       ctx.fillRect(0, 0, this.w, this.h);
@@ -78,11 +79,11 @@ export class Menu extends Control {
     let last: Control = null;
 
     for (const item of items) {
-      this.add(item, { x: 0 });
+      this.add(item, { x: 1 });
       if (last) {
         item.coords.y.align(last.coords.yh);
       } else {
-        item.coords.y.set(0);
+        item.coords.y.set(1);
       }
       last = item;
     }
@@ -97,8 +98,8 @@ export class Menu extends Control {
 
   protected defaultConstraints() {
     super.defaultConstraints();
-    this.coords.x.fit();
-    this.coords.y.fit();
+    this.coords.x.fit(1);
+    this.coords.y.fit(1);
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
