@@ -362,6 +362,10 @@ export class Form extends Control {
             this._capture.control.mouseup.fire(new FormMouseUpEvent(this._capture.x, this._capture.y, ev.button, ev.buttons, this._capture.control, false));
             this.endCapture();
           }
+          let y = ev.y;
+          if (y > 3 * this.h / 4) {
+            y -= 100;
+          }
           this.add(new Menu(items), ev.x, ev.y);
           break;
         }
