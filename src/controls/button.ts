@@ -79,18 +79,18 @@ export class Button extends TextControl {
   protected paintBackground(ctx: CanvasRenderingContext2D) {
     // Background colour.
     if (this._down) {
-      ctx.fillStyle = '#ff9800';
+      ctx.fillStyle = this.form.style.color.hovered;
     } else if (this._active) {
-      ctx.fillStyle = '#ffaa44';
+      ctx.fillStyle = this.form.style.color.selected;
     } else {
-      ctx.fillStyle = '#ffeecc';
+      ctx.fillStyle = this.form.style.color.button;
     }
 
     this.paintBorderPath(ctx);
 
     // Draw a very faint dropshadow when the mouse is down.
     if (this._down) {
-      ctx.shadowColor = '#c0c0c0';
+      ctx.shadowColor = this.form.style.color.shadow;
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 3;
       ctx.shadowOffsetY = 3;
@@ -106,7 +106,7 @@ export class Button extends TextControl {
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, this.h);
-        ctx.strokeStyle = '#cc8020';
+        ctx.strokeStyle = this.form.style.color.separator;
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -117,9 +117,9 @@ export class Button extends TextControl {
   protected paintBorder(ctx: CanvasRenderingContext2D) {
     // Border colour & style.
     if (this._down || this.hovered) {
-      ctx.strokeStyle = 'black';
+      ctx.strokeStyle = this.form.style.color.insetRight;
     } else {
-      ctx.strokeStyle = '#cc8020';
+      ctx.strokeStyle = this.form.style.color.outsetRight;
     }
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
@@ -134,7 +134,8 @@ export class Button extends TextControl {
     if (this.border) {
       // Radius for the border edge. When in a ButtonGroup, the button needs
       // to disable rounded corners on one (or both) of it's left or right side.
-      const r = 6;
+      const r = this.form.style.border.radius;
+
       let rl = r;
       let rr = r;
       if (this.parent instanceof ButtonGroup) {

@@ -130,13 +130,17 @@ export class Grabber extends Control {
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
     // TODO: Figure out a good visual style for the grabber.
+    ctx.globalAlpha *= 0.2;
+
     if (this._down) {
-      ctx.fillStyle = '#fff0f8';
+      ctx.fillStyle = this.form.style.color.selected;
     } else if (this.hovered) {
-      ctx.fillStyle = '#fff8f0';
+      ctx.fillStyle = this.form.style.color.hovered;
     } else {
-      ctx.fillStyle = '#f0f0f0';
+      ctx.fillStyle = this.form.style.color.button;
     }
     ctx.fillRect(0, 0, this.w, this.h);
+
+    ctx.globalAlpha /= 0.2;
   }
 }

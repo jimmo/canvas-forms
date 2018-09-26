@@ -57,7 +57,7 @@ export class ScrollBox extends Control {
     ctx.translate(this.scrollX, this.scrollY);
 
     // Draw scrollbars.
-    ctx.fillStyle = '#404040';
+    ctx.fillStyle = this.form.style.color.scrollbar;
 
     // Horizontal scrollbar.
     if (this.xmax > this.w) {

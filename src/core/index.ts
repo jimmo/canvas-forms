@@ -4,4 +4,5 @@ export * from './events';
 export * from './form';
 export * from './menu';
 export * from './surface';
+export * from './style';
 export * from './utils';

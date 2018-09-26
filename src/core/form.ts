@@ -1,5 +1,6 @@
 import { Surface, SurfaceMouseEvent, SurfaceScrollEvent, SurfaceKeyEvent } from './surface';
 import { Control, ControlAtPointData, ControlAtPointOpts } from './control';
+import { Style } from './style';
 import { Animator } from '../animation';
 import { Menu } from './menu';
 import { Timer } from './utils';
@@ -61,6 +62,8 @@ export class Form extends Control {
   private _pendingPaint = false;
 
   private _editing = false;
+
+  private _style = new Style();
 
   // The control that last received a mouse events.
   private _focus: ControlAtPointData;
@@ -406,7 +409,7 @@ export class Form extends Control {
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
     // Forms have a default (opaque) background color.
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.form.style.color.background;
     ctx.fillRect(0, 0, this.w, this.h);
   }
 
@@ -509,6 +512,10 @@ export class Form extends Control {
   // the parent to be able to provide it, so that's what we do.
   get context() {
     return this.surface.ctx;
+  }
+
+  get style() {
+    return this._style;
   }
 
   // Returns true if this form is in edit mode.

@@ -47,8 +47,8 @@ export class Slider extends Control {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    ctx.fillStyle = '#ff9800';
-    ctx.strokeStyle = 'black';
+    ctx.fillStyle = this.form.style.color.button;
+    ctx.strokeStyle = this.form.style.color.insetLeft;
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
 

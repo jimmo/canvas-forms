@@ -87,13 +87,13 @@ export class CheckBox extends TextControl {
     super.paint(ctx);
 
     // Solid white background for the actual box part.
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.form.style.color.background;
 
     // Make the box have a highlighted border if the mouse is currently down.
     if (this.down) {
-      ctx.strokeStyle = 'orange';
+      ctx.strokeStyle = this.form.style.color.selected;
     } else {
-      ctx.strokeStyle = 'black';
+      ctx.strokeStyle = this.form.style.color.insetLeft;
     }
 
     ctx.lineJoin = 'round';
@@ -114,7 +114,7 @@ export class CheckBox extends TextControl {
 
     // Add the orange check mark inside the box.
     if (this._checked) {
-      ctx.fillStyle = 'orange';
+      ctx.fillStyle = this.form.style.color.selected;
       if (this.radio) {
         ctx.beginPath();
         ctx.arc(this.h / 2, this.h / 2, this.h / 2 - 3, 0, 2 * Math.PI);

@@ -298,7 +298,7 @@ class TreeItem extends Control {
   protected paint(ctx: CanvasRenderingContext2D) {
     // Draw a filled horizontal background on the text if selected or dragging onto.
     if (this.selected || this.dropTarget) {
-      ctx.fillStyle = this.dropTarget ? 'cornflowerblue' : 'orange';
+      ctx.fillStyle = this.dropTarget ? this.form.style.color.hovered : this.form.style.color.selected;
       ctx.fillRect(0, 0, this.tree.scrollWidth, this.label.h);
     }
 
@@ -321,7 +321,7 @@ class TreeItem extends Control {
       }
       ctx.closePath();
 
-      ctx.fillStyle = 'black';
+      ctx.fillStyle = this.form.style.color.symbol;
       ctx.fill();
     }
 
@@ -390,7 +390,7 @@ class SubTree extends Control {
     // Show a loading indicator in the blank space created by the min
     // bounds on the content constraint.
     if (this.loading) {
-      ctx.fillStyle = 'grey';
+      ctx.fillStyle = this.form.style.color.symbol;
       ctx.fillRect(6, this.h / 2 - 1, 2, 2);
       ctx.fillRect(12, this.h / 2 - 1, 2, 2);
       ctx.fillRect(18, this.h / 2 - 1, 2, 2);
@@ -452,7 +452,7 @@ export class Tree extends ScrollBox {
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.form.style.color.background;
     ctx.fillRect(0, 0, this.w, this.h);
   }
 }

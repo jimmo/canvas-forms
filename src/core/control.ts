@@ -885,9 +885,9 @@ export class Control {
     ctx.lineTo(0, 0);
     ctx.lineTo(this.w, 0);
     if (this.dropTarget) {
-      ctx.strokeStyle = '#2020a0';
+      ctx.strokeStyle = this.form.style.color.hovered;
     } else {
-      ctx.strokeStyle = '#202020';
+      ctx.strokeStyle = this.form.style.color.insetLeft;
     }
     ctx.stroke();
 
@@ -897,9 +897,9 @@ export class Control {
     ctx.lineTo(this.w, this.h);
     ctx.lineTo(0, this.h);
     if (this.dropTarget) {
-      ctx.strokeStyle = '#7070c0';
+      ctx.strokeStyle = this.form.style.color.hovered;
     } else {
-      ctx.strokeStyle = '#707070';
+      ctx.strokeStyle = this.form.style.color.insetRight;
     }
     ctx.stroke();
   }
@@ -1019,13 +1019,6 @@ export class Control {
   relayout() {
     if (this._parent) {
       this._parent.relayout();
-    }
-  }
-
-  // Recursively finds the drawing context from the `Form` that contains this control.
-  get context(): CanvasRenderingContext2D {
-    if (this._parent) {
-      return this._parent.context;
     }
   }
 

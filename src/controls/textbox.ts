@@ -112,7 +112,7 @@ class _TextBox extends TextControl {
         this.parent.submit();
       }
     });
-    this.context.canvas.parentElement.insertBefore(this.elem, this.context.canvas);
+    this.form.context.canvas.parentElement.insertBefore(this.elem, this.form.context.canvas);
   }
 
   protected positionElem() {
@@ -125,7 +125,7 @@ class _TextBox extends TextControl {
     // is animating.
     // Probably because the modal backdrop is mixing with the opaque dialog contents
     // (but not with the HTML textbox).
-    this.elem.style.opacity = this.context.globalAlpha.toString();
+    this.elem.style.opacity = this.form.context.globalAlpha.toString();
 
     this.elem.value = this.text;
   }
@@ -178,10 +178,10 @@ export class FocusTextBox extends _TextBox {
         // TODO: Make 2d version of this for multiline.
         if (!this.multiline) {
           // Figure out which letter they clicked on and set the cursor appropriately.
-          this.context.font = this.getFont();
+          this.form.context.font = this.getFont();
           for (let i = 0; i < text.length; ++i) {
             // TODO: This should round, rathern than trunc.
-            if (data.x < this.context.measureText(text.substr(0, i)).width) {
+            if (data.x < this.form.context.measureText(text.substr(0, i)).width) {
               this.elem.setSelectionRange(i - 1, i - 1);
               break;
             }

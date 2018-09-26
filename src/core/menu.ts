@@ -26,18 +26,18 @@ export class MenuItem extends Control {
 
     ctx.font = '18px sans'
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#202020'
+    ctx.fillStyle = this.form.style.color.text;
     ctx.textAlign = 'left';
     ctx.fillText(this.text, 3, this.h / 2);
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
     if (this.hovered) {
-      ctx.fillStyle = '#ff0098';
+      ctx.fillStyle = this.form.style.color.hovered;
       ctx.fillRect(0, 0, this.w, this.h);
     }
     if (this.down) {
-      ctx.fillStyle = '#ff9800';
+      ctx.fillStyle = this.form.style.color.selected;
       ctx.fillRect(0, 0, this.w, this.h);
     }
   }
@@ -58,7 +58,7 @@ export class MenuHeadingItem extends Control {
 
     ctx.font = '18px sans'
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#606060'
+    ctx.fillStyle = this.form.style.color.text;
     ctx.textAlign = 'left';
     ctx.fillText(this.text, 3, this.h / 2);
   }
@@ -76,7 +76,7 @@ export class MenuSeparatorItem extends Control {
 
   protected paint(ctx: CanvasRenderingContext2D) {
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#a0a0a0';
+    ctx.strokeStyle = this.form.style.color.separator;
     ctx.beginPath();
     ctx.moveTo(10, this.h / 2);
     ctx.lineTo(this.w - 10, this.h / 2);
@@ -124,8 +124,8 @@ export class Menu extends Control {
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = '#f0f0f0';
-    ctx.shadowColor = '#c0c0c0';
+    ctx.fillStyle = this.form.style.color.menu;
+    ctx.shadowColor = this.form.style.color.shadow;
     ctx.shadowBlur = 8;
     ctx.shadowOffsetX = 3;
     ctx.shadowOffsetY = 3;

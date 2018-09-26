@@ -19,10 +19,10 @@ export class Dialog extends Control {
     this.coords.center(CoordAxis.Y);
   }
 
-  protected paint(ctx: CanvasRenderingContext2D) {
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
     // Modals have a solid background inside a rounded-rect border.
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
+    ctx.fillStyle = this.form.style.color.background;
+    ctx.strokeStyle = this.form.style.color.background;
     ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
 
@@ -40,8 +40,6 @@ export class Dialog extends Control {
 
     ctx.fill();
     ctx.stroke();
-
-    super.paint(ctx);
   }
 
   // Call this to show this dialog as a modal.

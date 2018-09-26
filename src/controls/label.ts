@@ -35,10 +35,6 @@ export class Label extends TextControl {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    // // For testing, fill the background.
-    // ctx.fillStyle = '#c0c0c0';
-    // ctx.fillRect(0, 0, this.w, this.h);
-
     // Draw the text, centered vertically and left aligned.
     ctx.font = this.getFont();
     ctx.textBaseline = 'middle';
@@ -108,11 +104,11 @@ export class Label extends TextControl {
     const text = this.text;
 
     // Width is the measured width of the widest line.
-    this.context.font = this.getFont();
+    this.form.context.font = this.getFont();
     const lines = text.split('\n');
     this.w = 0;
     for (const line of lines) {
-      this.w = Math.max(this.w, Math.ceil(this.context.measureText(line).width) + 10);
+      this.w = Math.max(this.w, Math.ceil(this.form.context.measureText(line).width) + 10);
     }
 
     if (this.iconCode) {

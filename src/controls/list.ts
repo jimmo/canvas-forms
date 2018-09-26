@@ -18,13 +18,13 @@ export class ListItem<T> extends Control {
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
     if (this._selected) {
-      ctx.fillStyle = 'orange';
+      ctx.fillStyle = this.form.style.color.selected;
       ctx.fillRect(0, 0, this.w, this.h);
     }
   }
 
   protected paintBorder(ctx: CanvasRenderingContext2D) {
-    ctx.strokeStyle = '#c0c0c0';
+    ctx.strokeStyle = this.form.style.color.separator;
     ctx.beginPath();
     ctx.moveTo(0, this.h);
     ctx.lineTo(this.w, this.h);
@@ -124,7 +124,7 @@ export class List<T> extends ScrollBox {
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.form.style.color.background;
     ctx.fillRect(0, 0, this.w, this.h);
   }
 

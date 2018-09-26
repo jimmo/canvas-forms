@@ -27,7 +27,7 @@ export class Modal extends Control {
     // Draw an opaque background over the rest of the form.
     const a = ctx.globalAlpha;
     ctx.globalAlpha *= 0.5;
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, this.w, this.h);
     ctx.globalAlpha = a;
 

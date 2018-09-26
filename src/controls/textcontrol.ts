@@ -169,7 +169,7 @@ export abstract class TextControl extends Control {
 
   // Returns the default foreground color for this control.
   get color(): string {
-    return this._color || '#202020';
+    return this._color || this.form.style.color.text;
   }
 
   set color(color: string) {
