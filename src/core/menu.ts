@@ -135,11 +135,11 @@ export class Menu extends Control {
 
   protected added() {
     super.added();
-    this.form().pushLayer(this);
+    this.form.pushLayer(this);
   }
 
   protected removed() {
     super.removed();
-    this.form().popLayer(this);
+    this.form.popLayer(this);
   }
 }

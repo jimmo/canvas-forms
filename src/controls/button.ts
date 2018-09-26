@@ -7,8 +7,8 @@ import { LabelText, TextControl, FontStyle } from './textcontrol';
 
 export class Button extends TextControl {
   // Remember down state so paint can draw the button appropriately.
-  protected down: boolean = false;
-  protected active: boolean = false;
+  protected _down: boolean = false;
+  protected _active: boolean = false;
 
   click: EventSource;
 
@@ -22,17 +22,17 @@ export class Button extends TextControl {
 
     // Simple button down, capture, and up-still-inside click handler.
     this.mousedown.add((ev) => {
-      this.down = true;
+      this._down = true;
       ev.capture();
       ev.cancelBubble();
       this.repaint();
     });
     this.mouseup.add((ev) => {
-      if (!this.down) {
+      if (!this._down) {
         return;
       }
 
-      this.down = false;
+      this._down = false;
 
       if (ev.capture && this.inside(ev.x, ev.y)) {
         this.click.fire();
@@ -78,9 +78,9 @@ export class Button extends TextControl {
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
     // Background colour.
-    if (this.down) {
+    if (this._down) {
       ctx.fillStyle = '#ff9800';
-    } else if (this.active) {
+    } else if (this._active) {
       ctx.fillStyle = '#ffaa44';
     } else {
       ctx.fillStyle = '#ffeecc';
@@ -89,7 +89,7 @@ export class Button extends TextControl {
     this.paintBorderPath(ctx);
 
     // Draw a very faint dropshadow when the mouse is down.
-    if (this.down) {
+    if (this._down) {
       ctx.shadowColor = '#c0c0c0';
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 3;
@@ -116,7 +116,7 @@ export class Button extends TextControl {
   // Override this separately to customise the basic decorations (border, focus, etc).
   protected paintBorder(ctx: CanvasRenderingContext2D) {
     // Border colour & style.
-    if (this.down || this.hovered) {
+    if (this._down || this.hovered) {
       ctx.strokeStyle = 'black';
     } else {
       ctx.strokeStyle = '#cc8020';
@@ -166,8 +166,12 @@ export class Button extends TextControl {
     }
   }
 
-  setActive(value: boolean) {
-    this.active = value;
+  get active() {
+    return this._active;
+  }
+
+  set active(value: boolean) {
+    this._active = value;
     this.setStyleIf(FontStyle.BOLD, value);
     this.repaint();
   }

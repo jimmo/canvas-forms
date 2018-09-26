@@ -149,7 +149,7 @@ class TreeLabel extends Label {
 // The subtree itself is a repeated set of TreeItems.
 class TreeItem extends Control {
   // Track selected state.
-  selected: boolean = false;
+  private _selected: boolean = false;
 
   // Track open state.
   private _open: boolean = false;
@@ -165,7 +165,7 @@ class TreeItem extends Control {
 
   static ARROW_WIDTH = 32;
 
-  constructor(private readonly tree: Tree, private readonly node: TreeNode) {
+  constructor(private readonly tree: Tree, readonly node: TreeNode) {
     super();
 
     // This tree item may not be as wide as other tree items, so when selected
@@ -192,7 +192,7 @@ class TreeItem extends Control {
       }
 
       // Any click in the text row will cause selection.
-      this.setSelected(true);
+      this.selected = true;
 
       // But a click on the arrow will additionally toggle open/closed.
       if (ev.x < TreeItem.ARROW_WIDTH) {
@@ -222,18 +222,22 @@ class TreeItem extends Control {
     });
   }
 
+  get selected() {
+    return this._selected;
+  }
+
   // Set selected state, fire events, and remove selection from any other node in the tree.
-  setSelected(value: boolean) {
+  set selected(value: boolean) {
     if (value === this.selected) {
       return;
     }
-    this.selected = value;
+    this._selected = value;
     this.repaint();
-    if (this.selected) {
+    if (this._selected) {
       this.select.fire();
-      this.tree.setSelected(this);
+      this.tree.selectedItem = this;
     }
-    if (this.selected) {
+    if (this._selected) {
       this.node.treeSelect();
     }
   }
@@ -286,16 +290,16 @@ class TreeItem extends Control {
     this.node.treeDrop(data);
 
     // Select and re-open the item so that we see the dropped item.
-    this.setSelected(true);
+    this.selected = true;
     this.close();
     this.open();
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
     // Draw a filled horizontal background on the text if selected or dragging onto.
-    if (this.selected || this.dragTarget) {
-      ctx.fillStyle = this.dragTarget ? 'cornflowerblue' : 'orange';
-      ctx.fillRect(0, 0, this.tree.scrollWidth(), this.label.h);
+    if (this.selected || this.dropTarget) {
+      ctx.fillStyle = this.dropTarget ? 'cornflowerblue' : 'orange';
+      ctx.fillRect(0, 0, this.tree.scrollWidth, this.label.h);
     }
 
     if (this.node.treeHasChildren()) {
@@ -406,7 +410,7 @@ export class Tree extends ScrollBox {
   private sub: SubTree;
 
   // Currently selected tree node.
-  private selected: TreeItem;
+  private _selected: TreeItem;
 
   constructor() {
     super();
@@ -434,13 +438,17 @@ export class Tree extends ScrollBox {
     return this.sub.addItem(node);
   }
 
-  // De-selects the current selection and makes a new node selected.
-  setSelected(node: TreeItem) {
-    if (this.selected && this.selected !== node) {
-      this.selected.setSelected(false);
+  // De-selects the current selection and makes a new item selected.
+  set selectedItem(item: TreeItem) {
+    if (this._selected && this._selected !== item) {
+      this._selected.selected = false;
     }
-    this.selected = node;
-    node.setSelected(true);
+    this._selected = item;
+    item.selected = true;
+  }
+
+  get selectedNode() {
+    return this.selectedItem.node;
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {

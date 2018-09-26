@@ -66,7 +66,7 @@ export class Modal extends Control {
   // Make the modal (and the dialog) close. This is called from `Dialog::close()`.
   async close(data: any) {
     await new OpacityAnimator(this, 1, 0, 200).start();
-    this.form().popLayer(this);
+    this.form.popLayer(this);
     this.remove();
     if (this._resolve) {
       this._resolve(data);

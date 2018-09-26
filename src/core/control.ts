@@ -236,7 +236,7 @@ export class Control {
   // currently a drag in process, this control is under the mouse cursor, and
   // has returned true to `allowDrop`.
   // Controls may choose to render differently if so.
-  protected dragTarget: boolean = false;
+  protected dropTarget: boolean = false;
 
   // Events used to implement behavior for the controls.
   // These will be fired by the form.
@@ -574,7 +574,7 @@ export class Control {
   private applyDefaultLayout(axis: CoordAxis) {
     if (axis === CoordAxis.X) {
       if (this.w === null) {
-        this.w = this.form().defaultWidth();
+        this.w = this.form.defaultWidth;
         this.recalculate(CoordAxis.X);
       }
       if (this.x === null) {
@@ -583,7 +583,7 @@ export class Control {
       }
     } else if (axis === CoordAxis.Y) {
       if (this.h === null) {
-        this.h = this.form().defaultHeight();
+        this.h = this.form.defaultHeight;
         this.recalculate(CoordAxis.Y);
       }
       if (this.y === null) {
@@ -884,7 +884,7 @@ export class Control {
     ctx.moveTo(0, this.h);
     ctx.lineTo(0, 0);
     ctx.lineTo(this.w, 0);
-    if (this.dragTarget) {
+    if (this.dropTarget) {
       ctx.strokeStyle = '#2020a0';
     } else {
       ctx.strokeStyle = '#202020';
@@ -896,7 +896,7 @@ export class Control {
     ctx.moveTo(this.w, 0);
     ctx.lineTo(this.w, this.h);
     ctx.lineTo(0, this.h);
-    if (this.dragTarget) {
+    if (this.dropTarget) {
       ctx.strokeStyle = '#7070c0';
     } else {
       ctx.strokeStyle = '#707070';
@@ -1023,9 +1023,9 @@ export class Control {
   }
 
   // Recursively finds the drawing context from the `Form` that contains this control.
-  context(): CanvasRenderingContext2D {
+  get context(): CanvasRenderingContext2D {
     if (this._parent) {
-      return this._parent.context();
+      return this._parent.context;
     }
   }
 
@@ -1039,9 +1039,9 @@ export class Control {
   }
 
   // Returns the form that owns this control.
-  form(): Form {
+  get form(): Form {
     if (this._parent) {
-      return this._parent.form();
+      return this._parent.form;
     } else {
       return null;
     }
@@ -1049,18 +1049,18 @@ export class Control {
 
   // Gets the x coordinate of this control relative to the form.
   // TODO: make this a property??
-  formX(): number {
+  get formX(): number {
     if (this._parent) {
-      return this.x + this._parent.formX();
+      return this.x + this._parent.formX;
     } else {
       return this.x;
     }
   }
 
   // Gets the y coordinate of this control relative to the form.
-  formY(): number {
+  get formY(): number {
     if (this._parent) {
-      return this.y + this._parent.formY();
+      return this.y + this._parent.formY;
     } else {
       return this.y;
     }
@@ -1086,8 +1086,8 @@ export class Control {
 
   // Override this to enable this control as a drop target.
   // (Optionally based on what the drag data is).
-  allowDrop(data: any) {
-    return false;
+  allowDrop(data: any): boolean {
+    return null;
   }
 
   // Override this to be notified when something is dropped on this control.

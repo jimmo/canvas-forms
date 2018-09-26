@@ -108,11 +108,11 @@ export class Label extends TextControl {
     const text = this.text;
 
     // Width is the measured width of the widest line.
-    this.context().font = this.getFont();
+    this.context.font = this.getFont();
     const lines = text.split('\n');
     this.w = 0;
     for (const line of lines) {
-      this.w = Math.max(this.w, Math.ceil(this.context().measureText(line).width) + 10);
+      this.w = Math.max(this.w, Math.ceil(this.context.measureText(line).width) + 10);
     }
 
     if (this.iconCode) {
@@ -123,7 +123,7 @@ export class Label extends TextControl {
     }
 
     // Height is based on number-of-lines times line-height.
-    this.h = Math.max(this.form().defaultHeight(), lines.length * (this.getFontSize() + 3));
+    this.h = Math.max(this.form.defaultHeight, lines.length * (this.getFontSize() + 3));
     return true;
   }
 }

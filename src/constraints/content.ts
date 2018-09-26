@@ -8,11 +8,14 @@ import { Coord, CoordAxis, CoordType } from '../core/enums';
 // Note that if any of the child controls are positioned using X2/Y2, then this constraint
 // cannot solve.
 export class ContentConstraint extends Constraint {
-  constructor(control: Control, axis: CoordAxis, private padding?: number, private min?: number) {
+  private _padding: number = 0;
+  private _min: number = 0;
+
+  constructor(control: Control, axis: CoordAxis, padding?: number, min?: number) {
     super([control], [Coord.create(axis, CoordType.B)]);
 
-    this.padding = this.padding || 0;
-    this.min = this.min || 0;
+    this._padding = padding || 0;
+    this._min = min || 0;
 
     // Content makes no sense for anything other than width/height.
     if (this.coords[0] !== Coord.W && this.coords[0] !== Coord.H) {
@@ -53,16 +56,16 @@ export class ContentConstraint extends Constraint {
     }
 
     // Apply padding and minimum.
-    Constraint.setCoord(this.controls[0], this.coords[0], Math.max(this.min, v + this.padding));
+    Constraint.setCoord(this.controls[0], this.coords[0], Math.max(this._min, v + this._padding));
 
     return true;
   }
 
   // Helpers to override padding and minimum.
-  setPadding(padding?: number) {
-    this.padding = padding || 0;
+  set padding(padding: number) {
+    this._padding = padding || 0;
   }
-  setMinimum(min?: number) {
-    this.min = min || 0;
+  set minimum(min: number) {
+    this._min = min || 0;
   }
 }

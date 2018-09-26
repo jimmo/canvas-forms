@@ -43,7 +43,7 @@ class _TextBox extends TextControl {
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
-    if (this.elem && !this.form().allowDom(this)) {
+    if (this.elem && !this.form.allowDom(this)) {
       this.unpaint();
     }
     if (this.elem) {
@@ -98,7 +98,7 @@ class _TextBox extends TextControl {
     this.elem.style.border = 'none';
     this.elem.style.background = 'none';
     this.elem.style.paddingLeft = '3px';
-    this.elem.style.fontSize = this.form().surface.htmlunits(this.getFontSize()) + 'px';
+    this.elem.style.fontSize = this.form.surface.htmlunits(this.getFontSize()) + 'px';
     this.elem.style.fontFamily = this.getFontName();
     this.elem.style.fontWeight = this.hasStyle(FontStyle.BOLD) ? ' bold' : 'normal';
     this.elem.style.fontStyle = this.hasStyle(FontStyle.ITALIC) ? ' italic' : 'normal';
@@ -112,20 +112,20 @@ class _TextBox extends TextControl {
         this.parent.submit();
       }
     });
-    this.context().canvas.parentElement.insertBefore(this.elem, this.context().canvas);
+    this.context.canvas.parentElement.insertBefore(this.elem, this.context.canvas);
   }
 
   protected positionElem() {
-    this.elem.style.left = this.form().surface.htmlunits(this.formX()) + 'px';
-    this.elem.style.top = this.form().surface.htmlunits(this.formY()) + 'px';
-    this.elem.style.width = this.form().surface.htmlunits(this.w) + 'px';
-    this.elem.style.height = this.form().surface.htmlunits(this.h) + 'px';
+    this.elem.style.left = this.form.surface.htmlunits(this.formX) + 'px';
+    this.elem.style.top = this.form.surface.htmlunits(this.formY) + 'px';
+    this.elem.style.width = this.form.surface.htmlunits(this.w) + 'px';
+    this.elem.style.height = this.form.surface.htmlunits(this.h) + 'px';
 
     // TODO: something's not quite right here when inside a modal and open/close
     // is animating.
     // Probably because the modal backdrop is mixing with the opaque dialog contents
     // (but not with the HTML textbox).
-    this.elem.style.opacity = this.context().globalAlpha.toString();
+    this.elem.style.opacity = this.context.globalAlpha.toString();
 
     this.elem.value = this.text;
   }
@@ -150,7 +150,7 @@ export class TextBox extends _TextBox {
   }
 
   protected paint(ctx: CanvasRenderingContext2D) {
-    if (!this.elem && this.form().allowDom(this)) {
+    if (!this.elem && this.form.allowDom(this)) {
       this.createElem();
     }
 
@@ -178,10 +178,10 @@ export class FocusTextBox extends _TextBox {
         // TODO: Make 2d version of this for multiline.
         if (!this.multiline) {
           // Figure out which letter they clicked on and set the cursor appropriately.
-          this.context().font = this.getFont();
+          this.context.font = this.getFont();
           for (let i = 0; i < text.length; ++i) {
             // TODO: This should round, rathern than trunc.
-            if (data.x < this.context().measureText(text.substr(0, i)).width) {
+            if (data.x < this.context.measureText(text.substr(0, i)).width) {
               this.elem.setSelectionRange(i - 1, i - 1);
               break;
             }

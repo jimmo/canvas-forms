@@ -12,7 +12,7 @@ export class CheckBoxToggleEvent extends ControlEvent {
 
 export class CheckBox extends TextControl {
   // Current state of the checkbox.
-  checked: boolean = false;
+  private _checked: boolean = false;
 
   // Tracks whether we're currently in the middle of a mouse capture.
   private down: boolean = false;
@@ -28,7 +28,7 @@ export class CheckBox extends TextControl {
   constructor(text?: string, checked?: boolean) {
     super(text);
 
-    this.checked = this.checked || false;
+    this._checked = this._checked || false;
 
     this.on = new EventSource();
     this.off = new EventSource();
@@ -49,7 +49,7 @@ export class CheckBox extends TextControl {
       }
 
       if (ev.capture && this.inside(ev.x, ev.y)) {
-        this.setChecked(!this.checked);
+        this.checked = !this._checked;
       }
 
       this.down = false;
@@ -57,9 +57,13 @@ export class CheckBox extends TextControl {
     });
   }
 
-  setChecked(checked: boolean) {
+  get checked() {
+    return this._checked;
+  }
+
+  set checked(checked: boolean) {
     // No-op if we're already in the desired state.
-    if (this.checked === checked) {
+    if (this._checked === checked) {
       return;
     }
 
@@ -69,10 +73,10 @@ export class CheckBox extends TextControl {
     }
 
     // Change state and fire events.
-    this.checked = checked;
-    const ev = new CheckBoxToggleEvent(this, this.checked);
+    this._checked = checked;
+    const ev = new CheckBoxToggleEvent(this, this._checked);
     this.toggle.fire(ev);
-    if (this.checked) {
+    if (this._checked) {
       this.on.fire(ev);
     } else {
       this.off.fire(ev);
@@ -109,7 +113,7 @@ export class CheckBox extends TextControl {
     }
 
     // Add the orange check mark inside the box.
-    if (this.checked) {
+    if (this._checked) {
       ctx.fillStyle = 'orange';
       if (this.radio) {
         ctx.beginPath();
@@ -153,7 +157,7 @@ export class RadioGroup {
       if (checkbox === selected) {
         continue;
       }
-      checkbox.setChecked(false);
+      checkbox.checked = false;
     }
   }
 };

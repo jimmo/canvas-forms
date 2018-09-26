@@ -138,18 +138,18 @@ export class ScrollBox extends Control {
 
 
   // Override base version to take into account scroll coordinates.
-  formX(): number {
-    return super.formX() - this.scrollX;
+  get formX(): number {
+    return super.formX - this.scrollX;
   }
-  formY(): number {
-    return super.formY() - this.scrollY;
+  get formY(): number {
+    return super.formY - this.scrollY;
   }
 
   // The amount of total scrollable width / height.
-  scrollWidth(): number {
+  get scrollWidth(): number {
     return Math.max(this.w, this.xmax);
   }
-  scrollHeight(): number {
+  get scrollHeight(): number {
     return Math.max(this.h, this.ymax);
   }
 }

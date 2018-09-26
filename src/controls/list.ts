@@ -7,7 +7,7 @@ import { ScrollBox } from './scrollbox';
 // TODO: make this API work more like Tree.
 
 export class ListItem<T> extends Control {
-  selected: boolean = false;
+  private _selected: boolean = false;
   select: EventSource;
 
   constructor(readonly value: T) {
@@ -17,7 +17,7 @@ export class ListItem<T> extends Control {
   }
 
   protected paintBackground(ctx: CanvasRenderingContext2D) {
-    if (this.selected) {
+    if (this._selected) {
       ctx.fillStyle = 'orange';
       ctx.fillRect(0, 0, this.w, this.h);
     }
@@ -32,24 +32,28 @@ export class ListItem<T> extends Control {
   }
 
   protected defaultConstraints() {
-    this.coords.h.set(this.form().defaultHeight());
+    this.coords.h.set(this.form.defaultHeight);
   }
 
-  setSelected(value: boolean) {
-    if (value === this.selected) {
+  get selected() {
+    return this._selected;
+  }
+
+  set selected(value: boolean) {
+    if (value === this._selected) {
       return;
     }
     // TODO: scroll into view.
-    this.selected = value;
+    this._selected = value;
     this.repaint();
-    if (this.selected) {
+    if (this._selected) {
       this.select.fire();
     }
   }
 }
 
 export class TextListItem extends ListItem<string> {
-  draggable: boolean = false;
+  private _draggable: boolean = false;
 
   constructor(text: string) {
     super(text);
@@ -57,9 +61,9 @@ export class TextListItem extends ListItem<string> {
     l.fit = false;
 
     this.mousedown.add((ev) => {
-      this.setSelected(true);
+      this.selected = true;
 
-      if (this.draggable) {
+      if (this._draggable) {
         ev.allowDrag('hello');
       }
     });
@@ -101,8 +105,8 @@ export class List<T> extends ScrollBox {
         // Up
         for (let i = 1; i < this.controls.length; ++i) {
           if ((this.controls[i] as ListItem<T>).selected) {
-            (this.controls[i] as ListItem<T>).setSelected(false);
-            (this.controls[i - 1] as ListItem<T>).setSelected(true);
+            (this.controls[i] as ListItem<T>).selected = false;
+            (this.controls[i - 1] as ListItem<T>).selected = true;
             break;
           }
         }
@@ -110,8 +114,8 @@ export class List<T> extends ScrollBox {
         // Down
         for (let i = 0; i < this.controls.length - 1; ++i) {
           if ((this.controls[i] as ListItem<T>).selected) {
-            (this.controls[i] as ListItem<T>).setSelected(false);
-            (this.controls[i + 1] as ListItem<T>).setSelected(true);
+            (this.controls[i] as ListItem<T>).selected = false;
+            (this.controls[i + 1] as ListItem<T>).selected = true;
             break;
           }
         }
@@ -145,7 +149,7 @@ export class List<T> extends ScrollBox {
     return itemControl;
   }
 
-  selected() {
+  get selectedItem() {
     for (const c of this.controls) {
       if ((c as ListItem<T>).selected) {
         return (c as ListItem<T>).value;

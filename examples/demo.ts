@@ -16,7 +16,7 @@ grabber.setBound(CoordAxis.X, 100, 400);
 
 // When there is no selection, clear the container.
 demoList.change.add(() => {
-  if (!demoList.selected()) {
+  if (!demoList.selectedItem) {
     c.clear();
   }
 });
@@ -235,7 +235,7 @@ class CustomListItem extends ListItem<string> {
 
     const b = this.add(new Button(''), { x: 3, y: 3, w: 20, y2: 3 });
     b.click.add(() => {
-      this.setSelected(true);
+      this.selected = true;
     });
 
     this.add(new Label(text), { x: 30, y: 3, x2: 3, y2: 3 });

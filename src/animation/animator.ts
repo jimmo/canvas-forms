@@ -55,7 +55,7 @@ export abstract class Animator {
     this.startTime = 0;
 
     // Register ourselves with the form so that we receive frame callbacks (via `apply()`).
-    this.controls[0].form().addAnimator(this);
+    this.controls[0].form.addAnimator(this);
 
     // Allow `await anim.start()` so that animations can be sequenced.
     return new Promise<void>((resolve) => {
@@ -65,7 +65,7 @@ export abstract class Animator {
 
   stop() {
     // Stop receiving frame callbacks.
-    this.controls[0].form().removeAnimator(this);
+    this.controls[0].form.removeAnimator(this);
 
     // Complete the promise returned from `start()`.
     if (this._resolve) {

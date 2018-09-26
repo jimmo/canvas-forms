@@ -79,9 +79,9 @@ export class Form extends Control {
   // The coordinates that we're current dragging to (needed to so we can paint the overlay at
   // the correct location).
   private _dragCoordinates: SurfaceMouseEvent;
-  // The last control that we thought was the drag target (i.e. we set `.dragTarget = true` on
+  // The last control that we thought was the drag target (i.e. we set `.dropTarget = true` on
   // it so we need to keep a reference to it so we can unset that if we move over a different control.
-  private _dragTargetControl: Control;
+  private _dropTargetControl: Control;
 
   // Allows a mouse down event to keep bubbling up the hierarchy.
   private _bubbleMouseDown: boolean = true;
@@ -164,24 +164,25 @@ export class Form extends Control {
       }
 
       if (this._capture && this._dragAllowed) {
+        if (menuTimer) {
+          menuTimer.cancel();
+          menuTimer = null;
+        }
+
         // Capture is enabled and the control has indicated that it's a drag source.
         this._dragCoordinates = ev;
 
-        // Remove the `dragTarget` state from the previous target.
-        if (this._dragTargetControl) {
-          (this._dragTargetControl as Form).dragTarget = false;
+        // Remove the `dropTarget` state from the previous target.
+        if (this._dropTargetControl) {
+          (this._dropTargetControl as Form).dropTarget = false;
         }
 
-        // Hit test and set `dragTarget` on the current target.
+        // Hit test and set `dropTarget` on the current target.
         // Note we set `all=true` to hit test all controls (not just the ones with
         // mouse event handlers).
-        const dragHit = this.controlAtPoint(ev.x, ev.y, { all: true });
-        if (dragHit) {
-          const dragTarget = dragHit.control;
-          if (dragTarget !== this._capture.control && dragTarget.allowDrop(this._dragData)) {
-            (dragTarget as Form).dragTarget = true;
-            this._dragTargetControl = dragTarget;
-          }
+        this._dropTargetControl = this.dropTargetAtPoint(ev.x, ev.y);
+        if (this._dropTargetControl) {
+          (this._dropTargetControl as Form).dropTarget = true;
         }
       }
 
@@ -307,14 +308,9 @@ export class Form extends Control {
         target.update(ev.x, ev.y);
 
         // But if we're mid-drag, then we need to also notify the drop (if allowed).
-        if (this._dragCoordinates) {
-          const dropHit = this.controlAtPoint(ev.x, ev.y);
-          if (dropHit) {
-            const dropTarget = dropHit.control;
-            if (dropTarget.allowDrop(this._dragData)) {
-              dropTarget.drop(this._dragData);
-            }
-          }
+        if (this._dragCoordinates && this._dropTargetControl) {
+          this._dropTargetControl.drop(this._dragData);
+          (this._dropTargetControl as Form).dropTarget = false;
         }
 
         // Repaint to hide the drag overlay.
@@ -390,10 +386,10 @@ export class Form extends Control {
     this._dragCapture = null;
     this._dragAllowed = false;
     this._dragData = null;
-    if (this._dragTargetControl) {
-      (this._dragTargetControl as Form).dragTarget = false;
+    if (this._dropTargetControl) {
+      (this._dropTargetControl as Form).dropTarget = false;
     }
-    this._dragTargetControl = null;
+    this._dropTargetControl = null;
     this._dragCoordinates = null;
   }
 
@@ -467,7 +463,7 @@ export class Form extends Control {
 
       // Recursively paint the form.
       // const t = new Date().getTime();
-      this.paint(this.context());
+      this.paint(this.context);
       // console.log('paint: ', new Date().getTime() - t);
     }
   }
@@ -511,7 +507,7 @@ export class Form extends Control {
 
   // We're the top of the hierarchy. The default implementation of this expects
   // the parent to be able to provide it, so that's what we do.
-  context() {
+  get context() {
     return this.surface.ctx;
   }
 
@@ -521,25 +517,51 @@ export class Form extends Control {
     return this._editing;
   }
 
-  // Override the default implementation in Control (that returns `parent.form()`).
-  form(): Form {
+  // Override the default implementation in Control (that returns `parent.form`).
+  get form(): Form {
     return this;
   }
 
   // Default width & height for controls that do not get these through constraints.
-  defaultWidth(): number {
+  get defaultWidth(): number {
     return 160;
   }
-  defaultHeight(): number {
+  get defaultHeight(): number {
     return 32;
   }
 
   // Override the default implementaiton in Control (we're the root control, so at 0,0).
-  formX(): number {
+  get formX(): number {
     return 0;
   }
-  formY(): number {
+  get formY(): number {
     return 0;
+  }
+
+  dropTargetAtPoint(x: number, y: number) {
+    const exclude = [];
+
+    while (true) {
+      const hit = this.controlAtPoint(x, y, { exclude: exclude, all: true });
+      if (!hit) {
+        break;
+      }
+
+      if (hit.control !== this._capture.control) {
+        const allow = hit.control.allowDrop(this._dragData);
+        if (allow === true) {
+          return hit.control;
+        }
+        if (allow === false) {
+          return null;
+        }
+        // default (null) means bubble.
+      }
+
+      exclude.push(hit.control);
+    }
+
+    return null;
   }
 
   // Is the specified control allowed to use DOM content.
