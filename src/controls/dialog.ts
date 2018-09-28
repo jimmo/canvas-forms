@@ -14,7 +14,7 @@ export class Dialog extends Control {
     super();
   }
 
-  defaultConstraints() {
+  protected defaultConstraints() {
     this.coords.center(CoordAxis.X);
     this.coords.center(CoordAxis.Y);
   }
@@ -73,7 +73,7 @@ export class AlertDialog extends Dialog {
     });
   }
 
-  defaultConstraints() {
+  protected defaultConstraints() {
     this.coords.size(420, 180);
     super.defaultConstraints();
   }
@@ -96,7 +96,7 @@ export class ConfirmDialog extends Dialog {
     });
   }
 
-  defaultConstraints() {
+  protected defaultConstraints() {
     this.coords.size(420, 180);
     super.defaultConstraints();
   }
@@ -124,7 +124,7 @@ export class PromptDialog extends Dialog {
     });
   }
 
-  defaultConstraints() {
+  protected defaultConstraints() {
     this.coords.size(420, 180);
     super.defaultConstraints();
   }

@@ -935,11 +935,15 @@ export class Control {
       control.enableChildHitDetectionOnParent();
     }
 
-    // Tell the control it now has a parent.
-    control.added();
+    // If our parent exists on a form:
+    if (this.form) {
+      // Tell the control it now has a parent.
+      control.added();
 
-    // Asynchronously relayout (and repaint) the form.
-    this.relayout();
+      // Asynchronously relayout (and repaint) the form.
+      this.relayout();
+    }
+    //... otherwise this will happen when our parent gets added.
 
     // Return the control so you can write, e.g. `let l = f.add(new Label());`
     return control;
@@ -947,6 +951,10 @@ export class Control {
 
   // Override this in a subclass to get notified when added to a parent.
   protected added() {
+    // Notfy any of our existing controls that we are now on a form.
+    for (const control of this.controls) {
+      control.added();
+    }
     this.defaultConstraints();
   }
 

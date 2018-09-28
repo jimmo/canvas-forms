@@ -149,6 +149,17 @@ export class List<T> extends ScrollBox {
     return itemControl;
   }
 
+  getItem(item: T): ListItem<T> {
+    for (const c of this.controls) {
+      if (c instanceof ListItem) {
+        if (c.value === item) {
+          return c;
+        }
+      }
+    }
+    return null;
+  }
+
   get selectedItem() {
     for (const c of this.controls) {
       if ((c as ListItem<T>).selected) {

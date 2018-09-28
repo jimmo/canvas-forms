@@ -364,7 +364,7 @@ class SubTree extends Control {
     return ti;
   }
 
-  added() {
+  protected added() {
     super.added();
 
     // Once the subtree is added (i.e. the parent TreeItem has been opened), then
@@ -422,7 +422,7 @@ export class Tree extends ScrollBox {
     this.sub = new SubTree(this, null);
   }
 
-  added() {
+  protected added() {
     super.added();
 
     // When we're added to a parent, we can start using constraints.
