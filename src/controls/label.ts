@@ -46,36 +46,43 @@ export class Label extends TextControl {
       ctx.textAlign = 'left';
     }
 
+    let w = 0;
+
     // Split the text by newline and draw each line individually.
     const lines = this.text.split('\n');
-    const lineHeight = (this.getFontSize() + 3);
-    const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
-    let x = 0;
-    if (this._align === TextAlign.CENTER) {
-      x = this.w / 2;
-      if (this.iconCode) {
-        x += (this.getFontSize() + 10) / 2;
+    if (lines.length > 0) {
+      const lineHeight = (this.getFontSize() + 3);
+      const y = this.h / 2 - lineHeight * (lines.length - 1) / 2;
+      let x = 0;
+      if (this._align === TextAlign.CENTER) {
+        x = this.w / 2;
+        if (this.iconCode) {
+          x += (this.getFontSize() + 10) / 2;
+        }
+      } else {
+        if (this.iconCode) {
+          x += this.getFontSize() + 10;
+        }
       }
-    } else {
-      if (this.iconCode) {
-        x += this.getFontSize() + 10;
+      for (let i = 0; i < lines.length; ++i) {
+        ctx.fillText(lines[i], x, y + i * lineHeight);
+        w = Math.max(w, Math.ceil(ctx.measureText(lines[i]).width));
       }
-    }
-    let w = 0;
-    for (let i = 0; i < lines.length; ++i) {
-      ctx.fillText(lines[i], x, y + i * lineHeight);
-      w = Math.max(w, Math.ceil(ctx.measureText(lines[i]).width));
     }
 
     if (this.iconCode) {
       ctx.font = this.getFontSize() + 'px ' + this.iconFontName;
       ctx.textBaseline = 'middle';
-      ctx.textAlign = 'center';
 
+      let x = 0;
       if (this._align === TextAlign.CENTER) {
-        x = this.w / 2 - (this.getFontSize() + 10) / 2 - w;
+        ctx.textAlign = 'center';
+        x = this.w / 2;
+        if (lines.length > 0) {
+          x -= (this.getFontSize() + 10 + w) / 2 - this.getFontSize() / 2;
+        }
       } else {
-        x = this.getFontSize() / 2;
+        ctx.textAlign = 'left';
       }
       ctx.fillText(this.iconCode, x, this.h / 2);
     }

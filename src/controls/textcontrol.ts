@@ -159,12 +159,12 @@ export abstract class TextControl extends Control {
 
   // Returns the font name only.
   protected getFontName(): string {
-    return this._fontName || 'sans';
+    return this._fontName || this.form.style.font.name;
   }
 
   // Returns the font size in pixels.
   protected getFontSize(): number {
-    return this._fontSize || 18;
+    return this._fontSize || this.form.style.font.size;
   }
 
   // Returns the default foreground color for this control.

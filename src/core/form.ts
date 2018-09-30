@@ -44,7 +44,7 @@ export class FormMouseUpEvent extends SurfaceMouseEvent {
     super(x, y, button, buttons);
   }
 
-  inside() {
+  get inside() {
     return this.control.inside(this.x, this.y);
   }
 }

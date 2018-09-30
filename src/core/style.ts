@@ -78,17 +78,20 @@ export class StyleBorder {
   }
 }
 
+export class StyleFont {
+  get size() {
+    return 18;
+  }
+
+  get name() {
+    return 'sans';
+  }
+}
+
 export class Style {
-  constructor(private _color?: StyleColor, private _border?: StyleBorder) {
-    this._color = this._color || new StyleColor();
-    this._border = this._border || new StyleBorder();
-  }
-
-  get color(): StyleColor {
-    return this._color;
-  }
-
-  get border(): StyleBorder {
-    return this._border;
+  constructor(public color?: StyleColor, public border?: StyleBorder, public font?: StyleFont) {
+    this.color = this.color || new StyleColor();
+    this.border = this.border || new StyleBorder();
+    this.font = this.font || new StyleFont();
   }
 }

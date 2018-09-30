@@ -34,7 +34,7 @@ export class Button extends TextControl {
 
       this._down = false;
 
-      if (ev.capture && this.inside(ev.x, ev.y)) {
+      if (ev.capture && ev.inside) {
         this.click.fire();
       }
 

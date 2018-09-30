@@ -24,7 +24,7 @@ export class MenuItem extends Control {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    ctx.font = '18px sans'
+    ctx.font = this.form.style.font.size + 'px ' + this.form.style.font.name;
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.form.style.color.text;
     ctx.textAlign = 'left';
@@ -56,7 +56,7 @@ export class MenuHeadingItem extends Control {
   protected paint(ctx: CanvasRenderingContext2D) {
     super.paint(ctx);
 
-    ctx.font = '18px sans'
+    ctx.font = this.form.style.font.size + 'px ' + this.form.style.font.name;
     ctx.textBaseline = 'middle';
     ctx.fillStyle = this.form.style.color.text;
     ctx.textAlign = 'left';

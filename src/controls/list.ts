@@ -3,8 +3,7 @@ import { EventSource } from '../core/events';
 import { Label } from './label';
 import { CheckBox } from './checkbox';
 import { ScrollBox } from './scrollbox';
-
-// TODO: make this API work more like Tree.
+import { FormMouseUpEvent } from '../core';
 
 export class ListItem<T> extends Control {
   private _selected: boolean = false;
@@ -51,6 +50,38 @@ export class ListItem<T> extends Control {
     }
   }
 }
+
+export class ClickableListItem<T> extends ListItem<T> {
+  _down: boolean;
+  click: EventSource<FormMouseUpEvent>;
+
+  constructor(value: T) {
+    super(value);
+
+    this.click = new EventSource();
+
+    this.mousedown.add((ev) => {
+      this._down = true;
+      this.repaint();
+      ev.capture();
+    });
+    this.mouseup.add((ev) => {
+      this._down = false;
+      this.repaint();
+      if (ev.capture && ev.inside) {
+        this.click.fire(ev);
+      }
+    });
+  }
+
+  protected paintBackground(ctx: CanvasRenderingContext2D) {
+    if (this._down) {
+      ctx.fillStyle = this.form.style.color.hovered;
+      ctx.fillRect(0, 0, this.w, this.h);
+    }
+  }
+};
+
 
 export class TextListItem extends ListItem<string> {
   private _draggable: boolean = false;

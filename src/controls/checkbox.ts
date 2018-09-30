@@ -48,7 +48,7 @@ export class CheckBox extends TextControl {
         return;
       }
 
-      if (ev.capture && this.inside(ev.x, ev.y)) {
+      if (ev.capture && ev.inside) {
         this.checked = !this._checked;
       }
 
