@@ -1,7 +1,14 @@
 import { Control } from "./control";
 import { EventSource } from "./events";
 
-export class MenuItem extends Control {
+class BaseMenuItem extends Control {
+  protected defaultConstraints() {
+    this.coords.w.set(220);
+    this.coords.h.set(this.form.defaultHeight);
+  }
+}
+
+export class MenuItem extends BaseMenuItem {
   click: EventSource;
   down: boolean;
 
@@ -41,14 +48,9 @@ export class MenuItem extends Control {
       ctx.fillRect(0, 0, this.w, this.h);
     }
   }
-
-  protected defaultConstraints() {
-    this.coords.w.set(180);
-    this.coords.h.set(32);
-  }
 }
 
-export class MenuHeadingItem extends Control {
+export class MenuHeadingItem extends BaseMenuItem {
   constructor(readonly text: string, readonly icon?: string) {
     super();
   }
@@ -62,15 +64,11 @@ export class MenuHeadingItem extends Control {
     ctx.textAlign = 'left';
     ctx.fillText(this.text, 3, this.h / 2);
   }
-
-  protected defaultConstraints() {
-    this.coords.w.set(180);
-    this.coords.h.set(32);
-  }
 }
 
-export class MenuSeparatorItem extends Control {
+export class MenuSeparatorItem extends BaseMenuItem {
   constructor() {
+    // Make Control's private ctor public.
     super();
   }
 
@@ -84,7 +82,7 @@ export class MenuSeparatorItem extends Control {
   }
 
   protected defaultConstraints() {
-    this.coords.w.set(180);
+    this.coords.w.set(220);
     this.coords.h.set(10);
   }
 }

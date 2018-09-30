@@ -535,10 +535,10 @@ export class Form extends Control {
 
   // Default width & height for controls that do not get these through constraints.
   get defaultWidth(): number {
-    return 160;
+    return this.defaultHeight * 5;
   }
   get defaultHeight(): number {
-    return 32;
+    return Math.floor(this.style.font.size * 1.8);
   }
 
   // Override the default implementaiton in Control (we're the root control, so at 0,0).
