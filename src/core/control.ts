@@ -709,10 +709,14 @@ export class Control {
     // Keep applying constraints and moving failed ones to the end of the queue.
     // Stop when we stop making progress.
     let pending = constraints;
+    // Flag if we're currently attempting an unstick.
+    let unstick = false;
     while (pending.length > 0) {
       let next = [];
       for (const c of pending) {
         if (c.apply()) {
+          // A constraint applied, we're making progress.
+          unstick = false;
           c.order = i;
           ++i;
         } else {
@@ -720,7 +724,21 @@ export class Control {
         }
       }
       if (next.length === pending.length) {
-        throw new Error('Unable to apply remaining constraints.');
+        let failed = unstick;
+
+        // Attempt to unstick any single constraint.
+        for (const c of pending) {
+          if (c.unstick()) {
+            unstick = true;
+            failed = false;
+            break;
+          }
+        }
+
+        if (failed) {
+          // We already unstuck something (this round or last) and still didn't make any progress.
+          throw new Error('Unable to apply remaining constraints.');
+        }
       }
       pending = next;
     }

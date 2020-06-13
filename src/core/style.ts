@@ -1,38 +1,42 @@
 export class StyleColor {
+  private get commonBorder() {
+    return '#404040';
+  }
+
   get insetLeft() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get insetTop() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get insetRight() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get insetBottom() {
-    return '#808080'
+    return this.commonBorder
   }
 
   get outsetLeft() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get outsetTop() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get outsetRight() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get outsetBottom() {
-    return '#808080'
+    return this.commonBorder
   }
 
   get separator() {
-    return '#808080';
+    return this.commonBorder;
   }
 
   get selected() {
@@ -68,13 +72,13 @@ export class StyleColor {
   }
 
   get symbol() {
-    return '#808080';
+    return this.commonBorder;
   }
 }
 
 export class StyleBorder {
   get radius() {
-    return 4;
+    return 6;
   }
 }
 

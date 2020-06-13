@@ -1,6 +1,6 @@
 {
   "name": "canvas-forms",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Forms and layout using Canvas",
   "main": "dist/index.js",
   "module": "dist/index.es.js",

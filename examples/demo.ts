@@ -1,6 +1,13 @@
-import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, MenuItems, FontStyle, MenuSeparatorItem } from 'canvas-forms';
+import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, MenuItems, FontStyle, MenuSeparatorItem, StyleFont } from 'canvas-forms';
 
 const form = new Form(new Surface('canvas'));
+
+class HazardStyleFont extends StyleFont {
+  get size() {
+    return 18;
+  }
+}
+form.style.font = new HazardStyleFont();
 
 // UI is a list on the left, scrollbox on the right, separated by a vertical grabber.
 const demoList = form.add(new List<string>(TextListItem), { x: 10, y: 10, y2: 10 });
@@ -70,6 +77,7 @@ makeDemo('Modal', () => {
 
   const b2 = c.add(new Button('Prompt'), 10, 100);
   const l = c.add(new Label(), 20, 150);
+  l.fit = true;
   b2.click.add(async () => {
     const result = await new PromptDialog('Enter some text:').modal(form);
     l.text = 'You clicked: ' + result;
@@ -350,7 +358,7 @@ makeDemo('Button', () => {
     b1.text = 'Hello';
   });
 
-  const g1 = c.add(new ButtonGroup(), 10, 100, 400, 32);
+  const g1 = c.add(new ButtonGroup(), 10, 100, 400);
   const gb1 = g1.add(new Button('One'));
   const gb2 = g1.add(new Button('Two'));
   const gb3 = g1.add(new Button('Three'));

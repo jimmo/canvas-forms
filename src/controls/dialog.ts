@@ -116,12 +116,15 @@ export class PromptDialog extends Dialog {
     this.name = this.add(new TextBox(text), 20, 54);
     this.name.coords.x2.set(20);
 
-    this.add(new Button('Cancel'), { x2: 20, y2: 20 }).click.add(() => {
+    const cancel = this.add(new Button('Cancel'), { x2: 20, y2: 20 });
+    cancel.click.add(() => {
       this.close(null);
     });
-    this.add(new Button('OK'), { x2: 190, y2: 20 }).click.add(() => {
+    const ok = this.add(new Button('OK'), { y2: 20 });
+    ok.click.add(() => {
       this.close(this.name.text);
     });
+    ok.coords.x2.align(cancel.coords.x2w, 20);
   }
 
   protected defaultConstraints() {

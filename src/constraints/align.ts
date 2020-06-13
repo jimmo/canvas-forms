@@ -1,6 +1,6 @@
 import { Constraint } from './constraint';
 import { Control } from '../core/control';
-import { Coord } from '../core/enums';
+import { Coord, CoordAxis } from '../core/enums';
 
 // This constrains two coordinates from the same axis.
 // As soon as one is set, the other will copy it. This means the constraint is bidirectional.
@@ -57,6 +57,33 @@ export class AlignConstraint extends Constraint {
     }
 
     // Neither was set, so we can't be applied yet.
+    return false;
+  }
+
+  // If alignment can't proceed, then try giving both controls a width or height.
+  unstick() {
+    let v1 = Constraint.getCoord(this.control1, this.coord1);
+    let v2 = Constraint.getCoord(this.control2, this.coord2);
+
+    if (v1 !== null || v2 !== null) {
+      throw new Error('Attempt to unstick a constraint that should have worked.')
+    }
+
+    if (this.coord1.axis == CoordAxis.X && this.coord2.axis == CoordAxis.X) {
+      if (this.control1.w === null && this.control2.w === null) {
+        Constraint.setCoord(this.control1, Coord.W, this.control1.form.defaultWidth);
+        Constraint.setCoord(this.control2, Coord.W, this.control2.form.defaultWidth);
+        return true;
+      }
+    }
+    if (this.coord1.axis == CoordAxis.Y && this.coord2.axis == CoordAxis.Y) {
+      if (this.control1.h === null && this.control2.h === null) {
+        Constraint.setCoord(this.control1, Coord.H, this.control1.form.defaultHeight);
+        Constraint.setCoord(this.control2, Coord.H, this.control2.form.defaultHeight);
+        return true;
+      }
+    }
+
     return false;
   }
 

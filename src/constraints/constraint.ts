@@ -171,6 +171,13 @@ export abstract class Constraint {
     return true;
   }
 
+  // Can be overriden if the constraint has some way to resolve an underspecified layout.
+  // If this returns true then this constraint will have apply() called (which will now be)
+  // expected to return true;
+  unstick() {
+    return false;
+  }
+
   // Return true if this constraint has converged.
   // The `round` argument indicates what round this is.
   // If any constraint returns false here, then the entire layout will be attempted again
