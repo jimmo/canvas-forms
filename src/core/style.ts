@@ -74,6 +74,15 @@ export class StyleColor {
     get symbol() {
         return this.commonBorder;
     }
+
+    static rgb(r: number, g: number, b: number) {
+        return "rgb(" + r + ", " + g + ", " + b+ ")"
+    }
+
+    static rgbmap(r1: number, g1: number, b1: number, r2: number, g2: number, b2: number, v: number, vmin: number, vmax: number) {
+        // TODO: Use HSL rather than RGB interpolation.
+        return StyleColor.rgb(r1 + Math.round((v - vmin) * (r2-r1) / (vmax - vmin)), g1 + Math.round((v - vmin) * (g2-g1) / (vmax - vmin)), b1 + Math.round((v - vmin) * (b2-b1) / (vmax - vmin)))
+    }
 }
 
 export class StyleBorder {

@@ -2,20 +2,29 @@ import { FormMouseDownEvent } from '../core/form';
 import { Control } from '../core/control';
 import { EventSource } from '../core/events';
 
+export enum SliderDirection {
+    Horizontal,
+    Vertical,
+};
+
 export class Slider extends Control {
     change: EventSource;
-    private _value: number = 0;
-    private _min: number = 0;
-    private _max: number = 1;
-    private _snap: number = 0;
+    protected _value: number = 0;
+    protected _min: number = 0;
+    protected _max: number = 1;
+    protected _snap: number = 0;
+    protected _direction: SliderDirection = SliderDirection.Horizontal;
+    protected _handleWidth: number = 16;
 
-    constructor(value?: number, min?: number, max?: number, snap?: number) {
+    constructor(value?: number, min?: number, max?: number, snap?: number, direction?: SliderDirection) {
         super();
 
         this._value = value || 0;
         this._min = min || 0;
         this._max = max === undefined ? 1 : max;
         this._snap = snap;
+        this._direction = direction || SliderDirection.Horizontal;
+        this._handleWidth = 16;
 
         this.change = new EventSource();
 
@@ -27,7 +36,9 @@ export class Slider extends Control {
             if (!data.capture) {
                 return;
             }
-            this.value = Math.min(1, Math.max(0, ((data.x - 8) / (this.w - 16)))) * (this._max - this._min) + this._min;
+            let x = this._direction == SliderDirection.Horizontal ? data.x : data.y;
+            let w = this._direction == SliderDirection.Horizontal ? this.w : this.h;
+            this.value = Math.min(1, Math.max(0, ((x - this._handleWidth/2) / (w - this._handleWidth)))) * (this._max - this._min) + this._min;
         });
     }
 
@@ -54,8 +65,13 @@ export class Slider extends Control {
 
         ctx.strokeRect(0, 0, this.w, this.h);
 
-        let x = (this.w - 16) * (this._value - this._min) / (this._max - this._min);
-        ctx.fillRect(x, 2, 16, this.h - 4);
+        if (this._direction == SliderDirection.Horizontal) {
+            let x = (this.w - this._handleWidth) * (this._value - this._min) / (this._max - this._min);
+            ctx.fillRect(x, 2, this._handleWidth, this.h - 4);
+        } else {
+            let y = (this.h - this._handleWidth) * (this._value - this._min) / (this._max - this._min);
+            ctx.fillRect(2, y, this.w - 4, this._handleWidth);
+        }
     }
 
     scrollBy(dx: number, dy: number): boolean {

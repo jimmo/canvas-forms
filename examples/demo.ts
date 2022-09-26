@@ -1,4 +1,4 @@
-import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, MenuItems, FontStyle, MenuSeparatorItem, StyleFont } from 'canvas-forms';
+import { AlertDialog, Button, ButtonGroup, CheckBox, CheckBoxListItem, Coord, CoordAxis, Dialog, Easing, FillConstraint, FocusTextBox, Form, Grabber, Label, List, ListItem, OpacityAnimator, PromptDialog, RadioGroup, ScrollBox, Slider, SliderDirection, Surface, TextBox, TextListItem, Tree, TreeNode, MenuItem, MenuItems, FontStyle, MenuSeparatorItem, StyleFont, StyleColor } from 'canvas-forms';
 
 const form = new Form(new Surface('canvas'));
 
@@ -170,6 +170,51 @@ makeDemo('CheckBox', () => {
     }
 });
 
+class FancySlider extends Slider {
+    constructor(value?: number, min?: number, max?: number, snap?: number, direction?: SliderDirection) {
+        super(value, min, max, snap, direction);
+    }
+
+    protected paint(ctx: CanvasRenderingContext2D) {
+        //super.paint(ctx);
+
+        const r = this._direction == SliderDirection.Horizontal ? (this.h - 4) / 2 : (this.w - 4) / 2;
+        this._handleWidth = r * 2;
+
+        // Define rounded rect.
+
+        ctx.fillStyle = StyleColor.rgbmap(255, 255, 255, 255, 0, 0, this._value, this._min, this._max);
+        ctx.strokeStyle = this.form.style.color.insetLeft;
+        ctx.lineWidth = 1;
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.lineTo(this.w - r, 0);
+        ctx.arcTo(this.w, 0, this.w, r, r);
+        ctx.lineTo(this.w, this.h - r);
+        ctx.arcTo(this.w, this.h, this.w - r, this.h, r);
+        ctx.lineTo(r, this.h);
+        ctx.arcTo(0, this.h, 0, this.h - r, r);
+        ctx.lineTo(0, r);
+        ctx.arcTo(0, 0, r, 0, r);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        if (this._direction == SliderDirection.Horizontal) {
+            let x = (this.w - this._handleWidth) * (this._value - this._min) / (this._max - this._min);
+            ctx.ellipse(x + r, this.h / 2, r, r, 0, 0, 2 * Math.PI);
+        } else {
+            let y = (this.h - this._handleWidth) * (this._value - this._min) / (this._max - this._min);
+            ctx.ellipse(this.w / 2, y + r, r, r, 0, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+        ctx.strokeStyle = this.form.style.color.insetLeft;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+}
 
 // Sliders, continuous and discrete.
 makeDemo('Slider', () => {
@@ -185,6 +230,34 @@ makeDemo('Slider', () => {
     const l2 = c.add(new Label('20'), 420, 50);
     s2.change.add(() => {
         l2.text = (Math.round(s2.value * 10) / 10).toString();
+    });
+
+    // Vertical slider with 20 discrete positions.
+    const s3 = c.add(new Slider(4, 0, 20, 1, SliderDirection.Vertical), 10, 90, null, 400);
+    const l3 = c.add(new Label('4'), 10, 510);
+    s3.change.add(() => {
+        l3.text = s3.value.toString();
+    });
+
+    // Continuous vertical slider.
+    const s4 = c.add(new Slider(20, 0, 100, null, SliderDirection.Vertical), 150, 90, null, 400);
+    const l4 = c.add(new Label('20'), 50, 510);
+    s4.change.add(() => {
+        l4.text = (Math.round(s4.value * 10) / 10).toString();
+    });
+
+    // Fancy slider with 20 discrete positions.
+    const s5 = c.add(new FancySlider(4, 0, 20, 1), 10, 550, 400, 40);
+    const l5 = c.add(new Label('4'), 420, 600);
+    s5.change.add(() => {
+        l5.text = s5.value.toString();
+    });
+
+    // Fancy vertical slider with 20 discrete positions.
+    const s6 = c.add(new FancySlider(4, 0, 20, 1, SliderDirection.Vertical), 480, 550, 40, 300);
+    const l6 = c.add(new Label('4'), 530, 550);
+    s6.change.add(() => {
+        l6.text = s6.value.toString();
     });
 });
 
