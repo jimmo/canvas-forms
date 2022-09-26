@@ -89,7 +89,6 @@ export class Surface {
 
         // Maps browser touch events into our mouse events.
         const createTouchEvent = (ev: TouchEvent) => {
-            console.log(ev);
             if (ev.touches.length > 1) {
                 return null;
             }

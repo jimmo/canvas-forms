@@ -183,7 +183,7 @@ class FancySlider extends Slider {
 
         // Define rounded rect.
 
-        ctx.fillStyle = StyleColor.rgbmap(255, 255, 255, 255, 0, 0, this._value, this._min, this._max);
+        ctx.fillStyle = StyleColor.hslmap(0, 1, 0.5, 1, 1, 0.5, this._value, this._min, this._max);
         ctx.strokeStyle = this.form.style.color.insetLeft;
         ctx.lineWidth = 1;
         ctx.lineJoin = 'round';
